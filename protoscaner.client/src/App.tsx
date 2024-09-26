@@ -3,12 +3,21 @@ import './App.css';
 
 
 
-function App() {
-    <div>
-       
-        <h1 className="text-center text-2xl font-bold mt-4">Bienvenido a Mi App</h1>
-        <p className="text-center mt-2">Aquí puedes navegar por las diferentes secciones.</p>
-    </div>
-}
+// App.tsx
+import React from 'react';
+// Ajusta la ruta según tu estructura de carpetas
+
+const App: React.FC = () => {
+    return (
+        <div>
+           
+            <div className="text-center mt-4">
+                <h1 className="text-2xl font-bold">Bienvenido a Mi App</h1>
+                <p>Aquí puedes navegar por las diferentes secciones.</p>
+            </div>
+            {/* Otras secciones de tu aplicación */}
+        </div>
+    );
+};
 
 export default App;
