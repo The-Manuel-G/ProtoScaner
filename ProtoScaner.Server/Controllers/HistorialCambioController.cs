@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,76 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/historialcambio
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<HistorialCambio>>> GetHistorialCambios()
+        public async Task<ActionResult<IEnumerable<HistorialCambioDTO>>> GetHistorialCambios()
         {
-            return Ok(await dbContext.HistorialCambios.ToListAsync());
+            var historialCambios = await dbContext.HistorialCambios
+                .Select(hc => new HistorialCambioDTO
+                {
+                    IdHistorial = hc.IdHistorial,
+                    IdUsuario = hc.IdUsuario,
+                    TablaModificada = hc.TablaModificada,
+                    IdRegistroModificado = hc.IdRegistroModificado,
+                    Operacion = hc.Operacion,
+                    ValorAnterior = hc.ValorAnterior,
+                    ValorNuevo = hc.ValorNuevo,
+                    FechaMidificacion = hc.FechaMidificacion
+                })
+                .ToListAsync();
+
+            return Ok(historialCambios);
         }
 
         // GET: api/historialcambio/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<HistorialCambio>> GetHistorialCambio(int id)
+        public async Task<ActionResult<HistorialCambioDTO>> GetHistorialCambio(int id)
         {
             var historialCambio = await dbContext.HistorialCambios.FindAsync(id);
             if (historialCambio == null)
             {
                 return NotFound();
             }
-            return Ok(historialCambio);
+
+            var historialCambioDTO = new HistorialCambioDTO
+            {
+                IdHistorial = historialCambio.IdHistorial,
+                IdUsuario = historialCambio.IdUsuario,
+                TablaModificada = historialCambio.TablaModificada,
+                IdRegistroModificado = historialCambio.IdRegistroModificado,
+                Operacion = historialCambio.Operacion,
+                ValorAnterior = historialCambio.ValorAnterior,
+                ValorNuevo = historialCambio.ValorNuevo,
+                FechaMidificacion = historialCambio.FechaMidificacion
+            };
+
+            return Ok(historialCambioDTO);
         }
 
         // POST: api/historialcambio
         [HttpPost]
-        public async Task<ActionResult<HistorialCambio>> CreateHistorialCambio(HistorialCambio nuevoHistorialCambio)
+        public async Task<ActionResult<HistorialCambioDTO>> CreateHistorialCambio(HistorialCambioDTO nuevoHistorialCambioDTO)
         {
+            var nuevoHistorialCambio = new HistorialCambio
+            {
+                IdUsuario = nuevoHistorialCambioDTO.IdUsuario,
+                TablaModificada = nuevoHistorialCambioDTO.TablaModificada,
+                IdRegistroModificado = nuevoHistorialCambioDTO.IdRegistroModificado,
+                Operacion = nuevoHistorialCambioDTO.Operacion,
+                ValorAnterior = nuevoHistorialCambioDTO.ValorAnterior,
+                ValorNuevo = nuevoHistorialCambioDTO.ValorNuevo,
+                FechaMidificacion = nuevoHistorialCambioDTO.FechaMidificacion
+            };
+
             dbContext.HistorialCambios.Add(nuevoHistorialCambio);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetHistorialCambio), new { id = nuevoHistorialCambio.IdHistorial }, nuevoHistorialCambio);
+
+            nuevoHistorialCambioDTO.IdHistorial = nuevoHistorialCambio.IdHistorial;
+
+            return CreatedAtAction(nameof(GetHistorialCambio), new { id = nuevoHistorialCambio.IdHistorial }, nuevoHistorialCambioDTO);
         }
 
         // PUT: api/historialcambio/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateHistorialCambio(int id, HistorialCambio historialCambioActualizado)
+        public async Task<ActionResult> UpdateHistorialCambio(int id, HistorialCambioDTO historialCambioActualizadoDTO)
         {
             var historialCambio = await dbContext.HistorialCambios.FindAsync(id);
             if (historialCambio == null)
@@ -55,13 +98,13 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            historialCambio.IdUsuario = historialCambioActualizado.IdUsuario;
-            historialCambio.TablaModificada = historialCambioActualizado.TablaModificada;
-            historialCambio.IdRegistroModificado = historialCambioActualizado.IdRegistroModificado;
-            historialCambio.Operacion = historialCambioActualizado.Operacion;
-            historialCambio.ValorAnterior = historialCambioActualizado.ValorAnterior;
-            historialCambio.ValorNuevo = historialCambioActualizado.ValorNuevo;
-            historialCambio.FechaMidificacion = historialCambioActualizado.FechaMidificacion;
+            historialCambio.IdUsuario = historialCambioActualizadoDTO.IdUsuario;
+            historialCambio.TablaModificada = historialCambioActualizadoDTO.TablaModificada;
+            historialCambio.IdRegistroModificado = historialCambioActualizadoDTO.IdRegistroModificado;
+            historialCambio.Operacion = historialCambioActualizadoDTO.Operacion;
+            historialCambio.ValorAnterior = historialCambioActualizadoDTO.ValorAnterior;
+            historialCambio.ValorNuevo = historialCambioActualizadoDTO.ValorNuevo;
+            historialCambio.FechaMidificacion = historialCambioActualizadoDTO.FechaMidificacion;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -83,4 +126,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-

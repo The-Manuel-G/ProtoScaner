@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,58 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/ladoamputacion
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LadoAmputacion>>> GetLadosAmputacion()
+        public async Task<ActionResult<IEnumerable<LadoAmputacionDTO>>> GetLadosAmputacion()
         {
-            return Ok(await dbContext.LadoAmputacions.ToListAsync());
+            var lados = await dbContext.LadoAmputacions
+                .Select(la => new LadoAmputacionDTO
+                {
+                    IdLado = la.IdLado,
+                    LadoAmputacion1 = la.LadoAmputacion1
+                })
+                .ToListAsync();
+
+            return Ok(lados);
         }
 
         // GET: api/ladoamputacion/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<LadoAmputacion>> GetLadoAmputacion(int id)
+        public async Task<ActionResult<LadoAmputacionDTO>> GetLadoAmputacion(int id)
         {
             var ladoAmputacion = await dbContext.LadoAmputacions.FindAsync(id);
             if (ladoAmputacion == null)
             {
                 return NotFound();
             }
-            return Ok(ladoAmputacion);
+
+            var ladoAmputacionDTO = new LadoAmputacionDTO
+            {
+                IdLado = ladoAmputacion.IdLado,
+                LadoAmputacion1 = ladoAmputacion.LadoAmputacion1
+            };
+
+            return Ok(ladoAmputacionDTO);
         }
 
         // POST: api/ladoamputacion
         [HttpPost]
-        public async Task<ActionResult<LadoAmputacion>> CreateLadoAmputacion(LadoAmputacion nuevoLadoAmputacion)
+        public async Task<ActionResult<LadoAmputacionDTO>> CreateLadoAmputacion(LadoAmputacionDTO nuevoLadoAmputacionDTO)
         {
+            var nuevoLadoAmputacion = new LadoAmputacion
+            {
+                LadoAmputacion1 = nuevoLadoAmputacionDTO.LadoAmputacion1
+            };
+
             dbContext.LadoAmputacions.Add(nuevoLadoAmputacion);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetLadoAmputacion), new { id = nuevoLadoAmputacion.IdLado }, nuevoLadoAmputacion);
+
+            nuevoLadoAmputacionDTO.IdLado = nuevoLadoAmputacion.IdLado;
+
+            return CreatedAtAction(nameof(GetLadoAmputacion), new { id = nuevoLadoAmputacion.IdLado }, nuevoLadoAmputacionDTO);
         }
 
         // PUT: api/ladoamputacion/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateLadoAmputacion(int id, LadoAmputacion ladoAmputacionActualizado)
+        public async Task<ActionResult> UpdateLadoAmputacion(int id, LadoAmputacionDTO ladoAmputacionActualizadoDTO)
         {
             var ladoAmputacion = await dbContext.LadoAmputacions.FindAsync(id);
             if (ladoAmputacion == null)
@@ -55,7 +80,7 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            ladoAmputacion.LadoAmputacion1 = ladoAmputacionActualizado.LadoAmputacion1;
+            ladoAmputacion.LadoAmputacion1 = ladoAmputacionActualizadoDTO.LadoAmputacion1;
 
             await dbContext.SaveChangesAsync();
             return NoContent();

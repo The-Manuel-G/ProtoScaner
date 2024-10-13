@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,61 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/linertranstibial
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LinerTranstibial>>> GetLinersTranstibiales()
+        public async Task<ActionResult<IEnumerable<LinerTranstibialDTO>>> GetLinersTranstibiales()
         {
-            return Ok(await dbContext.LinerTranstibials.ToListAsync());
+            var liners = await dbContext.LinerTranstibials
+                .Select(lt => new LinerTranstibialDTO
+                {
+                    IdLiner = lt.IdLiner,
+                    TipoLinerId = lt.TipoLinerId,
+                    TallaId = lt.TallaId
+                })
+                .ToListAsync();
+
+            return Ok(liners);
         }
 
         // GET: api/linertranstibial/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<LinerTranstibial>> GetLinerTranstibial(int id)
+        public async Task<ActionResult<LinerTranstibialDTO>> GetLinerTranstibial(int id)
         {
             var linerTranstibial = await dbContext.LinerTranstibials.FindAsync(id);
             if (linerTranstibial == null)
             {
                 return NotFound();
             }
-            return Ok(linerTranstibial);
+
+            var linerTranstibialDTO = new LinerTranstibialDTO
+            {
+                IdLiner = linerTranstibial.IdLiner,
+                TipoLinerId = linerTranstibial.TipoLinerId,
+                TallaId = linerTranstibial.TallaId
+            };
+
+            return Ok(linerTranstibialDTO);
         }
 
         // POST: api/linertranstibial
         [HttpPost]
-        public async Task<ActionResult<LinerTranstibial>> CreateLinerTranstibial(LinerTranstibial nuevoLinerTranstibial)
+        public async Task<ActionResult<LinerTranstibialDTO>> CreateLinerTranstibial(LinerTranstibialDTO nuevoLinerTranstibialDTO)
         {
+            var nuevoLinerTranstibial = new LinerTranstibial
+            {
+                TipoLinerId = nuevoLinerTranstibialDTO.TipoLinerId,
+                TallaId = nuevoLinerTranstibialDTO.TallaId
+            };
+
             dbContext.LinerTranstibials.Add(nuevoLinerTranstibial);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetLinerTranstibial), new { id = nuevoLinerTranstibial.IdLiner }, nuevoLinerTranstibial);
+
+            nuevoLinerTranstibialDTO.IdLiner = nuevoLinerTranstibial.IdLiner;
+
+            return CreatedAtAction(nameof(GetLinerTranstibial), new { id = nuevoLinerTranstibial.IdLiner }, nuevoLinerTranstibialDTO);
         }
 
         // PUT: api/linertranstibial/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateLinerTranstibial(int id, LinerTranstibial linerTranstibialActualizado)
+        public async Task<ActionResult> UpdateLinerTranstibial(int id, LinerTranstibialDTO linerTranstibialActualizadoDTO)
         {
             var linerTranstibial = await dbContext.LinerTranstibials.FindAsync(id);
             if (linerTranstibial == null)
@@ -55,8 +83,8 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            linerTranstibial.TipoLinerId = linerTranstibialActualizado.TipoLinerId;
-            linerTranstibial.TallaId = linerTranstibialActualizado.TallaId;
+            linerTranstibial.TipoLinerId = linerTranstibialActualizadoDTO.TipoLinerId;
+            linerTranstibial.TallaId = linerTranstibialActualizadoDTO.TallaId;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -78,4 +106,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

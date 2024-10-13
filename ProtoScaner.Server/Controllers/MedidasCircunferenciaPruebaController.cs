@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,64 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/medidasCircunferenciaPrueba
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MedidasCircunferenciaPrueba>>> GetMedidasCircunferenciaPruebas()
+        public async Task<ActionResult<IEnumerable<MedidasCircunferenciaPruebaDTO>>> GetMedidasCircunferenciaPruebas()
         {
-            return Ok(await dbContext.MedidasCircunferenciaPruebas.ToListAsync());
+            var medidas = await dbContext.MedidasCircunferenciaPruebas
+                .Select(m => new MedidasCircunferenciaPruebaDTO
+                {
+                    IdMedida = m.IdMedida,
+                    IdValor = m.IdValor,
+                    NumeroCircunferencia = m.NumeroCircunferencia,
+                    ValorMm = m.ValorMm
+                })
+                .ToListAsync();
+
+            return Ok(medidas);
         }
 
         // GET: api/medidasCircunferenciaPrueba/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<MedidasCircunferenciaPrueba>> GetMedidaCircunferenciaPrueba(int id)
+        public async Task<ActionResult<MedidasCircunferenciaPruebaDTO>> GetMedidaCircunferenciaPrueba(int id)
         {
             var medidaCircunferenciaPrueba = await dbContext.MedidasCircunferenciaPruebas.FindAsync(id);
             if (medidaCircunferenciaPrueba == null)
             {
                 return NotFound();
             }
-            return Ok(medidaCircunferenciaPrueba);
+
+            var medidaDTO = new MedidasCircunferenciaPruebaDTO
+            {
+                IdMedida = medidaCircunferenciaPrueba.IdMedida,
+                IdValor = medidaCircunferenciaPrueba.IdValor,
+                NumeroCircunferencia = medidaCircunferenciaPrueba.NumeroCircunferencia,
+                ValorMm = medidaCircunferenciaPrueba.ValorMm
+            };
+
+            return Ok(medidaDTO);
         }
 
         // POST: api/medidasCircunferenciaPrueba
         [HttpPost]
-        public async Task<ActionResult<MedidasCircunferenciaPrueba>> CreateMedidaCircunferenciaPrueba(MedidasCircunferenciaPrueba nuevaMedidaCircunferenciaPrueba)
+        public async Task<ActionResult<MedidasCircunferenciaPruebaDTO>> CreateMedidaCircunferenciaPrueba(MedidasCircunferenciaPruebaDTO nuevaMedidaDTO)
         {
-            dbContext.MedidasCircunferenciaPruebas.Add(nuevaMedidaCircunferenciaPrueba);
+            var nuevaMedida = new MedidasCircunferenciaPrueba
+            {
+                IdValor = nuevaMedidaDTO.IdValor,
+                NumeroCircunferencia = nuevaMedidaDTO.NumeroCircunferencia,
+                ValorMm = nuevaMedidaDTO.ValorMm
+            };
+
+            dbContext.MedidasCircunferenciaPruebas.Add(nuevaMedida);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetMedidaCircunferenciaPrueba), new { id = nuevaMedidaCircunferenciaPrueba.IdMedida }, nuevaMedidaCircunferenciaPrueba);
+
+            nuevaMedidaDTO.IdMedida = nuevaMedida.IdMedida;
+
+            return CreatedAtAction(nameof(GetMedidaCircunferenciaPrueba), new { id = nuevaMedida.IdMedida }, nuevaMedidaDTO);
         }
 
         // PUT: api/medidasCircunferenciaPrueba/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateMedidaCircunferenciaPrueba(int id, MedidasCircunferenciaPrueba medidaCircunferenciaPruebaActualizada)
+        public async Task<ActionResult> UpdateMedidaCircunferenciaPrueba(int id, MedidasCircunferenciaPruebaDTO medidaActualizadaDTO)
         {
             var medidaCircunferenciaPrueba = await dbContext.MedidasCircunferenciaPruebas.FindAsync(id);
             if (medidaCircunferenciaPrueba == null)
@@ -55,8 +86,8 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            medidaCircunferenciaPrueba.NumeroCircunferencia = medidaCircunferenciaPruebaActualizada.NumeroCircunferencia;
-            medidaCircunferenciaPrueba.ValorMm = medidaCircunferenciaPruebaActualizada.ValorMm;
+            medidaCircunferenciaPrueba.NumeroCircunferencia = medidaActualizadaDTO.NumeroCircunferencia;
+            medidaCircunferenciaPrueba.ValorMm = medidaActualizadaDTO.ValorMm;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -78,4 +109,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

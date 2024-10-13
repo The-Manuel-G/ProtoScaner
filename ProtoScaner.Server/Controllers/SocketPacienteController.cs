@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,17 +21,37 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/socketpaciente
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<SocketPaciente>>> GetSocketPacientes()
+        public async Task<ActionResult<IEnumerable<SocketPacienteDTO>>> GetSocketPacientes()
         {
-            return Ok(await dbContext.SocketPacientes.Include(sp => sp.IdPacienteNavigation).ToListAsync());
+            var socketPacientes = await dbContext.SocketPacientes
+                .Include(sp => sp.IdPacienteNavigation)
+                .Select(sp => new SocketPacienteDTO
+                {
+                    IdSocket = sp.IdSocket,
+                    IdPaciente = sp.IdPaciente,
+                    Descripcion = sp.Descripcion,
+                    FechaCreacion = sp.FechaCreacion,
+                    Tamaño = sp.Tamaño
+                })
+                .ToListAsync();
+
+            return Ok(socketPacientes);
         }
 
         // GET: api/socketpaciente/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<SocketPaciente>> GetSocketPaciente(int id)
+        public async Task<ActionResult<SocketPacienteDTO>> GetSocketPaciente(int id)
         {
             var socketPaciente = await dbContext.SocketPacientes
                 .Include(sp => sp.IdPacienteNavigation)
+                .Select(sp => new SocketPacienteDTO
+                {
+                    IdSocket = sp.IdSocket,
+                    IdPaciente = sp.IdPaciente,
+                    Descripcion = sp.Descripcion,
+                    FechaCreacion = sp.FechaCreacion,
+                    Tamaño = sp.Tamaño
+                })
                 .FirstOrDefaultAsync(sp => sp.IdSocket == id);
 
             if (socketPaciente == null)
@@ -41,16 +63,27 @@ namespace ProtoScaner.Server.Controllers
 
         // POST: api/socketpaciente
         [HttpPost]
-        public async Task<ActionResult<SocketPaciente>> CreateSocketPaciente(SocketPaciente nuevoSocketPaciente)
+        public async Task<ActionResult<SocketPacienteDTO>> CreateSocketPaciente(SocketPacienteDTO nuevaSocketPacienteDTO)
         {
-            dbContext.SocketPacientes.Add(nuevoSocketPaciente);
+            var nuevaSocketPaciente = new SocketPaciente
+            {
+                IdPaciente = nuevaSocketPacienteDTO.IdPaciente,
+                Descripcion = nuevaSocketPacienteDTO.Descripcion,
+                FechaCreacion = nuevaSocketPacienteDTO.FechaCreacion,
+                Tamaño = nuevaSocketPacienteDTO.Tamaño
+            };
+
+            dbContext.SocketPacientes.Add(nuevaSocketPaciente);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetSocketPaciente), new { id = nuevoSocketPaciente.IdSocket }, nuevoSocketPaciente);
+
+            nuevaSocketPacienteDTO.IdSocket = nuevaSocketPaciente.IdSocket;
+
+            return CreatedAtAction(nameof(GetSocketPaciente), new { id = nuevaSocketPaciente.IdSocket }, nuevaSocketPacienteDTO);
         }
 
         // PUT: api/socketpaciente/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateSocketPaciente(int id, SocketPaciente socketPacienteActualizado)
+        public async Task<ActionResult> UpdateSocketPaciente(int id, SocketPacienteDTO socketPacienteActualizado)
         {
             var socketPaciente = await dbContext.SocketPacientes.FindAsync(id);
             if (socketPaciente == null)
@@ -82,4 +115,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

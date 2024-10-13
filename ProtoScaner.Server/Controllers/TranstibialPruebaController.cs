@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -17,61 +18,86 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/TranstibialPrueba
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TranstibialPrueba>>> GetTranstibialPruebas()
+        public async Task<ActionResult<IEnumerable<TranstibialPruebaDTO>>> GetTranstibialPruebas()
         {
-            return await _context.TranstibialPruebas.ToListAsync();
+            var pruebas = await _context.TranstibialPruebas
+                .Select(tp => new TranstibialPruebaDTO
+                {
+                    IdPrueba = tp.IdPrueba,
+                    IdPaciente = tp.IdPaciente,
+                    FechaEscaneo = tp.FechaEscaneo,
+                    Protesista = tp.Protesista,
+                    // Mapea otras propiedades necesarias
+                })
+                .ToListAsync();
+
+            return Ok(pruebas);
         }
 
         // GET: api/TranstibialPrueba/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TranstibialPrueba>> GetTranstibialPrueba(int id)
+        public async Task<ActionResult<TranstibialPruebaDTO>> GetTranstibialPrueba(int id)
         {
-            var transtibialPrueba = await _context.TranstibialPruebas.FindAsync(id);
+            var prueba = await _context.TranstibialPruebas.FindAsync(id);
 
-            if (transtibialPrueba == null)
+            if (prueba == null)
             {
                 return NotFound();
             }
 
-            return transtibialPrueba;
+            var pruebaDTO = new TranstibialPruebaDTO
+            {
+                IdPrueba = prueba.IdPrueba,
+                IdPaciente = prueba.IdPaciente,
+                FechaEscaneo = prueba.FechaEscaneo,
+                Protesista = prueba.Protesista,
+                // Mapear otras propiedades necesarias
+            };
+
+            return pruebaDTO;
         }
 
         // POST: api/TranstibialPrueba
         [HttpPost]
-        public async Task<ActionResult<TranstibialPrueba>> PostTranstibialPrueba(TranstibialPrueba transtibialPrueba)
+        public async Task<ActionResult<TranstibialPruebaDTO>> PostTranstibialPrueba(TranstibialPruebaDTO pruebaDTO)
         {
-            _context.TranstibialPruebas.Add(transtibialPrueba);
+            var prueba = new TranstibialPrueba
+            {
+                IdPaciente = pruebaDTO.IdPaciente,
+                FechaEscaneo = pruebaDTO.FechaEscaneo,
+                Protesista = pruebaDTO.Protesista,
+                // Mapear otras propiedades necesarias
+            };
+
+            _context.TranstibialPruebas.Add(prueba);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTranstibialPrueba", new { id = transtibialPrueba.IdPrueba }, transtibialPrueba);
+            pruebaDTO.IdPrueba = prueba.IdPrueba;
+
+            return CreatedAtAction(nameof(GetTranstibialPrueba), new { id = prueba.IdPrueba }, pruebaDTO);
         }
 
         // PUT: api/TranstibialPrueba/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTranstibialPrueba(int id, TranstibialPrueba transtibialPrueba)
+        public async Task<IActionResult> PutTranstibialPrueba(int id, TranstibialPruebaDTO pruebaDTO)
         {
-            if (id != transtibialPrueba.IdPrueba)
+            if (id != pruebaDTO.IdPrueba)
             {
                 return BadRequest();
             }
 
-            _context.Entry(transtibialPrueba).State = EntityState.Modified;
+            var prueba = await _context.TranstibialPruebas.FindAsync(id);
+            if (prueba == null)
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TranstibialPruebaExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            prueba.IdPaciente = pruebaDTO.IdPaciente;
+            prueba.FechaEscaneo = pruebaDTO.FechaEscaneo;
+            prueba.Protesista = pruebaDTO.Protesista;
+            // Mapear otras propiedades necesarias
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -80,22 +106,18 @@ namespace ProtoScaner.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTranstibialPrueba(int id)
         {
-            var transtibialPrueba = await _context.TranstibialPruebas.FindAsync(id);
-            if (transtibialPrueba == null)
+            var prueba = await _context.TranstibialPruebas.FindAsync(id);
+            if (prueba == null)
             {
                 return NotFound();
             }
 
-            _context.TranstibialPruebas.Remove(transtibialPrueba);
+            _context.TranstibialPruebas.Remove(prueba);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-        private bool TranstibialPruebaExists(int id)
-        {
-            return _context.TranstibialPruebas.Any(e => e.IdPrueba == id);
-        }
     }
 }
+
 

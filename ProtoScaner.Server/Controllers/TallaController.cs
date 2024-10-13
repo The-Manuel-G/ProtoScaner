@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +20,58 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/talla
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Talla>>> GetTallas()
+        public async Task<ActionResult<IEnumerable<TallaDTO>>> GetTallas()
         {
-            return Ok(await dbContext.Tallas.ToListAsync());
+            var tallas = await dbContext.Tallas
+                .Select(t => new TallaDTO
+                {
+                    IdTalla = t.IdTalla,
+                    TallaNombre = t.TallaNombre
+                })
+                .ToListAsync();
+
+            return Ok(tallas);
         }
 
         // GET: api/talla/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Talla>> GetTalla(int id)
+        public async Task<ActionResult<TallaDTO>> GetTalla(int id)
         {
             var talla = await dbContext.Tallas.FindAsync(id);
             if (talla == null)
             {
                 return NotFound();
             }
-            return Ok(talla);
+
+            var tallaDTO = new TallaDTO
+            {
+                IdTalla = talla.IdTalla,
+                TallaNombre = talla.TallaNombre
+            };
+
+            return Ok(tallaDTO);
         }
 
         // POST: api/talla
         [HttpPost]
-        public async Task<ActionResult<Talla>> CreateTalla(Talla nuevaTalla)
+        public async Task<ActionResult<TallaDTO>> CreateTalla(TallaDTO nuevaTallaDTO)
         {
+            var nuevaTalla = new Talla
+            {
+                TallaNombre = nuevaTallaDTO.TallaNombre
+            };
+
             dbContext.Tallas.Add(nuevaTalla);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetTalla), new { id = nuevaTalla.IdTalla }, nuevaTalla);
+
+            nuevaTallaDTO.IdTalla = nuevaTalla.IdTalla;
+
+            return CreatedAtAction(nameof(GetTalla), new { id = nuevaTalla.IdTalla }, nuevaTallaDTO);
         }
 
         // PUT: api/talla/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateTalla(int id, Talla tallaActualizada)
+        public async Task<ActionResult> UpdateTalla(int id, TallaDTO tallaActualizadaDTO)
         {
             var talla = await dbContext.Tallas.FindAsync(id);
             if (talla == null)
@@ -55,7 +79,7 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            talla.TallaNombre = tallaActualizada.TallaNombre;
+            talla.TallaNombre = tallaActualizadaDTO.TallaNombre;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -77,4 +101,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

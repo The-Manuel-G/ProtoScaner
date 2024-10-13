@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -17,61 +18,94 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/TomaMedidasEscaneo
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TomaMedidasEscaneo>>> GetTomasMedidasEscaneo()
+        public async Task<ActionResult<IEnumerable<TomaMedidasEscaneoDTO>>> GetTomasMedidasEscaneo()
         {
-            return await _context.TomaMedidasEscaneos.ToListAsync();
+            var tomasMedidas = await _context.TomaMedidasEscaneos
+                .Select(t => new TomaMedidasEscaneoDTO
+                {
+                    IdEscaneo = t.IdEscaneo,
+                    IdPaciente = t.IdPaciente,
+                    IdAmputacion = t.IdAmputacion,
+                    IdLiner = t.IdLiner,
+                    FechaEscaneo = t.FechaEscaneo,
+                    Comentario = t.Comentario,
+                    ResultadoScaneo = t.ResultadoScaneo
+                })
+                .ToListAsync();
+
+            return Ok(tomasMedidas);
         }
 
         // GET: api/TomaMedidasEscaneo/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TomaMedidasEscaneo>> GetTomaMedidasEscaneo(int id)
+        public async Task<ActionResult<TomaMedidasEscaneoDTO>> GetTomaMedidasEscaneo(int id)
         {
-            var tomaMedidasEscaneo = await _context.TomaMedidasEscaneos.FindAsync(id);
+            var tomaMedidas = await _context.TomaMedidasEscaneos.FindAsync(id);
 
-            if (tomaMedidasEscaneo == null)
+            if (tomaMedidas == null)
             {
                 return NotFound();
             }
 
-            return tomaMedidasEscaneo;
+            var tomaMedidasDTO = new TomaMedidasEscaneoDTO
+            {
+                IdEscaneo = tomaMedidas.IdEscaneo,
+                IdPaciente = tomaMedidas.IdPaciente,
+                IdAmputacion = tomaMedidas.IdAmputacion,
+                IdLiner = tomaMedidas.IdLiner,
+                FechaEscaneo = tomaMedidas.FechaEscaneo,
+                Comentario = tomaMedidas.Comentario,
+                ResultadoScaneo = tomaMedidas.ResultadoScaneo
+            };
+
+            return Ok(tomaMedidasDTO);
         }
 
         // POST: api/TomaMedidasEscaneo
         [HttpPost]
-        public async Task<ActionResult<TomaMedidasEscaneo>> PostTomaMedidasEscaneo(TomaMedidasEscaneo tomaMedidasEscaneo)
+        public async Task<ActionResult<TomaMedidasEscaneoDTO>> PostTomaMedidasEscaneo(TomaMedidasEscaneoDTO tomaMedidasEscaneoDTO)
         {
+            var tomaMedidasEscaneo = new TomaMedidasEscaneo
+            {
+                IdPaciente = tomaMedidasEscaneoDTO.IdPaciente,
+                IdAmputacion = tomaMedidasEscaneoDTO.IdAmputacion,
+                IdLiner = tomaMedidasEscaneoDTO.IdLiner,
+                FechaEscaneo = tomaMedidasEscaneoDTO.FechaEscaneo,
+                Comentario = tomaMedidasEscaneoDTO.Comentario,
+                ResultadoScaneo = tomaMedidasEscaneoDTO.ResultadoScaneo
+            };
+
             _context.TomaMedidasEscaneos.Add(tomaMedidasEscaneo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTomaMedidasEscaneo", new { id = tomaMedidasEscaneo.IdEscaneo }, tomaMedidasEscaneo);
+            tomaMedidasEscaneoDTO.IdEscaneo = tomaMedidasEscaneo.IdEscaneo;
+
+            return CreatedAtAction(nameof(GetTomaMedidasEscaneo), new { id = tomaMedidasEscaneo.IdEscaneo }, tomaMedidasEscaneoDTO);
         }
 
         // PUT: api/TomaMedidasEscaneo/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTomaMedidasEscaneo(int id, TomaMedidasEscaneo tomaMedidasEscaneo)
+        public async Task<IActionResult> PutTomaMedidasEscaneo(int id, TomaMedidasEscaneoDTO tomaMedidasEscaneoDTO)
         {
-            if (id != tomaMedidasEscaneo.IdEscaneo)
+            if (id != tomaMedidasEscaneoDTO.IdEscaneo)
             {
                 return BadRequest();
             }
 
-            _context.Entry(tomaMedidasEscaneo).State = EntityState.Modified;
+            var tomaMedidas = await _context.TomaMedidasEscaneos.FindAsync(id);
+            if (tomaMedidas == null)
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TomaMedidasEscaneoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            tomaMedidas.IdPaciente = tomaMedidasEscaneoDTO.IdPaciente;
+            tomaMedidas.IdAmputacion = tomaMedidasEscaneoDTO.IdAmputacion;
+            tomaMedidas.IdLiner = tomaMedidasEscaneoDTO.IdLiner;
+            tomaMedidas.FechaEscaneo = tomaMedidasEscaneoDTO.FechaEscaneo;
+            tomaMedidas.Comentario = tomaMedidasEscaneoDTO.Comentario;
+            tomaMedidas.ResultadoScaneo = tomaMedidasEscaneoDTO.ResultadoScaneo;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -80,22 +114,18 @@ namespace ProtoScaner.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTomaMedidasEscaneo(int id)
         {
-            var tomaMedidasEscaneo = await _context.TomaMedidasEscaneos.FindAsync(id);
-            if (tomaMedidasEscaneo == null)
+            var tomaMedidas = await _context.TomaMedidasEscaneos.FindAsync(id);
+            if (tomaMedidas == null)
             {
                 return NotFound();
             }
 
-            _context.TomaMedidasEscaneos.Remove(tomaMedidasEscaneo);
+            _context.TomaMedidasEscaneos.Remove(tomaMedidas);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-        private bool TomaMedidasEscaneoExists(int id)
-        {
-            return _context.TomaMedidasEscaneos.Any(e => e.IdEscaneo == id);
-        }
     }
 }
+
 

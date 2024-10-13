@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,58 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/estatuspaciente
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EstatusPaciente>>> GetEstatusPacientes()
+        public async Task<ActionResult<IEnumerable<EstatusPacienteDTO>>> GetEstatusPacientes()
         {
-            return Ok(await dbContext.EstatusPacientes.ToListAsync());
+            var estatusPacientes = await dbContext.EstatusPacientes
+                .Select(ep => new EstatusPacienteDTO
+                {
+                    IdEstatusPaciente = ep.IdEstatusPaciente,
+                    Descripcion = ep.Descripcion
+                })
+                .ToListAsync();
+
+            return Ok(estatusPacientes);
         }
 
         // GET: api/estatuspaciente/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<EstatusPaciente>> GetEstatusPaciente(int id)
+        public async Task<ActionResult<EstatusPacienteDTO>> GetEstatusPaciente(int id)
         {
             var estatusPaciente = await dbContext.EstatusPacientes.FindAsync(id);
             if (estatusPaciente == null)
             {
                 return NotFound();
             }
-            return Ok(estatusPaciente);
+
+            var estatusPacienteDTO = new EstatusPacienteDTO
+            {
+                IdEstatusPaciente = estatusPaciente.IdEstatusPaciente,
+                Descripcion = estatusPaciente.Descripcion
+            };
+
+            return Ok(estatusPacienteDTO);
         }
 
         // POST: api/estatuspaciente
         [HttpPost]
-        public async Task<ActionResult<EstatusPaciente>> CreateEstatusPaciente(EstatusPaciente nuevoEstatusPaciente)
+        public async Task<ActionResult<EstatusPacienteDTO>> CreateEstatusPaciente(EstatusPacienteDTO nuevoEstatusPacienteDTO)
         {
+            var nuevoEstatusPaciente = new EstatusPaciente
+            {
+                Descripcion = nuevoEstatusPacienteDTO.Descripcion
+            };
+
             dbContext.EstatusPacientes.Add(nuevoEstatusPaciente);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetEstatusPaciente), new { id = nuevoEstatusPaciente.IdEstatusPaciente }, nuevoEstatusPaciente);
+
+            nuevoEstatusPacienteDTO.IdEstatusPaciente = nuevoEstatusPaciente.IdEstatusPaciente;
+
+            return CreatedAtAction(nameof(GetEstatusPaciente), new { id = nuevoEstatusPaciente.IdEstatusPaciente }, nuevoEstatusPacienteDTO);
         }
 
         // PUT: api/estatuspaciente/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateEstatusPaciente(int id, EstatusPaciente estatusPacienteActualizado)
+        public async Task<ActionResult> UpdateEstatusPaciente(int id, EstatusPacienteDTO estatusPacienteActualizadoDTO)
         {
             var estatusPaciente = await dbContext.EstatusPacientes.FindAsync(id);
             if (estatusPaciente == null)
@@ -55,7 +80,7 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            estatusPaciente.Descripcion = estatusPacienteActualizado.Descripcion;
+            estatusPaciente.Descripcion = estatusPacienteActualizadoDTO.Descripcion;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -77,4 +102,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-

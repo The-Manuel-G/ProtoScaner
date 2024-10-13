@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,61 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/liner
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Liner>>> GetLiners()
+        public async Task<ActionResult<IEnumerable<LinerDTO>>> GetLiners()
         {
-            return Ok(await dbContext.Liners.ToListAsync());
+            var liners = await dbContext.Liners
+                .Select(l => new LinerDTO
+                {
+                    IdLiner = l.IdLiner,
+                    TipoLiner = l.TipoLiner,
+                    Talla = l.Talla
+                })
+                .ToListAsync();
+
+            return Ok(liners);
         }
 
         // GET: api/liner/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Liner>> GetLiner(int id)
+        public async Task<ActionResult<LinerDTO>> GetLiner(int id)
         {
             var liner = await dbContext.Liners.FindAsync(id);
             if (liner == null)
             {
                 return NotFound();
             }
-            return Ok(liner);
+
+            var linerDTO = new LinerDTO
+            {
+                IdLiner = liner.IdLiner,
+                TipoLiner = liner.TipoLiner,
+                Talla = liner.Talla
+            };
+
+            return Ok(linerDTO);
         }
 
         // POST: api/liner
         [HttpPost]
-        public async Task<ActionResult<Liner>> CreateLiner(Liner nuevoLiner)
+        public async Task<ActionResult<LinerDTO>> CreateLiner(LinerDTO nuevoLinerDTO)
         {
+            var nuevoLiner = new Liner
+            {
+                TipoLiner = nuevoLinerDTO.TipoLiner,
+                Talla = nuevoLinerDTO.Talla
+            };
+
             dbContext.Liners.Add(nuevoLiner);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetLiner), new { id = nuevoLiner.IdLiner }, nuevoLiner);
+
+            nuevoLinerDTO.IdLiner = nuevoLiner.IdLiner;
+
+            return CreatedAtAction(nameof(GetLiner), new { id = nuevoLiner.IdLiner }, nuevoLinerDTO);
         }
 
         // PUT: api/liner/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateLiner(int id, Liner linerActualizado)
+        public async Task<ActionResult> UpdateLiner(int id, LinerDTO linerActualizadoDTO)
         {
             var liner = await dbContext.Liners.FindAsync(id);
             if (liner == null)
@@ -55,8 +83,8 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            liner.TipoLiner = linerActualizado.TipoLiner;
-            liner.Talla = linerActualizado.Talla;
+            liner.TipoLiner = linerActualizadoDTO.TipoLiner;
+            liner.Talla = linerActualizadoDTO.Talla;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
