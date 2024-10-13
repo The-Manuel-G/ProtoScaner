@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -17,14 +18,24 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/Usuario
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        public async Task<ActionResult<IEnumerable<UsuarioDTO>>> GetUsuarios()
         {
-            return await _context.Usuarios.ToListAsync();
+            var usuarios = await _context.Usuarios
+                .Select(u => new UsuarioDTO
+                {
+                    IdUsuario = u.IdUsuario,
+                    NombreUsuario = u.NombreUsuario,
+                    Email = u.Email,
+                    // Mapear otras propiedades necesarias
+                })
+                .ToListAsync();
+
+            return Ok(usuarios);
         }
 
         // GET: api/Usuario/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> GetUsuario(int id)
+        public async Task<ActionResult<UsuarioDTO>> GetUsuario(int id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
 
@@ -33,45 +44,56 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            return usuario;
+            var usuarioDTO = new UsuarioDTO
+            {
+                IdUsuario = usuario.IdUsuario,
+                NombreUsuario = usuario.NombreUsuario,
+                Email = usuario.Email,
+                // Mapear otras propiedades necesarias
+            };
+
+            return usuarioDTO;
         }
 
         // POST: api/Usuario
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
+        public async Task<ActionResult<UsuarioDTO>> PostUsuario(UsuarioDTO usuarioDTO)
         {
+            var usuario = new Usuario
+            {
+                NombreUsuario = usuarioDTO.NombreUsuario,
+                Email = usuarioDTO.Email,
+                // Mapear otras propiedades necesarias
+            };
+
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUsuario", new { id = usuario.IdUsuario }, usuario);
+            usuarioDTO.IdUsuario = usuario.IdUsuario;
+
+            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.IdUsuario }, usuarioDTO);
         }
 
         // PUT: api/Usuario/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, Usuario usuario)
+        public async Task<IActionResult> PutUsuario(int id, UsuarioDTO usuarioDTO)
         {
-            if (id != usuario.IdUsuario)
+            if (id != usuarioDTO.IdUsuario)
             {
                 return BadRequest();
             }
 
-            _context.Entry(usuario).State = EntityState.Modified;
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UsuarioExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            usuario.NombreUsuario = usuarioDTO.NombreUsuario;
+            usuario.Email = usuarioDTO.Email;
+            // Mapear otras propiedades necesarias
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -91,11 +113,7 @@ namespace ProtoScaner.Server.Controllers
 
             return NoContent();
         }
-
-        private bool UsuarioExists(int id)
-        {
-            return _context.Usuarios.Any(e => e.IdUsuario == id);
-        }
     }
 }
+
 

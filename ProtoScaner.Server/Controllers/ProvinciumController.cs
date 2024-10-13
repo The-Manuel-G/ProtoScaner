@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +20,58 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/provincium
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Provincium>>> GetProvincias()
+        public async Task<ActionResult<IEnumerable<ProvinciumDTO>>> GetProvincias()
         {
-            return Ok(await dbContext.Provincia.ToListAsync());
+            var provincias = await dbContext.Provincia
+                .Select(p => new ProvinciumDTO
+                {
+                    IdProvincia = p.IdProvincia,
+                    NombreProvincia = p.NombreProvincia
+                })
+                .ToListAsync();
+
+            return Ok(provincias);
         }
 
         // GET: api/provincium/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Provincium>> GetProvincium(int id)
+        public async Task<ActionResult<ProvinciumDTO>> GetProvincium(int id)
         {
             var provincia = await dbContext.Provincia.FindAsync(id);
             if (provincia == null)
             {
                 return NotFound();
             }
-            return Ok(provincia);
+
+            var provinciaDTO = new ProvinciumDTO
+            {
+                IdProvincia = provincia.IdProvincia,
+                NombreProvincia = provincia.NombreProvincia
+            };
+
+            return Ok(provinciaDTO);
         }
 
         // POST: api/provincium
         [HttpPost]
-        public async Task<ActionResult<Provincium>> CreateProvincium(Provincium nuevaProvincia)
+        public async Task<ActionResult<ProvinciumDTO>> CreateProvincium(ProvinciumDTO nuevaProvinciaDTO)
         {
+            var nuevaProvincia = new Provincium
+            {
+                NombreProvincia = nuevaProvinciaDTO.NombreProvincia
+            };
+
             dbContext.Provincia.Add(nuevaProvincia);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetProvincium), new { id = nuevaProvincia.IdProvincia }, nuevaProvincia);
+
+            nuevaProvinciaDTO.IdProvincia = nuevaProvincia.IdProvincia;
+
+            return CreatedAtAction(nameof(GetProvincium), new { id = nuevaProvincia.IdProvincia }, nuevaProvinciaDTO);
         }
 
         // PUT: api/provincium/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProvincium(int id, Provincium provinciaActualizada)
+        public async Task<ActionResult> UpdateProvincium(int id, ProvinciumDTO provinciaActualizadaDTO)
         {
             var provincia = await dbContext.Provincia.FindAsync(id);
             if (provincia == null)
@@ -55,7 +79,7 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            provincia.NombreProvincia = provinciaActualizada.NombreProvincia;
+            provincia.NombreProvincia = provinciaActualizadaDTO.NombreProvincia;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -77,4 +101,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

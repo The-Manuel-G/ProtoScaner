@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,73 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/protesi
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Protesi>>> GetProtesis()
+        public async Task<ActionResult<IEnumerable<ProtesiDTO>>> GetProtesis()
         {
-            return Ok(await dbContext.Proteses.ToListAsync());
+            var protesis = await dbContext.Proteses
+                .Select(p => new ProtesiDTO
+                {
+                    IdProtesis = p.IdProtesis,
+                    CodigoPaciente = p.CodigoPaciente,
+                    LinerTipo = p.LinerTipo,
+                    LinerTamano = p.LinerTamano,
+                    Protesista = p.Protesista,
+                    FechaEntrega = p.FechaEntrega,
+                    Material = p.Material
+                })
+                .ToListAsync();
+
+            return Ok(protesis);
         }
 
         // GET: api/protesi/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Protesi>> GetProtesi(int id)
+        public async Task<ActionResult<ProtesiDTO>> GetProtesi(int id)
         {
             var protesi = await dbContext.Proteses.FindAsync(id);
             if (protesi == null)
             {
                 return NotFound();
             }
-            return Ok(protesi);
+
+            var protesiDTO = new ProtesiDTO
+            {
+                IdProtesis = protesi.IdProtesis,
+                CodigoPaciente = protesi.CodigoPaciente,
+                LinerTipo = protesi.LinerTipo,
+                LinerTamano = protesi.LinerTamano,
+                Protesista = protesi.Protesista,
+                FechaEntrega = protesi.FechaEntrega,
+                Material = protesi.Material
+            };
+
+            return Ok(protesiDTO);
         }
 
         // POST: api/protesi
         [HttpPost]
-        public async Task<ActionResult<Protesi>> CreateProtesi(Protesi nuevaProtesi)
+        public async Task<ActionResult<ProtesiDTO>> CreateProtesi(ProtesiDTO nuevaProtesiDTO)
         {
+            var nuevaProtesi = new Protesi
+            {
+                CodigoPaciente = nuevaProtesiDTO.CodigoPaciente,
+                LinerTipo = nuevaProtesiDTO.LinerTipo,
+                LinerTamano = nuevaProtesiDTO.LinerTamano,
+                Protesista = nuevaProtesiDTO.Protesista,
+                FechaEntrega = nuevaProtesiDTO.FechaEntrega,
+                Material = nuevaProtesiDTO.Material
+            };
+
             dbContext.Proteses.Add(nuevaProtesi);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetProtesi), new { id = nuevaProtesi.IdProtesis }, nuevaProtesi);
+
+            nuevaProtesiDTO.IdProtesis = nuevaProtesi.IdProtesis;
+
+            return CreatedAtAction(nameof(GetProtesi), new { id = nuevaProtesi.IdProtesis }, nuevaProtesiDTO);
         }
 
         // PUT: api/protesi/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProtesi(int id, Protesi protesiActualizada)
+        public async Task<ActionResult> UpdateProtesi(int id, ProtesiDTO protesiActualizadaDTO)
         {
             var protesi = await dbContext.Proteses.FindAsync(id);
             if (protesi == null)
@@ -55,12 +95,12 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            protesi.CodigoPaciente = protesiActualizada.CodigoPaciente;
-            protesi.LinerTipo = protesiActualizada.LinerTipo;
-            protesi.LinerTamano = protesiActualizada.LinerTamano;
-            protesi.Protesista = protesiActualizada.Protesista;
-            protesi.FechaEntrega = protesiActualizada.FechaEntrega;
-            protesi.Material = protesiActualizada.Material;
+            protesi.CodigoPaciente = protesiActualizadaDTO.CodigoPaciente;
+            protesi.LinerTipo = protesiActualizadaDTO.LinerTipo;
+            protesi.LinerTamano = protesiActualizadaDTO.LinerTamano;
+            protesi.Protesista = protesiActualizadaDTO.Protesista;
+            protesi.FechaEntrega = protesiActualizadaDTO.FechaEntrega;
+            protesi.Material = protesiActualizadaDTO.Material;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -82,4 +122,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

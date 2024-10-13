@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,64 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/medidasCircunferencium
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MedidasCircunferencium>>> GetMedidasCircunferenciums()
+        public async Task<ActionResult<IEnumerable<MedidasCircunferenciumDTO>>> GetMedidasCircunferenciums()
         {
-            return Ok(await dbContext.MedidasCircunferencia.ToListAsync());
+            var medidas = await dbContext.MedidasCircunferencia
+                .Select(m => new MedidasCircunferenciumDTO
+                {
+                    IdMedida = m.IdMedida,
+                    IdValor = m.IdValor,
+                    NumeroCircunferencia = m.NumeroCircunferencia,
+                    ValorMm = m.ValorMm
+                })
+                .ToListAsync();
+
+            return Ok(medidas);
         }
 
         // GET: api/medidasCircunferencium/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<MedidasCircunferencium>> GetMedidaCircunferencium(int id)
+        public async Task<ActionResult<MedidasCircunferenciumDTO>> GetMedidaCircunferencium(int id)
         {
             var medidaCircunferencium = await dbContext.MedidasCircunferencia.FindAsync(id);
             if (medidaCircunferencium == null)
             {
                 return NotFound();
             }
-            return Ok(medidaCircunferencium);
+
+            var medidaDTO = new MedidasCircunferenciumDTO
+            {
+                IdMedida = medidaCircunferencium.IdMedida,
+                IdValor = medidaCircunferencium.IdValor,
+                NumeroCircunferencia = medidaCircunferencium.NumeroCircunferencia,
+                ValorMm = medidaCircunferencium.ValorMm
+            };
+
+            return Ok(medidaDTO);
         }
 
         // POST: api/medidasCircunferencium
         [HttpPost]
-        public async Task<ActionResult<MedidasCircunferencium>> CreateMedidaCircunferencium(MedidasCircunferencium nuevaMedidaCircunferencium)
+        public async Task<ActionResult<MedidasCircunferenciumDTO>> CreateMedidaCircunferencium(MedidasCircunferenciumDTO nuevaMedidaDTO)
         {
-            dbContext.MedidasCircunferencia.Add(nuevaMedidaCircunferencium);
+            var nuevaMedida = new MedidasCircunferencium
+            {
+                IdValor = nuevaMedidaDTO.IdValor,
+                NumeroCircunferencia = nuevaMedidaDTO.NumeroCircunferencia,
+                ValorMm = nuevaMedidaDTO.ValorMm
+            };
+
+            dbContext.MedidasCircunferencia.Add(nuevaMedida);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetMedidaCircunferencium), new { id = nuevaMedidaCircunferencium.IdMedida }, nuevaMedidaCircunferencium);
+
+            nuevaMedidaDTO.IdMedida = nuevaMedida.IdMedida;
+
+            return CreatedAtAction(nameof(GetMedidaCircunferencium), new { id = nuevaMedida.IdMedida }, nuevaMedidaDTO);
         }
 
         // PUT: api/medidasCircunferencium/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateMedidaCircunferencium(int id, MedidasCircunferencium medidaCircunferenciumActualizada)
+        public async Task<ActionResult> UpdateMedidaCircunferencium(int id, MedidasCircunferenciumDTO medidaActualizadaDTO)
         {
             var medidaCircunferencium = await dbContext.MedidasCircunferencia.FindAsync(id);
             if (medidaCircunferencium == null)
@@ -55,8 +86,8 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            medidaCircunferencium.NumeroCircunferencia = medidaCircunferenciumActualizada.NumeroCircunferencia;
-            medidaCircunferencium.ValorMm = medidaCircunferenciumActualizada.ValorMm;
+            medidaCircunferencium.NumeroCircunferencia = medidaActualizadaDTO.NumeroCircunferencia;
+            medidaCircunferencium.ValorMm = medidaActualizadaDTO.ValorMm;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -78,4 +109,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 
