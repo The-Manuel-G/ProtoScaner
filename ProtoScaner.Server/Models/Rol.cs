@@ -1,14 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProtoScaner.Server.Models
+using System;
+using System.Collections.Generic;
+
+namespace ProtoScaner.Server.Models;
+
+public partial class Rol
 {
-    public class Rol
-    {
-        public int Id { get; set; }
-        [MaxLength(50)]
-        public string? Name { get; set; }
-        [MaxLength]
-        public string? Description { get; set; }
+    public int IdRol { get; set; }
 
-    }
+    public string NombreRol { get; set; } = null!;
+
+    public string? Descripcion { get; set; }
+
+    public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+
 }
