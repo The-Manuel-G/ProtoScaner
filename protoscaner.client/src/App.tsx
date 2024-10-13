@@ -1,14 +1,18 @@
+// src/App.tsx
+import React from 'react';
+import NavigationMenu from './NavigationMenu'; // Importa el NavigationMenu desde la carpeta components
 
-import './App.css';
-
-
-
-function App() {
-    <div>
-       
-        <h1 className="text-center text-2xl font-bold mt-4">Bienvenido a Mi App</h1>
-        <p className="text-center mt-2">Aquí puedes navegar por las diferentes secciones.</p>
-    </div>
-}
+const App: React.FC = () => {
+    return (
+        <div>
+            <NavigationMenu />
+            <div className="text-center mt-4">
+                <h1 className="text-2xl font-bold">Bienvenido a Mi App</h1>
+                <p>Aquí puedes navegar por las diferentes secciones.</p>
+            </div>
+        </div>
+    );
+};
 
 export default App;
+
