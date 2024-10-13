@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -17,14 +20,22 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/TipoLiner
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TipoLiner>>> GetTiposLiner()
+        public async Task<ActionResult<IEnumerable<TipoLinerDTO>>> GetTiposLiner()
         {
-            return await _context.TipoLiners.ToListAsync();
+            var tiposLiner = await _context.TipoLiners
+                .Select(tl => new TipoLinerDTO
+                {
+                    IdTipoLiner = tl.IdTipoLiner,
+                    TipoNombre = tl.TipoNombre
+                })
+                .ToListAsync();
+
+            return Ok(tiposLiner);
         }
 
         // GET: api/TipoLiner/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TipoLiner>> GetTipoLiner(int id)
+        public async Task<ActionResult<TipoLinerDTO>> GetTipoLiner(int id)
         {
             var tipoLiner = await _context.TipoLiners.FindAsync(id);
 
@@ -33,45 +44,50 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            return tipoLiner;
+            var tipoLinerDTO = new TipoLinerDTO
+            {
+                IdTipoLiner = tipoLiner.IdTipoLiner,
+                TipoNombre = tipoLiner.TipoNombre
+            };
+
+            return tipoLinerDTO;
         }
 
         // POST: api/TipoLiner
         [HttpPost]
-        public async Task<ActionResult<TipoLiner>> PostTipoLiner(TipoLiner tipoLiner)
+        public async Task<ActionResult<TipoLinerDTO>> PostTipoLiner(TipoLinerDTO tipoLinerDTO)
         {
+            var tipoLiner = new TipoLiner
+            {
+                TipoNombre = tipoLinerDTO.TipoNombre
+            };
+
             _context.TipoLiners.Add(tipoLiner);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTipoLiner", new { id = tipoLiner.IdTipoLiner }, tipoLiner);
+            tipoLinerDTO.IdTipoLiner = tipoLiner.IdTipoLiner;
+
+            return CreatedAtAction("GetTipoLiner", new { id = tipoLiner.IdTipoLiner }, tipoLinerDTO);
         }
 
         // PUT: api/TipoLiner/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTipoLiner(int id, TipoLiner tipoLiner)
+        public async Task<IActionResult> PutTipoLiner(int id, TipoLinerDTO tipoLinerDTO)
         {
-            if (id != tipoLiner.IdTipoLiner)
+            if (id != tipoLinerDTO.IdTipoLiner)
             {
                 return BadRequest();
             }
 
-            _context.Entry(tipoLiner).State = EntityState.Modified;
+            var tipoLiner = await _context.TipoLiners.FindAsync(id);
+            if (tipoLiner == null)
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TipoLinerExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            tipoLiner.TipoNombre = tipoLinerDTO.TipoNombre;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -98,4 +114,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

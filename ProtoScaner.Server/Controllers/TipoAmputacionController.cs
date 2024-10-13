@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -17,14 +20,22 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/TipoAmputacion
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TipoAmputacion>>> GetTiposAmputacion()
+        public async Task<ActionResult<IEnumerable<TipoAmputacionDTO>>> GetTiposAmputacion()
         {
-            return await _context.TipoAmputacions.ToListAsync();
+            var tiposAmputacion = await _context.TipoAmputacions
+                .Select(ta => new TipoAmputacionDTO
+                {
+                    IdAmputacion = ta.IdAmputacion,
+                    TipoAmputacion1 = ta.TipoAmputacion1
+                })
+                .ToListAsync();
+
+            return Ok(tiposAmputacion);
         }
 
         // GET: api/TipoAmputacion/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TipoAmputacion>> GetTipoAmputacion(int id)
+        public async Task<ActionResult<TipoAmputacionDTO>> GetTipoAmputacion(int id)
         {
             var tipoAmputacion = await _context.TipoAmputacions.FindAsync(id);
 
@@ -33,45 +44,50 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            return tipoAmputacion;
+            var tipoAmputacionDTO = new TipoAmputacionDTO
+            {
+                IdAmputacion = tipoAmputacion.IdAmputacion,
+                TipoAmputacion1 = tipoAmputacion.TipoAmputacion1
+            };
+
+            return tipoAmputacionDTO;
         }
 
         // POST: api/TipoAmputacion
         [HttpPost]
-        public async Task<ActionResult<TipoAmputacion>> PostTipoAmputacion(TipoAmputacion tipoAmputacion)
+        public async Task<ActionResult<TipoAmputacionDTO>> PostTipoAmputacion(TipoAmputacionDTO tipoAmputacionDTO)
         {
+            var tipoAmputacion = new TipoAmputacion
+            {
+                TipoAmputacion1 = tipoAmputacionDTO.TipoAmputacion1
+            };
+
             _context.TipoAmputacions.Add(tipoAmputacion);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTipoAmputacion", new { id = tipoAmputacion.IdAmputacion }, tipoAmputacion);
+            tipoAmputacionDTO.IdAmputacion = tipoAmputacion.IdAmputacion;
+
+            return CreatedAtAction("GetTipoAmputacion", new { id = tipoAmputacion.IdAmputacion }, tipoAmputacionDTO);
         }
 
         // PUT: api/TipoAmputacion/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTipoAmputacion(int id, TipoAmputacion tipoAmputacion)
+        public async Task<IActionResult> PutTipoAmputacion(int id, TipoAmputacionDTO tipoAmputacionDTO)
         {
-            if (id != tipoAmputacion.IdAmputacion)
+            if (id != tipoAmputacionDTO.IdAmputacion)
             {
                 return BadRequest();
             }
 
-            _context.Entry(tipoAmputacion).State = EntityState.Modified;
+            var tipoAmputacion = await _context.TipoAmputacions.FindAsync(id);
+            if (tipoAmputacion == null)
+            {
+                return NotFound();
+            }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TipoAmputacionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            tipoAmputacion.TipoAmputacion1 = tipoAmputacionDTO.TipoAmputacion1;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -98,4 +114,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

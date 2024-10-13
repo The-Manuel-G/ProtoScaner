@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +20,23 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/protesisComponente
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProtesisComponente>>> GetProtesisComponentes()
+        public async Task<ActionResult<IEnumerable<ProtesisComponenteDTO>>> GetProtesisComponentes()
         {
-            return Ok(await dbContext.ProtesisComponentes.ToListAsync());
+            var componentes = await dbContext.ProtesisComponentes
+                .Select(pc => new ProtesisComponenteDTO
+                {
+                    ProtesisId = pc.ProtesisId,
+                    ComponentId = pc.ComponentId,
+                    Cantidad = pc.Cantidad
+                })
+                .ToListAsync();
+
+            return Ok(componentes);
         }
 
         // GET: api/protesisComponente/{protesisId}/{componentId}
         [HttpGet("{protesisId}/{componentId}")]
-        public async Task<ActionResult<ProtesisComponente>> GetProtesisComponente(int protesisId, int componentId)
-        {
-            var protesisComponente = await dbContext.ProtesisComponentes.FindAsync(protesisId, componentId);
-            if (protesisComponente == null)
-            {
-                return NotFound();
-            }
-            return Ok(protesisComponente);
-        }
-
-        // POST: api/protesisComponente
-        [HttpPost]
-        public async Task<ActionResult<ProtesisComponente>> CreateProtesisComponente(ProtesisComponente nuevoComponente)
-        {
-            dbContext.ProtesisComponentes.Add(nuevoComponente);
-            await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetProtesisComponente), new { protesisId = nuevoComponente.ProtesisId, componentId = nuevoComponente.ComponentId }, nuevoComponente);
-        }
-
-        // PUT: api/protesisComponente/{protesisId}/{componentId}
-        [HttpPut("{protesisId}/{componentId}")]
-        public async Task<ActionResult> UpdateProtesisComponente(int protesisId, int componentId, ProtesisComponente componenteActualizado)
+        public async Task<ActionResult<ProtesisComponenteDTO>> GetProtesisComponente(int protesisId, int componentId)
         {
             var componente = await dbContext.ProtesisComponentes.FindAsync(protesisId, componentId);
             if (componente == null)
@@ -55,7 +44,47 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            componente.Cantidad = componenteActualizado.Cantidad;
+            var componenteDTO = new ProtesisComponenteDTO
+            {
+                ProtesisId = componente.ProtesisId,
+                ComponentId = componente.ComponentId,
+                Cantidad = componente.Cantidad
+            };
+
+            return Ok(componenteDTO);
+        }
+
+        // POST: api/protesisComponente
+        [HttpPost]
+        public async Task<ActionResult<ProtesisComponenteDTO>> CreateProtesisComponente(ProtesisComponenteDTO nuevoComponenteDTO)
+        {
+            var nuevoComponente = new ProtesisComponente
+            {
+                ProtesisId = nuevoComponenteDTO.ProtesisId,
+                ComponentId = nuevoComponenteDTO.ComponentId,
+                Cantidad = nuevoComponenteDTO.Cantidad
+            };
+
+            dbContext.ProtesisComponentes.Add(nuevoComponente);
+            await dbContext.SaveChangesAsync();
+
+            nuevoComponenteDTO.ProtesisId = nuevoComponente.ProtesisId;
+            nuevoComponenteDTO.ComponentId = nuevoComponente.ComponentId;
+
+            return CreatedAtAction(nameof(GetProtesisComponente), new { protesisId = nuevoComponente.ProtesisId, componentId = nuevoComponente.ComponentId }, nuevoComponenteDTO);
+        }
+
+        // PUT: api/protesisComponente/{protesisId}/{componentId}
+        [HttpPut("{protesisId}/{componentId}")]
+        public async Task<ActionResult> UpdateProtesisComponente(int protesisId, int componentId, ProtesisComponenteDTO componenteActualizadoDTO)
+        {
+            var componente = await dbContext.ProtesisComponentes.FindAsync(protesisId, componentId);
+            if (componente == null)
+            {
+                return NotFound();
+            }
+
+            componente.Cantidad = componenteActualizadoDTO.Cantidad;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -77,4 +106,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

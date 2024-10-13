@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,58 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/genero
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Genero>>> GetGeneros()
+        public async Task<ActionResult<IEnumerable<GeneroDTO>>> GetGeneros()
         {
-            return Ok(await dbContext.Generos.ToListAsync());
+            var generos = await dbContext.Generos
+                .Select(g => new GeneroDTO
+                {
+                    IdGenero = g.IdGenero,
+                    Genero1 = g.Genero1
+                })
+                .ToListAsync();
+
+            return Ok(generos);
         }
 
         // GET: api/genero/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Genero>> GetGenero(int id)
+        public async Task<ActionResult<GeneroDTO>> GetGenero(int id)
         {
             var genero = await dbContext.Generos.FindAsync(id);
             if (genero == null)
             {
                 return NotFound();
             }
-            return Ok(genero);
+
+            var generoDTO = new GeneroDTO
+            {
+                IdGenero = genero.IdGenero,
+                Genero1 = genero.Genero1
+            };
+
+            return Ok(generoDTO);
         }
 
         // POST: api/genero
         [HttpPost]
-        public async Task<ActionResult<Genero>> CreateGenero(Genero nuevoGenero)
+        public async Task<ActionResult<GeneroDTO>> CreateGenero(GeneroDTO nuevoGeneroDTO)
         {
+            var nuevoGenero = new Genero
+            {
+                Genero1 = nuevoGeneroDTO.Genero1
+            };
+
             dbContext.Generos.Add(nuevoGenero);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetGenero), new { id = nuevoGenero.IdGenero }, nuevoGenero);
+
+            nuevoGeneroDTO.IdGenero = nuevoGenero.IdGenero;
+
+            return CreatedAtAction(nameof(GetGenero), new { id = nuevoGenero.IdGenero }, nuevoGeneroDTO);
         }
 
         // PUT: api/genero/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateGenero(int id, Genero generoActualizado)
+        public async Task<ActionResult> UpdateGenero(int id, GeneroDTO generoActualizadoDTO)
         {
             var genero = await dbContext.Generos.FindAsync(id);
             if (genero == null)
@@ -55,7 +80,7 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            genero.Genero1 = generoActualizado.Genero1;
+            genero.Genero1 = generoActualizadoDTO.Genero1;
 
             await dbContext.SaveChangesAsync();
             return NoContent();

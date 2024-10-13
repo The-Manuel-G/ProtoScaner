@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +21,64 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/componente
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Componente>>> GetComponentes()
+        public async Task<ActionResult<IEnumerable<ComponenteDTO>>> GetComponentes()
         {
-            return Ok(await dbContext.Componentes.ToListAsync());
+            var componentes = await dbContext.Componentes
+                .Select(c => new ComponenteDTO
+                {
+                    ComponentId = c.ComponentId,
+                    ComponentTipoId = c.ComponentTipoId,
+                    Codigo = c.Codigo,
+                    Description = c.Description
+                })
+                .ToListAsync();
+
+            return Ok(componentes);
         }
 
         // GET: api/componente/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Componente>> GetComponente(int id)
+        public async Task<ActionResult<ComponenteDTO>> GetComponente(int id)
         {
             var componente = await dbContext.Componentes.FindAsync(id);
             if (componente == null)
             {
                 return NotFound();
             }
-            return Ok(componente);
+
+            var componenteDTO = new ComponenteDTO
+            {
+                ComponentId = componente.ComponentId,
+                ComponentTipoId = componente.ComponentTipoId,
+                Codigo = componente.Codigo,
+                Description = componente.Description
+            };
+
+            return Ok(componenteDTO);
         }
 
         // POST: api/componente
         [HttpPost]
-        public async Task<ActionResult<Componente>> CreateComponente(Componente nuevoComponente)
+        public async Task<ActionResult<ComponenteDTO>> CreateComponente(ComponenteDTO nuevoComponenteDTO)
         {
+            var nuevoComponente = new Componente
+            {
+                ComponentTipoId = nuevoComponenteDTO.ComponentTipoId,
+                Codigo = nuevoComponenteDTO.Codigo,
+                Description = nuevoComponenteDTO.Description
+            };
+
             dbContext.Componentes.Add(nuevoComponente);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetComponente), new { id = nuevoComponente.ComponentId }, nuevoComponente);
+
+            nuevoComponenteDTO.ComponentId = nuevoComponente.ComponentId;
+
+            return CreatedAtAction(nameof(GetComponente), new { id = nuevoComponente.ComponentId }, nuevoComponenteDTO);
         }
 
         // PUT: api/componente/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateComponente(int id, Componente componenteActualizado)
+        public async Task<ActionResult> UpdateComponente(int id, ComponenteDTO componenteActualizadoDTO)
         {
             var componente = await dbContext.Componentes.FindAsync(id);
             if (componente == null)
@@ -55,9 +86,9 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            componente.ComponentTipoId = componenteActualizado.ComponentTipoId;
-            componente.Codigo = componenteActualizado.Codigo;
-            componente.Description = componenteActualizado.Description;
+            componente.ComponentTipoId = componenteActualizadoDTO.ComponentTipoId;
+            componente.Codigo = componenteActualizadoDTO.Codigo;
+            componente.Description = componenteActualizadoDTO.Description;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -79,4 +110,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-
