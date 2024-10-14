@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,35 +20,61 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/rol
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Rol>>> GetRoles()
+        public async Task<ActionResult<IEnumerable<RolDTO>>> GetRoles()
         {
-            return Ok(await dbContext.Rols.ToListAsync());
+            var roles = await dbContext.Rols
+                .Select(r => new RolDTO
+                {
+                    IdRol = r.IdRol,
+                    NombreRol = r.NombreRol,
+                    Descripcion = r.Descripcion
+                })
+                .ToListAsync();
+
+            return Ok(roles);
         }
 
         // GET: api/rol/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Rol>> GetRol(int id)
+        public async Task<ActionResult<RolDTO>> GetRol(int id)
         {
             var rol = await dbContext.Rols.FindAsync(id);
             if (rol == null)
             {
                 return NotFound();
             }
-            return Ok(rol);
+
+            var rolDTO = new RolDTO
+            {
+                IdRol = rol.IdRol,
+                NombreRol = rol.NombreRol,
+                Descripcion = rol.Descripcion
+            };
+
+            return Ok(rolDTO);
         }
 
         // POST: api/rol
         [HttpPost]
-        public async Task<ActionResult<Rol>> CreateRol(Rol nuevoRol)
+        public async Task<ActionResult<RolDTO>> CreateRol(RolDTO nuevoRolDTO)
         {
+            var nuevoRol = new Rol
+            {
+                NombreRol = nuevoRolDTO.NombreRol,
+                Descripcion = nuevoRolDTO.Descripcion
+            };
+
             dbContext.Rols.Add(nuevoRol);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetRol), new { id = nuevoRol.IdRol }, nuevoRol);
+
+            nuevoRolDTO.IdRol = nuevoRol.IdRol;
+
+            return CreatedAtAction(nameof(GetRol), new { id = nuevoRol.IdRol }, nuevoRolDTO);
         }
 
         // PUT: api/rol/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateRol(int id, Rol rolActualizado)
+        public async Task<ActionResult> UpdateRol(int id, RolDTO rolActualizadoDTO)
         {
             var rol = await dbContext.Rols.FindAsync(id);
             if (rol == null)
@@ -55,8 +82,8 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            rol.NombreRol = rolActualizado.NombreRol;
-            rol.Descripcion = rolActualizado.Descripcion;
+            rol.NombreRol = rolActualizadoDTO.NombreRol;
+            rol.Descripcion = rolActualizadoDTO.Descripcion;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -78,4 +105,5 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,38 +20,23 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/reporte
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Reporte>>> GetReportes()
+        public async Task<ActionResult<IEnumerable<ReporteDTO>>> GetReportes()
         {
-            return Ok(await dbContext.Reportes.Include(r => r.CodigoPacienteNavigation).ToListAsync());
+            var reportes = await dbContext.Reportes
+                .Select(r => new ReporteDTO
+                {
+                    IdReporte = r.IdReporte,
+                    CodigoPaciente = r.CodigoPaciente,
+                    NumSocketsFabricados = r.NumSocketsFabricados
+                })
+                .ToListAsync();
+
+            return Ok(reportes);
         }
 
         // GET: api/reporte/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Reporte>> GetReporte(int id)
-        {
-            var reporte = await dbContext.Reportes
-                .Include(r => r.CodigoPacienteNavigation)
-                .FirstOrDefaultAsync(r => r.IdReporte == id);
-
-            if (reporte == null)
-            {
-                return NotFound();
-            }
-            return Ok(reporte);
-        }
-
-        // POST: api/reporte
-        [HttpPost]
-        public async Task<ActionResult<Reporte>> CreateReporte(Reporte nuevoReporte)
-        {
-            dbContext.Reportes.Add(nuevoReporte);
-            await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetReporte), new { id = nuevoReporte.IdReporte }, nuevoReporte);
-        }
-
-        // PUT: api/reporte/{id}
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateReporte(int id, Reporte reporteActualizado)
+        public async Task<ActionResult<ReporteDTO>> GetReporte(int id)
         {
             var reporte = await dbContext.Reportes.FindAsync(id);
             if (reporte == null)
@@ -58,8 +44,46 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            reporte.CodigoPaciente = reporteActualizado.CodigoPaciente;
-            reporte.NumSocketsFabricados = reporteActualizado.NumSocketsFabricados;
+            var reporteDTO = new ReporteDTO
+            {
+                IdReporte = reporte.IdReporte,
+                CodigoPaciente = reporte.CodigoPaciente,
+                NumSocketsFabricados = reporte.NumSocketsFabricados
+            };
+
+            return Ok(reporteDTO);
+        }
+
+        // POST: api/reporte
+        [HttpPost]
+        public async Task<ActionResult<ReporteDTO>> CreateReporte(ReporteDTO nuevoReporteDTO)
+        {
+            var nuevoReporte = new Reporte
+            {
+                CodigoPaciente = nuevoReporteDTO.CodigoPaciente,
+                NumSocketsFabricados = nuevoReporteDTO.NumSocketsFabricados
+            };
+
+            dbContext.Reportes.Add(nuevoReporte);
+            await dbContext.SaveChangesAsync();
+
+            nuevoReporteDTO.IdReporte = nuevoReporte.IdReporte;
+
+            return CreatedAtAction(nameof(GetReporte), new { id = nuevoReporte.IdReporte }, nuevoReporteDTO);
+        }
+
+        // PUT: api/reporte/{id}
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdateReporte(int id, ReporteDTO reporteActualizadoDTO)
+        {
+            var reporte = await dbContext.Reportes.FindAsync(id);
+            if (reporte == null)
+            {
+                return NotFound();
+            }
+
+            reporte.CodigoPaciente = reporteActualizadoDTO.CodigoPaciente;
+            reporte.NumSocketsFabricados = reporteActualizadoDTO.NumSocketsFabricados;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -81,5 +105,6 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
 
 

@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "autoprefixer": "^10.4.20",
+    "npm": "^10.9.0",
+    "pnpm": "^9.12.1",
     "postcss": "^8.4.47",
     "protoscaner.client": "file:",
     "react": "^18.3.1",

@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -19,43 +21,68 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/causaamputacion
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CausaAmputacion>>> GetCausasAmputacion()
+        public async Task<ActionResult<IEnumerable<CausaAmputacionDTO>>> GetCausasAmputacion()
         {
-            return Ok(await dbContext.CausaAmputacions.ToListAsync());
+            var causas = await dbContext.CausaAmputacions
+                .Select(c => new CausaAmputacionDTO
+                {
+                    IdCausa = c.IdCausa,
+                    Descripcion = c.Descripcion
+                })
+                .ToListAsync();
+
+            return Ok(causas);
         }
 
         // GET: api/causaamputacion/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<CausaAmputacion>> GetCausaAmputacion(int id)
+        public async Task<ActionResult<CausaAmputacionDTO>> GetCausaAmputacion(int id)
         {
             var causa = await dbContext.CausaAmputacions.FindAsync(id);
+
             if (causa == null)
             {
                 return NotFound();
             }
-            return Ok(causa);
+
+            var causaDTO = new CausaAmputacionDTO
+            {
+                IdCausa = causa.IdCausa,
+                Descripcion = causa.Descripcion
+            };
+
+            return Ok(causaDTO);
         }
 
         // POST: api/causaamputacion
         [HttpPost]
-        public async Task<ActionResult<CausaAmputacion>> CreateCausaAmputacion(CausaAmputacion nuevaCausa)
+        public async Task<ActionResult<CausaAmputacionDTO>> CreateCausaAmputacion(CausaAmputacionDTO nuevaCausaDTO)
         {
+            var nuevaCausa = new CausaAmputacion
+            {
+                Descripcion = nuevaCausaDTO.Descripcion
+            };
+
             dbContext.CausaAmputacions.Add(nuevaCausa);
             await dbContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetCausaAmputacion), new { id = nuevaCausa.IdCausa }, nuevaCausa);
+
+            nuevaCausaDTO.IdCausa = nuevaCausa.IdCausa;
+
+            return CreatedAtAction(nameof(GetCausaAmputacion), new { id = nuevaCausa.IdCausa }, nuevaCausaDTO);
         }
 
         // PUT: api/causaamputacion/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateCausaAmputacion(int id, CausaAmputacion causaActualizada)
+        public async Task<ActionResult> UpdateCausaAmputacion(int id, CausaAmputacionDTO causaActualizadaDTO)
         {
             var causa = await dbContext.CausaAmputacions.FindAsync(id);
+
             if (causa == null)
             {
                 return NotFound();
             }
 
-            causa.Descripcion = causaActualizada.Descripcion;
+            causa.Descripcion = causaActualizadaDTO.Descripcion;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -77,4 +104,6 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
+
+
 
