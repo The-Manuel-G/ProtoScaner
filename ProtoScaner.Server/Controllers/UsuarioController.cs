@@ -26,7 +26,10 @@ namespace ProtoScaner.Server.Controllers
                     IdUsuario = u.IdUsuario,
                     NombreUsuario = u.NombreUsuario,
                     Email = u.Email,
-                    // Mapear otras propiedades necesarias
+                    IdRol = u.IdRol,
+                    FechaCreacion = u.FechaCreacion,
+                    Activo = u.Activo
+                    // Excluye PasswordHash en la respuesta por seguridad
                 })
                 .ToListAsync();
 
@@ -49,7 +52,10 @@ namespace ProtoScaner.Server.Controllers
                 IdUsuario = usuario.IdUsuario,
                 NombreUsuario = usuario.NombreUsuario,
                 Email = usuario.Email,
-                // Mapear otras propiedades necesarias
+                IdRol = usuario.IdRol,
+                FechaCreacion = usuario.FechaCreacion,
+                Activo = usuario.Activo
+                // Excluye PasswordHash en la respuesta por seguridad
             };
 
             return usuarioDTO;
@@ -63,7 +69,10 @@ namespace ProtoScaner.Server.Controllers
             {
                 NombreUsuario = usuarioDTO.NombreUsuario,
                 Email = usuarioDTO.Email,
-                // Mapear otras propiedades necesarias
+                PasswordHash = usuarioDTO.PasswordHash,
+                IdRol = usuarioDTO.IdRol,
+                FechaCreacion = usuarioDTO.FechaCreacion ?? DateOnly.FromDateTime(DateTime.Now),
+                Activo = usuarioDTO.Activo ?? true
             };
 
             _context.Usuarios.Add(usuario);
@@ -91,7 +100,9 @@ namespace ProtoScaner.Server.Controllers
 
             usuario.NombreUsuario = usuarioDTO.NombreUsuario;
             usuario.Email = usuarioDTO.Email;
-            // Mapear otras propiedades necesarias
+            usuario.PasswordHash = usuarioDTO.PasswordHash;
+            usuario.IdRol = usuarioDTO.IdRol;
+            usuario.Activo = usuarioDTO.Activo;
 
             await _context.SaveChangesAsync();
 
@@ -115,5 +126,4 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-
 

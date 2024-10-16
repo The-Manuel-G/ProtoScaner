@@ -79,6 +79,41 @@ namespace ProtoScaner.Server.Controllers
             return Ok(pacienteDTO);
         }
 
+        // GET: api/paciente/cedula/{cedula}
+        [HttpGet("cedula/{cedula}")]
+        public async Task<ActionResult<PacienteDTO>> GetPacienteByCedula(string cedula)
+        {
+            var paciente = await dbContext.Pacientes
+                .Where(p => p.Cedula == cedula)
+                .FirstOrDefaultAsync();
+
+            if (paciente == null)
+            {
+                return NotFound();
+            }
+
+            var pacienteDTO = new PacienteDTO
+            {
+                IdPaciente = paciente.IdPaciente,
+                NombreCompleto = paciente.NombreCompleto,
+                Cedula = paciente.Cedula,
+                Genero = paciente.Genero,
+                FechaNacimiento = paciente.FechaNacimiento,
+                Direccion = paciente.Direccion,
+                Telefono = paciente.Telefono,
+                TelefonoCelular = paciente.TelefonoCelular,
+                IdProvincia = paciente.IdProvincia,
+                Sector = paciente.Sector,
+                Insidencia = paciente.Insidencia,
+                IdEstatusPaciente = paciente.IdEstatusPaciente,
+                IdEstatusProtesis = paciente.IdEstatusProtesis,
+                Comentario = paciente.Comentario,
+                FotoPaciente = paciente.FotoPaciente
+            };
+
+            return Ok(pacienteDTO);
+        }
+
         // POST: api/paciente
         [HttpPost]
         public async Task<ActionResult<PacienteDTO>> CreatePaciente(PacienteDTO nuevoPacienteDTO)
@@ -154,5 +189,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-
-
