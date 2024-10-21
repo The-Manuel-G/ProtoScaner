@@ -1,18 +1,29 @@
-// src/App.tsx
-import React from 'react';
-import NavigationMenu from './NavigationMenu'; // Importa el NavigationMenu desde la carpeta components
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import ContentGrid from './components/ContentGrid';
 
 const App: React.FC = () => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar abierto por defecto en pantallas grandes
+
+    const toggleSidebar = () => {
+        setIsSidebarOpen(!isSidebarOpen);
+    };
+
     return (
-        <div>
-            <NavigationMenu />
-            <div className="text-center mt-4">
-                <h1 className="text-2xl font-bold">Bienvenido a Mi App</h1>
-                <p>Aquí puedes navegar por las diferentes secciones.</p>
+        <div className="relative">
+            <Navbar toggleSidebar={toggleSidebar} />
+            <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+
+            {/* Main content */}
+            <div
+                className={`transition-all duration-300 ${isSidebarOpen ? 'ml-64 blur-sm lg:blur-none' : 'ml-0'
+                    }`} // Apply blur only on mobile and move content when sidebar is open
+            >
+                <ContentGrid />
             </div>
         </div>
     );
 };
 
 export default App;
-
