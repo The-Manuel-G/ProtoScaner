@@ -12,7 +12,4 @@
     <None Remove="src\tiktok_videos_web\**" />
     <TypeScriptConfiguration Remove="src\tiktok_videos_web\**" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="src\component\" />
-  </ItemGroup>
 </Project>

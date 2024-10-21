@@ -1,38 +1,31 @@
-// src/services/RolService.ts
 import apiClient from '../api/client';
+import { Rol } from '../types/Rol'; // Importamos el tipo Rol
 
 // Función para obtener todos los roles
-export const getRoles = async () => {
-    const response = await apiClient.get('/rol');
+export const getRoles = async (): Promise<Rol[]> => {
+    const response = await apiClient.get<Rol[]>('/rol');
     return response.data;
 };
 
 // Función para obtener un rol específico por ID
-export const getRol = async (id: number) => {
-    const response = await apiClient.get(`/rol/${id}`);
+export const getRol = async (id: number): Promise<Rol> => {
+    const response = await apiClient.get<Rol>(`/rol/${id}`);
     return response.data;
 };
 
 // Función para crear un nuevo rol
-export const createRol = async (rol: {
-    nombreRol: string;
-    descripcion: string;
-}) => {
-    const response = await apiClient.post('/rol', rol);
+export const createRol = async (rol: Rol): Promise<Rol> => {
+    const response = await apiClient.post<Rol>('/rol', rol);
     return response.data;
 };
 
 // Función para actualizar un rol existente
-export const updateRol = async (id: number, rol: {
-    nombreRol: string;
-    descripcion: string;
-}) => {
-    const response = await apiClient.put(`/rol/${id}`, rol);
+export const updateRol = async (id: number, rol: Rol): Promise<Rol> => {
+    const response = await apiClient.put<Rol>(`/rol/${id}`, rol);
     return response.data;
 };
 
 // Función para eliminar un rol por ID
-export const deleteRol = async (id: number) => {
-    const response = await apiClient.delete(`/rol/${id}`);
-    return response.data;
+export const deleteRol = async (id: number): Promise<void> => {
+    await apiClient.delete(`/rol/${id}`);
 };

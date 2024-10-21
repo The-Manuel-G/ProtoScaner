@@ -8,3 +8,40 @@
 	padding: 2rem;
 	text-align: center;
 }
+
+/* Tailwind custom styling for grid items */
+.grid-item {
+	@apply flex flex-col items-center justify-between h-40 bg-white shadow-lg rounded-lg dark:bg-gray-800 p-4 transition-transform duration-500 transform;
+}
+
+	.grid-item:hover {
+		@apply scale-105 shadow-2xl border-blue-500; /* Scale up and add a shadow on hover */
+	}
+
+	.grid-item::before {
+		content: '';
+		position: absolute;
+		border: 2px solid transparent;
+		border-radius: 50%;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		z-index: -1;
+		transition: border 0.5s ease-in-out;
+	}
+
+	.grid-item:hover::before {
+		border-color: rgba(255, 255, 255, 0.8);
+		animation: rotateBorder 5s linear infinite; /* Add a rotating border on hover */
+	}
+
+@keyframes rotateBorder {
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
+	}
+}
