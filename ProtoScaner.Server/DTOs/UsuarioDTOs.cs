@@ -2,7 +2,7 @@
 {
     public class UsuarioDTO
     {
-        public int IdUsuario { get; set; }
+        public int? IdUsuario { get; set; }
         public string NombreUsuario { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string PasswordHash { get; set; } = null!;
@@ -11,3 +11,5 @@
         public bool? Activo { get; set; }
     }
 }
+
+
