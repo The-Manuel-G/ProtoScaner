@@ -1,120 +1,179 @@
-import React, { useState } from 'react';
-import { FaCog, FaUserInjured,  FaTruck, FaTachometerAlt, FaUsers, FaUserCog, FaTimes, FaBars } from 'react-icons/fa';
+import { useContext } from "react";
+import logo from "../assets/ProtoScanner3D.png";
+import { GiRobotLeg } from "react-icons/gi";
+import { FaUserMd, FaHome, FaChartPie, FaCartArrowDown, FaProcedures } from "react-icons/fa";
+import { AiOutlineLeft } from "react-icons/ai";
+import { MdLogout } from "react-icons/md";
+import { NavLink } from "react-router-dom";
+import { ThemeContext } from "../App";
 
+// Tipos para las propiedades del componente Sidebar
 interface SidebarProps {
-    isSidebarOpen: boolean;
-    toggleSidebar: () => void;
+    sidebarOpen: boolean;
+    setSidebarOpen: (open: boolean) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, toggleSidebar }) => {
-    const [activeItem, setActiveItem] = useState<string>('Dashboard');
-    const [isMinimized, setIsMinimized] = useState<boolean>(false);
+// Tipos para los enlaces de navegación
+interface LinkItem {
+    label: string;
+    icon: JSX.Element;
+    to: string;
+}
 
-    const handleItemClick = (item: string) => {
-        setActiveItem(item);
+export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
+    const ModSidebaropen = () => {
+        setSidebarOpen(!sidebarOpen);
     };
 
-    const toggleMinimized = () => {
-        setIsMinimized(!isMinimized);
+    // Verificar si el ThemeContext está disponible
+    const themeContext = useContext(ThemeContext);
+
+    const CambiarTheme = () => {
+        if (themeContext) {
+            themeContext.setTheme((prevTheme: string) => (prevTheme === "light" ? "dark" : "light"));
+        }
     };
 
     return (
-        <aside
-            className={`fixed top-0 left-0 z-40 h-screen pt-16 transition-transform transform bg-gray-100 border-r border-gray-200 dark:bg-gray-900 dark:border-gray-700 
-                ${isMinimized ? 'w-16' : 'w-64'} ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
-            aria-label="Sidebar"
+        <div
+            className={`${sidebarOpen ? "w-64 md:w-72 lg:w-80" : "w-16"
+                } bg-gray-800 h-full flex flex-col justify-between p-2 md:p-4 transition-all duration-500 ease-in-out fixed top-0 left-0 z-50`}
         >
-            <div className="flex justify-between px-4">
-                {/* Toggle button for large screens */}
-                <button
-                    onClick={toggleMinimized}
-                    className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hidden lg:block"
-                >
-                    {isMinimized ? <FaBars className="w-6 h-6" /> : <FaTimes className="w-6 h-6" />}
-                </button>
+            {/* Botón para cerrar/abrir el sidebar */}
+            <button
+                onClick={ModSidebaropen}
+                className="text-white text-2xl hover:text-gray-400 transition-all duration-300 ease-in-out self-center mb-4"
+            >
+                <AiOutlineLeft
+                    className={`transition-transform duration-500 ease-in-out ${sidebarOpen ? "" : "rotate-180"
+                        }`}
+                />
+            </button>
 
-                {/* Close button for small screens */}
-                <button
-                    onClick={toggleSidebar}
-                    className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 lg:hidden"
-                >
-                    <FaTimes className="w-6 h-6" />
-                </button>
+            {/* Contenido del logo */}
+            <div className="flex items-center justify-center space-x-2 mb-8">
+                <img
+                    src={logo}
+                    className={`transition-all duration-300 ease-in-out ${sidebarOpen ? "w-12 h-12" : "w-8 h-8"
+                        }`}
+                    alt="Logo"
+                />
+                {sidebarOpen && (
+                    <h2 className="text-white text-lg md:text-xl font-bold">
+                        ProtoScanner3D
+                    </h2>
+                )}
             </div>
 
-            {/* Sidebar Menu */}
-            <div className="h-full px-3 pb-4 mt-5 overflow-y-auto">
-                <ul className="space-y-4 font-medium">
-                    <li>
-                        <a
-                            href="#"
-                            onClick={() => handleItemClick('Dashboard')}
-                            className={`flex items-center p-2 rounded-lg transition-colors duration-300 
-                                ${activeItem === 'Dashboard' ? 'bg-blue-500 text-white' : 'text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-                        >
-                            <FaTachometerAlt className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            <span className={`ml-3 ${isMinimized ? 'hidden' : 'inline'}`}>Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="#"
-                            onClick={() => handleItemClick('Pacientes')}
-                            className={`flex items-center p-2 rounded-lg transition-colors duration-300 
-                                ${activeItem === 'Pacientes' ? 'bg-blue-500 text-white' : 'text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-                        >
-                            <FaUserInjured className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            <span className={`ml-3 ${isMinimized ? 'hidden' : 'inline'}`}>Pacientes</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="#"
-                            onClick={() => handleItemClick('ConfiguracionUsuarios')}
-                            className={`flex items-center p-2 rounded-lg transition-colors duration-300 
-                                ${activeItem === 'ConfiguracionUsuarios' ? 'bg-blue-500 text-white' : 'text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-                        >
-                            <FaUserCog className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            <span className={`ml-3 ${isMinimized ? 'hidden' : 'inline'}`}>Configuración de Usuarios</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="#"
-                            onClick={() => handleItemClick('GestionUsuarios')}
-                            className={`flex items-center p-2 rounded-lg transition-colors duration-300 
-                                ${activeItem === 'GestionUsuarios' ? 'bg-blue-500 text-white' : 'text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-                        >
-                            <FaUsers className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            <span className={`ml-3 ${isMinimized ? 'hidden' : 'inline'}`}>Gestión de Usuarios</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="#"
-                            onClick={() => handleItemClick('Mantenimiento')}
-                            className={`flex items-center p-2 rounded-lg transition-colors duration-300 
-                                ${activeItem === 'Mantenimiento' ? 'bg-blue-500 text-white' : 'text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-                        >
-                            <FaCog className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            <span className={`ml-3 ${isMinimized ? 'hidden' : 'inline'}`}>Mantenimiento</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href="#"
-                            onClick={() => handleItemClick('Entrega')}
-                            className={`flex items-center p-2 rounded-lg transition-colors duration-300 
-                                ${activeItem === 'Entrega' ? 'bg-blue-500 text-white' : 'text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-                        >
-                            <FaTruck className="w-6 h-6 text-gray-500 dark:text-gray-400" />
-                            <span className={`ml-3 ${isMinimized ? 'hidden' : 'inline'}`}>Entrega</span>
-                        </a>
-                    </li>
-                </ul>
+            {/* Enlaces principales */}
+            <div className="flex-grow mt-4 space-y-4 overflow-auto">
+                {linksArray.map(({ icon, label, to }) => (
+                    <NavLink
+                        key={label}
+                        to={to}
+                        className={({ isActive }) =>
+                            `flex items-center space-x-3 text-white p-2 rounded-md hover:bg-gray-700 transition-all ${isActive ? "bg-gray-700" : ""
+                            }`
+                        }
+                    >
+                        <div className="text-xl md:text-2xl">{icon}</div>
+                        {sidebarOpen && (
+                            <span className="text-sm md:text-md lg:text-lg block sm:hidden md:block">
+                                {label}
+                            </span>
+                        )}
+                    </NavLink>
+                ))}
             </div>
-        </aside>
+
+            {/* Separador */}
+            <div className="my-4 border-t border-gray-600"></div>
+
+            {/* Enlaces secundarios */}
+            <div className="space-y-4">
+                {secondarylinksArray.map(({ icon, label, to }) => (
+                    <NavLink
+                        key={label}
+                        to={to}
+                        className={({ isActive }) =>
+                            `flex items-center space-x-3 text-white p-2 rounded-md hover:bg-gray-700 transition-all ${isActive ? "bg-gray-700" : ""
+                            }`
+                        }
+                    >
+                        <div className="text-xl md:text-2xl">{icon}</div>
+                        {sidebarOpen && (
+                            <span className="text-sm md:text-md lg:text-lg block sm:hidden md:block">
+                                {label}
+                            </span>
+                        )}
+                    </NavLink>
+                ))}
+            </div>
+
+            {/* Cambiar tema */}
+            <div className="mt-4 md:mt-8 flex items-center">
+                {sidebarOpen && (
+                    <span className="text-white text-sm mr-2">
+                        {themeContext?.theme === "light" ? "Light" : "Dark"}
+                    </span>
+                )}
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        onClick={CambiarTheme}
+                    />
+                    <div className="w-10 h-5 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:bg-blue-600 transition-all duration-500 ease-in-out relative">
+                        <span
+                            className={`absolute left-1 top-1 w-3 h-3 bg-white rounded-full transform transition-transform duration-500 ease-in-out ${themeContext?.theme === "dark" ? "translate-x-5" : ""
+                                }`}
+                        />
+                    </div>
+                </label>
+            </div>
+        </div>
     );
-};
+}
 
-export default Sidebar;
+//#region Data links
+const linksArray: LinkItem[] = [
+    {
+        label: "Home",
+        icon: <FaHome />,
+        to: "/",
+    },
+    {
+        label: "Protesis",
+        icon: <GiRobotLeg />,
+        to: "/protesis",
+    },
+    {
+        label: "Reportes",
+        icon: <FaChartPie />,
+        to: "/reportes",
+    },
+    {
+        label: "Entregas",
+        icon: <FaCartArrowDown />,
+        to: "/entregas",
+    },
+    {
+        label: "Mantenimiento",
+        icon: <FaProcedures />,
+        to: "/mantenimiento",
+    },
+];
+
+const secondarylinksArray: LinkItem[] = [
+    {
+        label: "Ajustes Usuarios",
+        icon: <FaUserMd />,
+        to: "/usuarios",
+    },
+    {
+        label: "Salir",
+        icon: <MdLogout />,
+        to: "/null",
+    },
+];
+//#endregion

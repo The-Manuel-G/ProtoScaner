@@ -1,29 +1,54 @@
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import ContentGrid from './components/ContentGrid';
+import React, { useState, createContext } from "react";
+import { MyRoutes } from "./routers/routes";
+import { BrowserRouter } from "react-router-dom";
+import { Sidebar } from "./components/Sidebar";
 
-const App: React.FC = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar abierto por defecto en pantallas grandes
+// Define el tipo del contexto
+interface ThemeContextType {
+    theme: string;
+    setTheme: React.Dispatch<React.SetStateAction<string>>;
+}
 
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
+// Inicializa el contexto con un valor predeterminado para TypeScript
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+function App() {
+    const [theme, setTheme] = useState("light");
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <div className="relative">
-            <Navbar toggleSidebar={toggleSidebar} />
-            <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-            {/* Main content */}
+        <ThemeContext.Provider value={{ theme, setTheme }}>
             <div
-                className={`transition-all duration-300 ${isSidebarOpen ? 'ml-64 blur-sm lg:blur-none' : 'ml-0'
-                    }`} // Apply blur only on mobile and move content when sidebar is open
+                className={`${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"
+                    } min-h-screen transition-colors duration-300`}
             >
-                <ContentGrid />
+                <BrowserRouter>
+                    <div className="flex">
+                        {/* Sidebar */}
+                        <div
+                            className={`${sidebarOpen ? "w-64" : "w-20"
+                                } bg-gray-800 text-white h-screen transition-all duration-300`}
+                        >
+                            <Sidebar
+                                sidebarOpen={sidebarOpen}
+                                setSidebarOpen={setSidebarOpen}
+                            />
+                        </div>
+
+                        {/* Contenido principal */}
+                        <div
+                            id="main-content"
+                            className={`flex-1 p-6 ${sidebarOpen ? "md:ml-64" : "md:ml-20"
+                                } transition-all duration-300 ${sidebarOpen ? "blur-sm md:blur-none" : ""
+                                }`}
+                        >
+                            <MyRoutes />
+                        </div>
+                    </div>
+                </BrowserRouter>
             </div>
-        </div>
+        </ThemeContext.Provider>
     );
-};
+}
 
 export default App;

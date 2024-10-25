@@ -1,6 +1,6 @@
 // src/api/usuarios.ts
-import apiClient from '../api/client';  // Importa el cliente Axios ya configurado
-import { Usuario } from '../types/Usuario';  // Importa el tipo de Usuario
+import apiClient from '../api/client';
+import { Usuario, CreateUsuarioDTO } from '../types/Usuario';  // Importa CreateUsuarioDTO
 
 // Función para obtener todos los usuarios
 export const getUsuarios = async (): Promise<Usuario[]> => {
@@ -14,8 +14,8 @@ export const getUsuarioById = async (id: number): Promise<Usuario> => {
     return response.data;
 };
 
-// Función para crear un nuevo usuario
-export const createUsuario = async (usuario: Usuario): Promise<Usuario> => {
+// Función para crear un nuevo usuario, usando CreateUsuarioDTO
+export const createUsuario = async (usuario: CreateUsuarioDTO): Promise<Usuario> => {
     const response = await apiClient.post<Usuario>('/Usuario', usuario);
     return response.data;
 };
