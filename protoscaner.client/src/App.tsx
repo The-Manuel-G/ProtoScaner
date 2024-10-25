@@ -1,52 +1,54 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import Navbar from './components/Navbar';
-import Dashboard from './Pages/Dashboard';
-import UserDashboard from './Pages/Users/UserDashboard';
-import PacientesComponent from './Pages/Paciente/PacientesPage';
-import MantenimientoComponent from './Pages/Paciente/Potesis/Mantenimiento/MantenimientoComponent';
-import EntregaComponent from './Pages/Paciente/Potesis/EntregaPage';
-import ReporteComponent from './Pages/Paciente/ReportePage';
-import UserRegistrationForm from './Pages/Users/UserRegistrationForm'
+import React, { useState, createContext } from "react";
+import { MyRoutes } from "./routers/routes";
+import { BrowserRouter } from "react-router-dom";
+import { Sidebar } from "./components/Sidebar";
 
-// Importar estilos de PrimeReact
-import 'primereact/resources/themes/saga-blue/theme.css';
-import 'primereact/resources/primereact.min.css';
-import 'primeicons/primeicons.css';
+// Define el tipo del contexto
+interface ThemeContextType {
+    theme: string;
+    setTheme: React.Dispatch<React.SetStateAction<string>>;
+}
 
+// Inicializa el contexto con un valor predeterminado para TypeScript
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-
-const App: React.FC = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
-    };
+function App() {
+    const [theme, setTheme] = useState("light");
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     return (
-        <Router>
-            <div className="relative">
-                <Navbar toggleSidebar={toggleSidebar} />
-                <Sidebar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <ThemeContext.Provider value={{ theme, setTheme }}>
+            <div
+                className={`${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"
+                    } min-h-screen transition-colors duration-300`}
+            >
+                <BrowserRouter>
+                    <div className="flex">
+                        {/* Sidebar */}
+                        <div
+                            className={`${sidebarOpen ? "w-64" : "w-20"
+                                } bg-gray-800 text-white h-screen transition-all duration-300`}
+                        >
+                            <Sidebar
+                                sidebarOpen={sidebarOpen}
+                                setSidebarOpen={setSidebarOpen}
+                            />
+                        </div>
 
-                {/* Main content area */}
-                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'} pt-20`}>
-
-
-                    <Routes>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/pacientes" element={<PacientesComponent />} />
-                        <Route path="/gestion-usuarios" element={<UserDashboard />} />
-                        <Route path="/mantenimiento" element={<MantenimientoComponent />} />
-                        <Route path="/entrega" element={<EntregaComponent />} />
-                        <Route path="/reportes" element={<ReporteComponent />} />
-                        <Route path="/Usuario-Registro" element={<UserRegistrationForm />} />
-                    </Routes>
-                </div>
+                        {/* Contenido principal */}
+                        <div
+                            id="main-content"
+                            className={`flex-1 p-6 ${sidebarOpen ? "md:ml-64" : "md:ml-20"
+                                } transition-all duration-300 ${sidebarOpen ? "blur-sm md:blur-none" : ""
+                                }`}
+                        >
+                            <MyRoutes />
+                        </div>
+                    </div>
+                </BrowserRouter>
             </div>
-        </Router>
+        </ThemeContext.Provider>
     );
-};
+}
 
 export default App;
