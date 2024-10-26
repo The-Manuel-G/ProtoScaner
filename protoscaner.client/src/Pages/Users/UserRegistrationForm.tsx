@@ -4,8 +4,8 @@ import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Dropdown } from 'primereact/dropdown';
 import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Importa el CSS de react-toastify
 import { useNavigate } from 'react-router-dom';
-import { Toast } from 'primereact/toast';
 import { FileUpload, FileUploadHeaderTemplateOptions, FileUploadSelectEvent, FileUploadUploadEvent, ItemTemplateOptions } from 'primereact/fileupload';
 import { ProgressBar } from 'primereact/progressbar';
 import { Tag } from 'primereact/tag';
@@ -25,7 +25,6 @@ export function UserRegistrationForm() {
     const [totalSize, setTotalSize] = useState(0);
     const navigate = useNavigate();
     const fileUploadRef = useRef<FileUpload>(null);
-    const toast = useRef<Toast>(null);
 
     const handleSubmit = () => {
         if (password !== confirmPassword) {
@@ -52,7 +51,7 @@ export function UserRegistrationForm() {
             _totalSize += file.size || 0;
         });
         setTotalSize(_totalSize);
-        toast.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
+        toast.info('Archivo subido con éxito');
     };
 
     const onTemplateRemove = (file: File, callback: Function) => {
