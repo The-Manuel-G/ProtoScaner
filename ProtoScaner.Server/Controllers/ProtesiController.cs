@@ -27,7 +27,6 @@ namespace ProtoScaner.Server.Controllers
                 .Select(p => new ProtesiDTO
                 {
                     IdProtesis = p.IdProtesis,
-                    CodigoPaciente = p.CodigoPaciente,
                     LinerTipo = p.LinerTipo,
                     LinerTamano = p.LinerTamano,
                     Protesista = p.Protesista,
@@ -52,7 +51,6 @@ namespace ProtoScaner.Server.Controllers
             var protesiDTO = new ProtesiDTO
             {
                 IdProtesis = protesi.IdProtesis,
-                CodigoPaciente = protesi.CodigoPaciente,
                 LinerTipo = protesi.LinerTipo,
                 LinerTamano = protesi.LinerTamano,
                 Protesista = protesi.Protesista,
@@ -63,13 +61,37 @@ namespace ProtoScaner.Server.Controllers
             return Ok(protesiDTO);
         }
 
+        // GET: api/protesi/cedula/{cedula}
+        [HttpGet("cedula/{cedula}")]
+        public async Task<ActionResult<IEnumerable<ProtesiDTO>>> GetProtesisByCedula(string cedula)
+        {
+            var protesis = await dbContext.Proteses
+                .Where(p => p.Paciente.Cedula == cedula)
+                .Select(p => new ProtesiDTO
+                {
+                    IdProtesis = p.IdProtesis,
+                    LinerTipo = p.LinerTipo,
+                    LinerTamano = p.LinerTamano,
+                    Protesista = p.Protesista,
+                    FechaEntrega = p.FechaEntrega,
+                    Material = p.Material
+                })
+                .ToListAsync();
+
+            if (!protesis.Any())
+            {
+                return NotFound($"No se encontraron prótesis para la cédula {cedula}.");
+            }
+
+            return Ok(protesis);
+        }
+
         // POST: api/protesi
         [HttpPost]
         public async Task<ActionResult<ProtesiDTO>> CreateProtesi(ProtesiDTO nuevaProtesiDTO)
         {
             var nuevaProtesi = new Protesi
             {
-                CodigoPaciente = nuevaProtesiDTO.CodigoPaciente,
                 LinerTipo = nuevaProtesiDTO.LinerTipo,
                 LinerTamano = nuevaProtesiDTO.LinerTamano,
                 Protesista = nuevaProtesiDTO.Protesista,
@@ -95,7 +117,6 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
-            protesi.CodigoPaciente = protesiActualizadaDTO.CodigoPaciente;
             protesi.LinerTipo = protesiActualizadaDTO.LinerTipo;
             protesi.LinerTamano = protesiActualizadaDTO.LinerTamano;
             protesi.Protesista = protesiActualizadaDTO.Protesista;
@@ -122,5 +143,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-
-

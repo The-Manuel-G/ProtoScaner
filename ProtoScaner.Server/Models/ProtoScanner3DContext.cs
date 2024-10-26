@@ -773,7 +773,10 @@ public partial class ProtoScanner3DContext : DbContext
             entity.ToTable("Protesis");
 
             entity.Property(e => e.IdProtesis).HasColumnName("id_protesis");
-            entity.Property(e => e.CodigoPaciente).HasColumnName("codigo_paciente");
+            entity.Property(e => e.Cedula) // Cambiado de CodigoPaciente a Cedula
+                .HasMaxLength(11)
+                .IsUnicode(false)
+                .HasColumnName("cedula");
             entity.Property(e => e.FechaEntrega).HasColumnName("fecha_entrega");
             entity.Property(e => e.LinerTamano).HasColumnName("liner_tamano");
             entity.Property(e => e.LinerTipo).HasColumnName("liner_tipo");
@@ -786,10 +789,13 @@ public partial class ProtoScanner3DContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("protesista");
 
-            entity.HasOne(d => d.CodigoPacienteNavigation).WithMany(p => p.Protesis)
-                .HasForeignKey(d => d.CodigoPaciente)
+            // Actualiza la relación de Foreign Key usando Cedula en lugar de CodigoPaciente
+            entity.HasOne(d => d.Paciente) // Cambiado de CodigoPacienteNavigation a Paciente
+                .WithMany(p => p.Protesis)
+                .HasForeignKey(d => d.Cedula) // ForeignKey ahora apunta a Cedula
+                .HasPrincipalKey(p => p.Cedula) // Relacionado con la propiedad Cedula en Paciente
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Protesis__codigo__18EBB532");
+                .HasConstraintName("FK_Protesis_Paciente_Cedula");
 
             entity.HasOne(d => d.LinerTamanoNavigation).WithMany(p => p.Protesis)
                 .HasForeignKey(d => d.LinerTamano)
