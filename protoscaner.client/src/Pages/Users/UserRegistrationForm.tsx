@@ -36,36 +36,21 @@ export function UserRegistrationForm() {
             toast.error('Por favor, selecciona un rol');
             return;
         }
-
-        console.log('Nombre:', nombre);
-        console.log('Email:', email);
-        console.log('Contraseña:', password);
-        console.log('Rol:', role);
-
-        navigate('/gestion-usuarios');
+        navigate('/usuarios');
     };
 
     const onTemplateSelect = (e: FileUploadSelectEvent) => {
-        let files = e.files;
-
-        // Si ya existe un archivo cargado, lo reemplazamos
         if (fileUploadRef.current?.getFiles().length > 0) {
             fileUploadRef.current.clear();
         }
-
-        setTotalSize(files[0]?.size || 0); // Solo aceptamos el tamaño del primer archivo
+        setTotalSize(e.files[0]?.size || 0);
     };
 
     const onTemplateUpload = (e: FileUploadUploadEvent) => {
         let _totalSize = 0;
-
         e.files.forEach((file) => {
             _totalSize += file.size || 0;
         });
-        setTotalSize(_totalSize);
-        toast.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
-    };
-
         setTotalSize(_totalSize);
         toast.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
     };
@@ -120,7 +105,7 @@ export function UserRegistrationForm() {
 
     const emptyTemplate = () => {
         return (
-            <div className="flex align-items-center flex-column" style={{ width: '100px', height: '100px', borderRadius: '2rem' }}>
+            <div className="flex align-items-center flex-column" style={{ width: '200px', height: '200px', borderRadius: '2rem' }}>
                 <i className="pi pi-image mt-3 p-5" style={{ fontSize: '3rem', borderRadius: '50%', backgroundColor: 'var(--surface-b)', color: 'var(--surface-d)' }}></i>
                 <span style={{ fontSize: '1em', color: 'var(--text-color-secondary)' }} className="my-2">
                     Arrastra y suelta la imagen aquí
@@ -193,7 +178,7 @@ export function UserRegistrationForm() {
                             <Button
                                 label="Descartar"
                                 className="p-button-danger p-button-lg shadow-lg w-full md:w-auto mb-4 md:mb-0"
-                                onClick={() => navigate('/gestion-usuarios')}
+                                onClick={() => navigate('/usuarios')}
                                 style={{ backgroundColor: '#ff6b6b', borderColor: '#ff6b6b', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}
                             />
                             <Button
