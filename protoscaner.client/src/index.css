@@ -32,6 +32,11 @@ body {
 	flex-direction: column; /* Asegúrate de que los elementos se apilen verticalmente */
 	min-width: 320px;
 	min-height: 100vh;
+	
+
+
+	font-family: 'Roboto', sans-serif; /* Asegúrate de que la fuente tenga soporte para caracteres acentuados */
+
 }
 
 /* Aquí puedes agregar más estilos si es necesario */
