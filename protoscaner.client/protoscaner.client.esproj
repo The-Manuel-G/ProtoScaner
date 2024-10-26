@@ -6,8 +6,4 @@
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="src\tiktok_videos_web\**" />
-    <TypeScriptConfiguration Remove="src\tiktok_videos_web\**" />
-  </ItemGroup>
 </Project>
