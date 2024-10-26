@@ -12,7 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { EmptyState } from '../../components/EmptyState';
 import { FaPlus } from 'react-icons/fa';  // Importamos el icono para el botón
 
-// Definimos el componente sin React.FC
+
 export function UserDashboard(): JSX.Element {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [globalFilter, setGlobalFilter] = useState<string>('');

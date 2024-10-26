@@ -1,1 +1,17 @@
 ﻿
+	.grid-item:hover::before {
+		border-color: rgba(255, 255, 255, 0.8);
+		animation: rotateBorder 5s linear infinite; /* Add a rotating border on hover */
+	}
+
+@keyframes rotateBorder {
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+

@@ -1,16 +1,9 @@
-import React, { useState, createContext } from "react";
-import { MyRoutes } from "./routers/routes";
+import React, { useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
-
-// Define el tipo del contexto
-interface ThemeContextType {
-    theme: string;
-    setTheme: React.Dispatch<React.SetStateAction<string>>;
-}
-
-// Inicializa el contexto con un valor predeterminado para TypeScript
-export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+import { Navbar } from "./components/Navbar";
+import { MyRoutes } from "./routers/routes";
+import { ThemeContext } from "./components/ThemeContext";
 
 function App() {
     const [theme, setTheme] = useState("light");
@@ -26,7 +19,7 @@ function App() {
                         {/* Sidebar */}
                         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-                        {/* Contenido principal */}
+                        {/* Contenido principal que ajusta su tamaño basado en el tamaño del Sidebar */}
                         <div
                             id="main-content"
                             className={`flex-1 p-6 ${sidebarOpen ? "ml-64" : "ml-20"} transition-all duration-300 ${sidebarOpen ? "blur-sm md:blur-none" : ""}`}

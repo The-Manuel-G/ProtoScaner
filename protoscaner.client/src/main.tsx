@@ -1,12 +1,18 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
-import './index.css'
+import 'primereact/resources/themes/saga-blue/theme.css';  // O el tema que prefieras
+import 'primereact/resources/primereact.min.css';
+import 'primeicons/primeicons.css';  // Iconos de PrimeReact
+import 'react-toastify/dist/ReactToastify.css';  // Estilos de Toastify
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode>
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+
+createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+
         <App />
-    </React.StrictMode>,
-)
-
+    </StrictMode>,
+);
 
