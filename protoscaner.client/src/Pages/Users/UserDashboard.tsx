@@ -10,9 +10,10 @@ import { Dialog } from 'primereact/dialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { EmptyState } from '../../components/EmptyState';
-import { FaPlus } from 'react-icons/fa';  // Importamos el icono para el botÛn
+import { FaPlus } from 'react-icons/fa';  // Importamos el icono para el bot√≥n
 
-const UserDashboard: React.FC = () => {
+// Definimos el componente sin React.FC
+export function UserDashboard(): JSX.Element {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
@@ -77,13 +78,14 @@ const UserDashboard: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-between p-6 bg-gray-800 min-h-screen h-screen">
+        <div className="flex flex-col items-center justify-between p-6 min-h-screen h-screen transition-colors duration-300">  {/* Fondo adaptativo seg√∫n el tema */}
             <ToastContainer position="top-right" autoClose={5000} />
 
-            {/* Header con el botÛn de agregar y el filtro */}
+            {/* Header con el bot√≥n de agregar y el filtro */}
             <div className="mb-6 w-full max-w-6xl">
                 <div className="flex flex-col md:flex-row justify-between items-center">
-                    <h2 className="text-3xl font-semibold text-white">GestiÛn de Usuarios</h2>
+                    {/* Aseguramos que el texto sea visible en ambos temas */}
+                    <h2 className="text-3xl font-semibold">Gesti√≥n de Usuarios</h2>
 
                     <div className="mt-4 md:mt-0 flex justify-end items-center">
                         <span className="p-input-icon-left">
@@ -92,68 +94,69 @@ const UserDashboard: React.FC = () => {
                                 value={globalFilter}
                                 onChange={(e) => setGlobalFilter(e.target.value)}
                                 placeholder="Buscar usuarios"
-                                className="w-full md:w-96 p-inputtext-lg rounded-lg p-2"
+                                className="w-full md:w-96 p-inputtext-lg rounded-lg p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg transition-shadow duration-300 hover:shadow-xl"  // Estilo adaptativo para tema claro y oscuro
                             />
                         </span>
                         <Button
                             label="Agregar"
                             icon={null}
                             onClick={handleAddUser}  // Enlazamos correctamente al formulario de registro
-                            className="p-button-success ml-4 shadow-lg rounded-lg px-4 py-2 text-lg transition duration-300 ease-in-out hover:bg-green-600"
+                            className="ml-4 bg-green-600 text-white hover:bg-green-700 shadow-lg rounded-lg px-4 py-2 text-lg transition duration-300 ease-in-out"  // Estilo adaptativo
                         />
                     </div>
                 </div>
             </div>
 
             {/* DataTable o mensaje de que no hay usuarios */}
-            <div className="w-full max-w-6xl bg-gray-900 shadow-md rounded-lg p-6 flex-grow h-full">
+            <div className="w-full max-w-4xl mx-auto shadow-lg rounded-3xl p-4 bg-white dark:bg-gray-800 transition-colors duration-300"> {/* Fondo responsivo y borde m√°s redondeado */}
                 {usuarios.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full">
+                    <div className="flex flex-col items-center justify-center h-80 text-center text-gray-500"> {/* Altura m√°s compacta */}
                         <EmptyState message="No hay usuarios registrados. Agrega nuevos usuarios para comenzar." />
                         <button
                             onClick={handleAddUser}
-                            className="bg-blue-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg transition duration-300 ease-in-out hover:bg-blue-600 mt-6"
+                            className="bg-blue-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-transform duration-300 ease-in-out hover:bg-blue-600 mt-4 transform hover:scale-105"  // Bot√≥n redondeado y m√°s peque√±o
                         >
-                            <FaPlus className="text-3xl" /> {/* Usamos un icono FaPlus */}
+                            <FaPlus className="text-2xl" /> {/* Icono m√°s peque√±o */}
                         </button>
                     </div>
                 ) : (
+   
                     <DataTable
                         value={usuarios}
                         paginator
                         rows={10}
                         globalFilter={globalFilter}
                         emptyMessage="No se encontraron usuarios."
-                        className="p-datatable-sm p-datatable-gridlines"
+                        className="p-datatable-sm p-datatable-gridlines shadow-sm rounded-lg transition-shadow duration-200 hover:shadow-md"  // A√±adimos sombra a la tabla
                         header="Lista de Usuarios"
                     >
-                        <Column field="nombreUsuario" header="Nombre de Usuario" sortable className="text-white" />
-                        <Column field="email" header="Correo ElectrÛnico" sortable className="text-white" />
-                        <Column field="fechaCreacion" header="Fecha de CreaciÛn" sortable className="text-white" />
-                        <Column field="activo" header="Activo" sortable body={(rowData) => (rowData.activo ? 'SÌ' : 'No')} className="text-white" />
-                        <Column field="idRol" header="Rol" sortable body={(rowData) => rowData.idRol} className="text-white" />
+                        <Column field="nombreUsuario" header="Nombre de Usuario" sortable className="text-gray-900 dark:text-white" />
+                        <Column field="email" header="Correo Electr√≥nico" sortable className="text-gray-900 dark:text-white" />
+                        <Column field="fechaCreacion" header="Fecha de Creaci√≥n" sortable className="text-gray-900 dark:text-white" />
+                        <Column field="activo" header="Activo" sortable body={(rowData) => (rowData.activo ? 'S√≠' : 'No')} className="text-gray-900 dark:text-white" />
+                        <Column field="idRol" header="Rol" sortable body={(rowData) => rowData.idRol} className="text-gray-900 dark:text-white" />
                         <Column header="Acciones" body={actionBodyTemplate} style={{ textAlign: 'center', width: '120px' }} />
                     </DataTable>
                 )}
             </div>
 
-            {/* Modal de confirmaciÛn para eliminar usuarios */}
+            {/* Modal de confirmaci√≥n para eliminar usuarios */}
             <Dialog
-                header="ConfirmaciÛn"
+                header="Confirmaci√≥n"
                 visible={isDeleteDialogVisible}
                 style={{ width: '350px' }}
                 footer={
                     <>
                         <Button label="No" icon="pi pi-times" className="p-button-text" onClick={() => setIsDeleteDialogVisible(false)} />
-                        <Button label="SÌ" icon="pi pi-check" className="p-button-danger" onClick={handleDeleteUser} />
+                        <Button label="S√≠" icon="pi pi-check" className="p-button-danger" onClick={handleDeleteUser} />
                     </>
                 }
                 onHide={() => setIsDeleteDialogVisible(false)}
             >
-                <p>øEst· seguro de que desea eliminar el usuario <b>{selectedUser?.nombreUsuario}</b>?</p>
+                <p>¬øEst√° seguro de que desea eliminar el usuario <b>{selectedUser?.nombreUsuario}</b>?</p>
             </Dialog>
         </div>
     );
-};
+}
 
 export default UserDashboard;

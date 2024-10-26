@@ -16,7 +16,7 @@ const roles = [
     { label: 'Usuario', value: 'user' },
 ];
 
-const UserRegistrationForm: React.FC = () => {
+export function UserRegistrationForm() {
     const [nombre, setNombre] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
@@ -29,7 +29,7 @@ const UserRegistrationForm: React.FC = () => {
 
     const handleSubmit = () => {
         if (password !== confirmPassword) {
-            toast.error('Las contraseñas no coinciden');
+            toast.error('Las contraseÃ±as no coinciden');
             return;
         }
         if (!role) {
@@ -39,7 +39,7 @@ const UserRegistrationForm: React.FC = () => {
 
         console.log('Nombre:', nombre);
         console.log('Email:', email);
-        console.log('Contraseña:', password);
+        console.log('ContraseÃ±a:', password);
         console.log('Rol:', role);
 
         navigate('/gestion-usuarios');
@@ -53,7 +53,7 @@ const UserRegistrationForm: React.FC = () => {
             fileUploadRef.current.clear();
         }
 
-        setTotalSize(files[0]?.size || 0); // Solo aceptamos el tamaño del primer archivo
+        setTotalSize(files[0]?.size || 0); // Solo aceptamos el tamaÃ±o del primer archivo
     };
 
     const onTemplateUpload = (e: FileUploadUploadEvent) => {
@@ -62,6 +62,9 @@ const UserRegistrationForm: React.FC = () => {
         e.files.forEach((file) => {
             _totalSize += file.size || 0;
         });
+        setTotalSize(_totalSize);
+        toast.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
+    };
 
         setTotalSize(_totalSize);
         toast.current?.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
@@ -120,7 +123,7 @@ const UserRegistrationForm: React.FC = () => {
             <div className="flex align-items-center flex-column" style={{ width: '100px', height: '100px', borderRadius: '2rem' }}>
                 <i className="pi pi-image mt-3 p-5" style={{ fontSize: '3rem', borderRadius: '50%', backgroundColor: 'var(--surface-b)', color: 'var(--surface-d)' }}></i>
                 <span style={{ fontSize: '1em', color: 'var(--text-color-secondary)' }} className="my-2">
-                    Arrastra y suelta la imagen aquí
+                    Arrastra y suelta la imagen aquÃ­
                 </span>
             </div>
         );
@@ -161,26 +164,26 @@ const UserRegistrationForm: React.FC = () => {
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="password" className="block text-lg font-medium mb-2 text-gray-200">Contraseña</label>
+                            <label htmlFor="password" className="block text-lg font-medium mb-2 text-gray-200">ContraseÃ±a</label>
                             <Password
                                 id="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 toggleMask
-                                placeholder="Introduce la contraseña"
+                                placeholder="Introduce la contraseÃ±a"
                                 className="w-full p-inputtext-lg"
                                 inputStyle={{ color: 'black', backgroundColor: 'white' }}
                             />
                         </div>
 
                         <div className="mb-4">
-                            <label htmlFor="confirmPassword" className="block text-lg font-medium mb-2 text-gray-200">Confirmar Contraseña</label>
+                            <label htmlFor="confirmPassword" className="block text-lg font-medium mb-2 text-gray-200">Confirmar ContraseÃ±a</label>
                             <Password
                                 id="confirmPassword"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 toggleMask
-                                placeholder="Confirma la contraseña"
+                                placeholder="Confirma la contraseÃ±a"
                                 className="w-full p-inputtext-lg"
                                 inputStyle={{ color: 'black', backgroundColor: 'white' }}
                             />
@@ -244,6 +247,4 @@ const UserRegistrationForm: React.FC = () => {
             </div>
         </div>
     );
-};
-
-export default UserRegistrationForm;
+}

@@ -1,12 +1,15 @@
 import React from 'react';
 
-const EntregaComponent: React.FC = () => {
+// Componente EntregaComponent definido como una funciÃ³n sin React.FC
+export function EntregaPage(): JSX.Element {
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold">Entrega de Prótesis</h1>
-            <p className="mt-4">Gestión de las entregas de prótesis. Aquí puedes revisar el estado de las entregas y registrar nuevas entregas.</p>
+            <h1 className="text-2xl font-bold">Entrega de PrÃ³tesis</h1>
+            <p className="mt-4">
+                GestiÃ³n de las entregas de prÃ³tesis. AquÃ­ puedes revisar el estado de las entregas y registrar nuevas entregas.
+            </p>
         </div>
     );
-};
+}
 
-export default EntregaComponent;
+export default EntregaPage;

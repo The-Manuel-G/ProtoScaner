@@ -1,13 +1,16 @@
 import React from 'react';
 
-const ReporteComponent: React.FC = () => {
+// Componente Reportepage definido como funci贸n sin React.FC
+export function Reportepage(): JSX.Element {
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold">Generaci髇 de Reportes</h1>
-            <p className="mt-4">Genera reportes personalizados sobre pacientes, pr髏esis, mantenimientos y m醩.</p>
-            {/* Puedes agregar opciones de filtros o generaci髇 de reportes */}
+            <h1 className="text-2xl font-bold">Generaci贸n de Reportes</h1>
+            <p className="mt-4">
+                Genera reportes personalizados sobre pacientes, pr贸tesis, mantenimientos y m谩s.
+            </p>
+            {/* Puedes agregar opciones de filtros o generaci贸n de reportes */}
         </div>
     );
-};
+}
 
-export default ReporteComponent;
+export default Reportepage;
