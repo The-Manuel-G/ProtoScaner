@@ -4,6 +4,7 @@
     "lib": [ "ES2023" ],
     "module": "ESNext",
     "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
 
     /* Base URL and Path Alias */
     "baseUrl": ".",
@@ -12,7 +13,7 @@
     },
 
     /* Bundler mode */
-    "moduleResolution": "Bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",

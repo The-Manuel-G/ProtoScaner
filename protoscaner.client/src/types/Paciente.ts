@@ -4,7 +4,7 @@ export interface Paciente {
     nombreCompleto?: string;
     cedula?: string;
     genero?: number;
-    fechaNacimiento?: string; // o Date si prefieres trabajar con fechas directamente
+    fechaNacimiento?: Date; // o Date si prefieres trabajar con fechas directamente
     direccion?: string;
     telefono?: string;
     telefonoCelular?: string;
