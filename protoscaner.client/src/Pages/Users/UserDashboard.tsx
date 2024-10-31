@@ -1,42 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { Tag } from 'primereact/tag';
 import { Usuario } from '../../types/Usuario';
 import { getUsuarios, deleteUsuario } from '../../services/UsuarioService';
 import { useNavigate } from 'react-router-dom';
 import { Dialog } from 'primereact/dialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { EmptyState } from '../../components/EmptyState';
-import { FaPlus } from 'react-icons/fa';  // Importamos el icono para el botón
+import { FaPlus } from 'react-icons/fa';
+import { ThemeContext } from '../../App';
+import { Pagination } from "@nextui-org/react";
 
+// Definición de roles con colores basados en jerarquía
+const roles = [
+    { id: 1, name: 'Directiva', color: 'bg-purple-500' },
+    { id: 2, name: 'Soportes', color: 'bg-yellow-500' },
+    { id: 3, name: 'Técnicos', color: 'bg-green-500' },
+    { id: 4, name: 'Diseñadores', color: 'bg-blue-500' },
+];
+
+// Función para obtener el nombre y color del rol según su ID
+const getRoleInfo = (roleId: number) => {
+    const role = roles.find((r) => r.id === roleId);
+    return role ? role : { name: 'Desconocido', color: 'bg-gray-500' };
+};
 
 export function UserDashboard(): JSX.Element {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [globalFilter, setGlobalFilter] = useState<string>('');
     const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
     const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1); // Ajusta esto según el número de usuarios
+    const itemsPerPage = 10; // Cambia esto según la cantidad de elementos por página
     const navigate = useNavigate();
+    const themeContext = useContext(ThemeContext);
 
     useEffect(() => {
         const fetchUsuarios = async () => {
             try {
                 const data = await getUsuarios();
                 setUsuarios(Array.isArray(data) ? data : []);
+                setTotalPages(Math.ceil(data.length / itemsPerPage)); // Calcular total de páginas
             } catch (error) {
                 console.error('Error al obtener los usuarios:', error);
                 toast.error('Error al cargar los usuarios.');
             }
         };
-
         fetchUsuarios();
     }, []);
 
-    // Cambiamos el enlace a la ruta correcta
     const handleAddUser = () => {
-        navigate('/Usuario-Registro');  // Cambiamos '/registro-usuario' a '/Usuario-Registro'
+        navigate('/Usuario-Registro');
     };
 
     const confirmDeleteUser = (user: Usuario) => {
@@ -58,34 +76,50 @@ export function UserDashboard(): JSX.Element {
         setIsDeleteDialogVisible(false);
     };
 
-    const actionBodyTemplate = (rowData: Usuario) => {
+    const actionBodyTemplate = (rowData: Usuario) => (
+        <div className="flex justify-around">
+            <Button
+                icon="pi pi-pencil"
+                className="p-button-rounded p-button-info p-button-sm hover:shadow-md transition duration-300 ease-in-out"
+                onClick={() => navigate(`/editar-usuario/${rowData.idUsuario}`)}
+                tooltip="Editar"
+            />
+            <Button
+                icon="pi pi-trash"
+                className="p-button-rounded p-button-danger p-button-sm hover:shadow-md transition duration-300 ease-in-out"
+                onClick={() => confirmDeleteUser(rowData)}
+                tooltip="Eliminar"
+            />
+        </div>
+    );
+
+    const imageBodyTemplate = (rowData: Usuario) => (
+        <img
+            src={`data:image/jpeg;base64,${rowData.imagenPerfil?.imagen}`}
+            alt="Imagen de perfil"
+            className="w-12 h-12 rounded-full shadow-md"
+        />
+    );
+
+    const roleBodyTemplate = (rowData: Usuario) => {
+        const roleInfo = getRoleInfo(rowData.idRol || 0);
         return (
-            <div className="flex justify-around">
-                <Button
-                    icon="pi pi-pencil"
-                    className="p-button-rounded p-button-info p-button-sm hover:shadow-md transition duration-300 ease-in-out"
-                    onClick={() => navigate(`/editar-usuario/${rowData.idUsuario}`)}  // Ajusta la ruta si ya existe
-                    tooltip="Editar"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    className="p-button-rounded p-button-danger p-button-sm hover:shadow-md transition duration-300 ease-in-out"
-                    onClick={() => confirmDeleteUser(rowData)}
-                    tooltip="Eliminar"
-                />
-            </div>
+            <Tag
+                value={roleInfo.name}
+                className={`${roleInfo.color} text-white p-2 rounded-full text-center`}
+            />
         );
     };
 
+    const paginatedUsuarios = usuarios.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
-        <div className="flex flex-col items-center justify-between p-6 min-h-screen h-screen transition-colors duration-300">  {/* Fondo adaptativo según el tema */}
+        <div className={`flex flex-col items-center justify-center p-6 min-h-screen ${themeContext?.theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-black"} transition-colors duration-300`}>
             <ToastContainer position="top-right" autoClose={5000} />
 
-            {/* Header con el botón de agregar y el filtro */}
-            <div className="mb-6 w-full max-w-6xl">
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                    {/* Aseguramos que el texto sea visible en ambos temas */}
-                    <h2 className="text-3xl font-semibold">Gestión de Usuarios</h2>
+            <div className="mb-6 w-full max-w-5xl text-center">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+                    <h2 className="text-4xl font-semibold">{themeContext?.theme === "dark" ? "Gestión de Usuarios (Modo Oscuro)" : "Gestión de Usuarios"}</h2>
 
                     <div className="mt-4 md:mt-0 flex justify-end items-center">
                         <span className="p-input-icon-left">
@@ -94,53 +128,60 @@ export function UserDashboard(): JSX.Element {
                                 value={globalFilter}
                                 onChange={(e) => setGlobalFilter(e.target.value)}
                                 placeholder="Buscar usuarios"
-                                className="w-full md:w-96 p-inputtext-lg rounded-lg p-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-lg transition-shadow duration-300 hover:shadow-xl"  // Estilo adaptativo para tema claro y oscuro
+                                className={`w-full md:w-96 p-inputtext-lg rounded-full p-2 ${themeContext?.theme === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"} shadow-lg transition-shadow duration-300 hover:shadow-xl`}
                             />
                         </span>
                         <Button
+                            icon={<FaPlus />}
                             label="Agregar"
-                            icon={null}
-                            onClick={handleAddUser}  // Enlazamos correctamente al formulario de registro
-                            className="ml-4 bg-green-600 text-white hover:bg-green-700 shadow-lg rounded-lg px-4 py-2 text-lg transition duration-300 ease-in-out"  // Estilo adaptativo
+                            onClick={handleAddUser}
+                            className={`ml-4 ${themeContext?.theme === "dark" ? "bg-green-700 hover:bg-green-600 text-white" : "bg-green-600 hover:bg-green-500 text-black"} shadow-lg rounded-full px-4 py-2 text-lg transition duration-300 ease-in-out flex items-center`}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* DataTable o mensaje de que no hay usuarios */}
-            <div className="w-full max-w-4xl mx-auto shadow-lg rounded-3xl p-4 bg-white dark:bg-gray-800 transition-colors duration-300"> {/* Fondo responsivo y borde más redondeado */}
+            <div className={`w-full max-w-5xl mx-auto shadow-lg rounded-3xl p-6 ${themeContext?.theme === "dark" ? "bg-gray-800" : "bg-white"} transition-colors duration-300`}>
                 {usuarios.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-80 text-center text-gray-500"> {/* Altura más compacta */}
-                        <EmptyState message="No hay usuarios registrados. Agrega nuevos usuarios para comenzar." />
+                    <div className="flex flex-col items-center justify-center h-80 text-center text-gray-500">
+                        <p>No hay usuarios registrados. Agrega nuevos usuarios para comenzar.</p>
                         <button
                             onClick={handleAddUser}
-                            className="bg-blue-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-transform duration-300 ease-in-out hover:bg-blue-600 mt-4 transform hover:scale-105"  // Botón redondeado y más pequeño
+                            className={`mt-4 w-14 h-14 flex items-center justify-center rounded-full shadow-lg transition-transform duration-300 hover:scale-105 ${themeContext?.theme === "dark" ? "bg-blue-600 text-white" : "bg-blue-500 text-black"}`}
                         >
-                            <FaPlus className="text-2xl" /> {/* Icono más pequeño */}
+                            <FaPlus className="text-2xl" />
                         </button>
                     </div>
                 ) : (
-   
-                    <DataTable
-                        value={usuarios}
-                        paginator
-                        rows={10}
-                        globalFilter={globalFilter}
-                        emptyMessage="No se encontraron usuarios."
-                        className="p-datatable-sm p-datatable-gridlines shadow-sm rounded-lg transition-shadow duration-200 hover:shadow-md"  // Añadimos sombra a la tabla
-                        header="Lista de Usuarios"
-                    >
-                        <Column field="nombreUsuario" header="Nombre de Usuario" sortable className="text-gray-900 dark:text-white" />
-                        <Column field="email" header="Correo Electrónico" sortable className="text-gray-900 dark:text-white" />
-                        <Column field="fechaCreacion" header="Fecha de Creación" sortable className="text-gray-900 dark:text-white" />
-                        <Column field="activo" header="Activo" sortable body={(rowData) => (rowData.activo ? 'Sí' : 'No')} className="text-gray-900 dark:text-white" />
-                        <Column field="idRol" header="Rol" sortable body={(rowData) => rowData.idRol} className="text-gray-900 dark:text-white" />
-                        <Column header="Acciones" body={actionBodyTemplate} style={{ textAlign: 'center', width: '120px' }} />
-                    </DataTable>
+                    <>
+                        <DataTable
+                            value={paginatedUsuarios}
+                            globalFilter={globalFilter}
+                            emptyMessage="No se encontraron usuarios."
+                            className="p-datatable-sm p-datatable-gridlines shadow-sm rounded-3xl"
+                            header="Lista de Usuarios"
+                        >
+                            <Column header="Imagen" body={imageBodyTemplate} style={{ textAlign: 'center', width: '80px' }} />
+                            <Column field="nombreUsuario" header="Nombre de Usuario" sortable className="text-gray-900 dark:text-white" />
+                            <Column field="email" header="Correo Electrónico" sortable className="text-gray-900 dark:text-white" />
+                            <Column field="fechaCreacion" header="Fecha de Creación" sortable className="text-gray-900 dark:text-white" />
+                            <Column field="activo" header="Activo" sortable body={(rowData) => (rowData.activo ? 'Sí' : 'No')} className="text-gray-900 dark:text-white" />
+                            <Column header="Rol" body={roleBodyTemplate} style={{ textAlign: 'center' }} />
+                            <Column header="Acciones" body={actionBodyTemplate} style={{ textAlign: 'center', width: '120px' }} />
+                        </DataTable>
+                        <div className="flex justify-center mt-4">
+                            <Pagination
+                                total={totalPages}
+                                initialPage={currentPage}
+                                onChange={(page) => setCurrentPage(page)}
+                                shadow
+                                color="primary"
+                            />
+                        </div>
+                    </>
                 )}
             </div>
 
-            {/* Modal de confirmación para eliminar usuarios */}
             <Dialog
                 header="Confirmación"
                 visible={isDeleteDialogVisible}

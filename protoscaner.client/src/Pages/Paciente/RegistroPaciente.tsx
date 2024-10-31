@@ -1,44 +1,44 @@
-// src/pages/RegistroPaciente.tsx
+// src/components/RegistroPaciente.tsx
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useContext } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
-import { Card } from 'primereact/card';
+import { Dialog } from 'primereact/dialog';
 import { ToastContainer, toast } from 'react-toastify';
-import { FileUpload, FileUploadSelectEvent, FileUploadUploadEvent, FileUploadHeaderTemplateOptions, ItemTemplateOptions } from 'primereact/fileupload';
+import { FileUpload, FileUploadSelectEvent } from 'primereact/fileupload';
 import { ProgressBar } from 'primereact/progressbar';
-import { Tag } from 'primereact/tag';
-import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios';
-import { Paciente } from '../types/Paciente';
+import { Paciente } from '../../types/Paciente';
+import { createPaciente } from '../../services/PacienteService';
+import { motion } from 'framer-motion';
+import { ThemeContext } from '../../App';
 
-const RegistroPaciente: React.FC = () => {
-    const [formData, setFormData] = useState<Paciente>({
-        idPaciente: 0,
+export function RegistroPaciente() {
+    const [formData, setFormData] = useState<Omit<Paciente, 'idPaciente'>>({
         nombreCompleto: '',
         cedula: '',
-        genero: 0,
+        genero: null,
         fechaNacimiento: '',
         direccion: '',
         telefono: '',
         telefonoCelular: '',
-        idProvincia: 0,
+        idProvincia: null,
         sector: '',
-        insidencia: false,
-        idEstatusPaciente: 0,
-        idEstatusProtesis: 0,
         comentario: '',
-        fotoPaciente: new Uint8Array()
+        fotoPaciente: ''
     });
 
-    const fileUploadRef = useRef<FileUpload>(null);
     const [totalSize, setTotalSize] = useState(0);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [showCancelDialog, setShowCancelDialog] = useState(false);
+    const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+    const [showErrorDialog, setShowErrorDialog] = useState(false);
+    const themeContext = useContext(ThemeContext);
 
     const generos = [
         { label: 'Masculino', value: 1 },
@@ -47,18 +47,7 @@ const RegistroPaciente: React.FC = () => {
 
     const provincias = [
         { label: 'Distrito Nacional', value: 1 },
-        { label: 'Santo Domingo', value: 2 },
-        // Añadir más provincias aquí si es necesario
-    ];
-
-    const estatusPaciente = [
-        { label: 'Activo', value: 1 },
-        { label: 'Inactivo', value: 2 }
-    ];
-
-    const estatusProtesis = [
-        { label: 'Con Prótesis', value: 1 },
-        { label: 'Sin Prótesis', value: 2 }
+        { label: 'Santo Domingo', value: 2 }
     ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -66,240 +55,242 @@ const RegistroPaciente: React.FC = () => {
         setFormData({ ...formData, [name]: value });
     };
 
-    const onTemplateSelect = (e: FileUploadSelectEvent) => {
-        if (fileUploadRef.current?.getFiles().length > 0) {
-            fileUploadRef.current.clear();
-        }
-        setTotalSize(e.files[0]?.size || 0);
+    const handleDropdownChange = (e: { value: any }, field: keyof Omit<Paciente, 'idPaciente'>) => {
+        setFormData({ ...formData, [field]: e.value });
+    };
 
+    const onTemplateSelect = (e: FileUploadSelectEvent) => {
         const file = e.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = () => {
                 if (reader.result) {
-                    setFormData({ ...formData, fotoPaciente: new Uint8Array(reader.result as ArrayBuffer) });
+                    setFormData({ ...formData, fotoPaciente: reader.result as string });
                 }
             };
-            reader.readAsArrayBuffer(file);
+            reader.readAsDataURL(file);
+            setTotalSize(file.size);
         }
     };
 
-    const onTemplateUpload = (e: FileUploadUploadEvent) => {
-        let _totalSize = 0;
-        e.files.forEach(file => {
-            _totalSize += file.size || 0;
-        });
-        setTotalSize(_totalSize);
-        toast.success('Archivo subido con éxito');
-    };
-
-    const onTemplateClear = () => {
-        setTotalSize(0);
-        setFormData({ ...formData, fotoPaciente: new Uint8Array() });
-    };
-
-    const headerTemplate = (options: FileUploadHeaderTemplateOptions) => {
-        const { className, chooseButton, cancelButton } = options;
-        const value = totalSize / 10000;
-        const formattedValue = fileUploadRef && fileUploadRef.current ? fileUploadRef.current.formatSize(totalSize) : '0 B';
-
-        return (
-            <div className={className} style={{ backgroundColor: 'transparent', display: 'flex', alignItems: 'center' }}>
-                {chooseButton}
-                {cancelButton}
-                <div className="flex align-items-center gap-3 ml-auto">
-                    <span>{formattedValue} / 1 MB</span>
-                    <ProgressBar value={value} showValue={false} style={{ width: '10rem', height: '12px' }}></ProgressBar>
-                </div>
-            </div>
-        );
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleNext = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-
-        const apiEndpoint = 'https://your-api-url/endpoint';
-        const data = new FormData();
-
-        Object.keys(formData).forEach(key => {
-            const value = formData[key as keyof Paciente];
-            if (value instanceof Uint8Array) {
-                data.append(key, new Blob([value]));
+        if (currentStep === 0) {
+            if (formData.nombreCompleto && formData.cedula && formData.genero !== null && formData.fechaNacimiento) {
+                setCurrentStep(1);
             } else {
-                data.append(key, value as string | Blob);
+                toast.error('Complete los campos obligatorios');
             }
-        });
-
-        try {
-            const response = await axios.post(apiEndpoint, data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            toast.success('Registro exitoso!');
-            console.log('Respuesta del servidor:', response.data);
-        } catch (error) {
-            toast.error('Error al enviar los datos. Intente nuevamente.');
-            console.error('Error al enviar los datos:', error);
+        } else if (currentStep === 1) {
+            handleSubmit(e);
         }
+    };
+
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        try {
+            await createPaciente({
+                ...formData,
+                fechaNacimiento: formData.fechaNacimiento
+                    ? new Date(formData.fechaNacimiento).toISOString().split('T')[0]
+                    : ''
+            });
+            setShowSuccessDialog(true);
+        } catch (error) {
+            toast.error('Error al registrar el paciente');
+            setShowErrorDialog(true);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            nombreCompleto: '',
+            cedula: '',
+            genero: null,
+            fechaNacimiento: '',
+            direccion: '',
+            telefono: '',
+            telefonoCelular: '',
+            idProvincia: null,
+            sector: '',
+            comentario: '',
+            fotoPaciente: ''
+        });
+        setCurrentStep(0);
+        setShowSuccessDialog(false);
+        setShowErrorDialog(false);
     };
 
     return (
-        <div className="RegistroPaciente">
-            <ToastContainer position="top-right" autoClose={3000} />
-            <div className="form-container mx-auto max-w-xl mt-10">
-                <Card title="REGISTRO DE PACIENTES" className="p-shadow-5 bg-gray-900 text-white">
-                    <form onSubmit={handleSubmit} className="p-fluid space-y-4">
-                        <div className="field">
-                            <label htmlFor="nombre_completo" className="text-white">Nombre Completo</label>
-                            <InputText
-                                id="nombre_completo"
-                                name="nombre_completo"
-                                value={formData.nombreCompleto || ''}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="cedula" className="text-white">Cédula</label>
-                            <InputText
-                                id="cedula"
-                                name="cedula"
-                                value={formData.cedula || ''}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="genero" className="text-white">Género</label>
-                            <Dropdown
-                                id="genero"
-                                name="genero"
-                                value={formData.genero || null}
-                                options={generos}
-                                onChange={(e) => setFormData({ ...formData, genero: e.value })}
-                                placeholder="Seleccione su género"
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="fecha_nacimiento" className="text-white">Fecha de Nacimiento</label>
-                            <Calendar
-                                id="fecha_nacimiento"
-                                name="fecha_nacimiento"
-                                value={formData.fechaNacimiento || null}
-                                onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.value })}
-                                placeholder="Fecha de Nacimiento"
-                                className="input-field"
-                                dateFormat="mm/dd/yy"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="direccion" className="text-white">Dirección</label>
-                            <InputText
-                                id="direccion"
-                                name="direccion"
-                                value={formData.direccion || ''}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="telefono" className="text-white">Teléfono</label>
-                            <InputText
-                                id="telefono"
-                                name="telefono"
-                                value={formData.telefono || ''}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="telefono_celular" className="text-white">Teléfono Celular</label>
-                            <InputText
-                                id="telefono_celular"
-                                name="telefono_celular"
-                                value={formData.telefonoCelular || ''}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="id_provincia" className="text-white">Provincia</label>
-                            <Dropdown
-                                id="id_provincia"
-                                name="id_provincia"
-                                value={formData.idProvincia || null}
-                                options={provincias}
-                                onChange={(e) => setFormData({ ...formData, idProvincia: e.value })}
-                                placeholder="Seleccione una provincia"
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="sector" className="text-white">Sector</label>
-                            <InputText
-                                id="sector"
-                                name="sector"
-                                value={formData.sector || ''}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="observaciones" className="text-white">Observaciones</label>
-                            <InputTextarea
-                                id="observaciones"
-                                name="observaciones"
-                                value={formData.comentario || ''}
-                                onChange={handleChange}
-                                rows={3}
-                                className="input-field"
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="fotoPaciente" className="text-white">Foto del Paciente</label>
-                            <FileUpload
-                                ref={fileUploadRef}
-                                name="fotoPaciente"
-                                accept="image/*"
-                                maxFileSize={1000000}
-                                onUpload={onTemplateUpload}
-                                onSelect={onTemplateSelect}
-                                onError={onTemplateClear}
-                                onClear={onTemplateClear}
-                                headerTemplate={headerTemplate}
-                                className="input-field"
-                            />
-                        </div>
-
-                        <div className="flex justify-center mt-6">
-                            <Button label="Registrar" type="submit" className="p-button-lg p-button-success" />
-                        </div>
-                    </form>
-                </Card>
+        <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8">
+            <div className={`w-full max-w-4xl ${themeContext?.theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"} shadow-lg rounded-lg p-8 transition-all duration-500`}>
+                <h2 className="text-3xl font-semibold text-center mb-6">Registro de Paciente</h2>
+                <form className="space-y-8">
+                    {currentStep === 0 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label htmlFor="nombreCompleto" className="block text-lg font-medium mb-2">Nombre Completo</label>
+                                <InputText
+                                    id="nombreCompleto"
+                                    name="nombreCompleto"
+                                    value={formData.nombreCompleto}
+                                    onChange={handleChange}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="cedula" className="block text-lg font-medium mb-2">Cédula</label>
+                                <InputText
+                                    id="cedula"
+                                    name="cedula"
+                                    value={formData.cedula}
+                                    onChange={handleChange}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="genero" className="block text-lg font-medium mb-2">Género</label>
+                                <Dropdown
+                                    id="genero"
+                                    name="genero"
+                                    value={formData.genero}
+                                    options={generos}
+                                    onChange={(e) => handleDropdownChange(e, 'genero')}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    placeholder="Seleccione"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="fechaNacimiento" className="block text-lg font-medium mb-2">Fecha de Nacimiento</label>
+                                <Calendar
+                                    id="fechaNacimiento"
+                                    name="fechaNacimiento"
+                                    value={formData.fechaNacimiento ? new Date(formData.fechaNacimiento) : null}
+                                    onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.value ? new Date(e.value).toISOString().split('T')[0] : '' })}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    dateFormat="mm/dd/yy"
+                                    required
+                                />
+                            </div>
+                        </motion.div>
+                    )}
+                    {currentStep === 1 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label htmlFor="direccion" className="block text-lg font-medium mb-2">Dirección</label>
+                                <InputText
+                                    id="direccion"
+                                    name="direccion"
+                                    value={formData.direccion}
+                                    onChange={handleChange}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="telefono" className="block text-lg font-medium mb-2">Teléfono</label>
+                                <InputText
+                                    id="telefono"
+                                    name="telefono"
+                                    value={formData.telefono}
+                                    onChange={handleChange}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="telefonoCelular" className="block text-lg font-medium mb-2">Teléfono Celular</label>
+                                <InputText
+                                    id="telefonoCelular"
+                                    name="telefonoCelular"
+                                    value={formData.telefonoCelular}
+                                    onChange={handleChange}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="idProvincia" className="block text-lg font-medium mb-2">Provincia</label>
+                                <Dropdown
+                                    id="idProvincia"
+                                    name="idProvincia"
+                                    value={formData.idProvincia}
+                                    options={provincias}
+                                    onChange={(e) => handleDropdownChange(e, 'idProvincia')}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                    placeholder="Seleccione"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="sector" className="block text-lg font-medium mb-2">Sector (Opcional)</label>
+                                <InputText
+                                    id="sector"
+                                    name="sector"
+                                    value={formData.sector}
+                                    onChange={handleChange}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="comentario" className="block text-lg font-medium mb-2">Observaciones (Opcional)</label>
+                                <InputTextarea
+                                    id="comentario"
+                                    name="comentario"
+                                    value={formData.comentario}
+                                    onChange={handleChange}
+                                    rows={3}
+                                    className="w-full p-4 text-xl rounded-md border"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="fotoPaciente" className="block text-lg font-medium mb-2">Foto del Paciente (Opcional)</label>
+                                <FileUpload
+                                    name="fotoPaciente"
+                                    accept="image/*"
+                                    maxFileSize={1000000}
+                                    onSelect={onTemplateSelect}
+                                    chooseOptions={{ icon: 'pi pi-camera', className: 'p-button-rounded p-button-info mr-2' }}
+                                    cancelOptions={{ icon: 'pi pi-times', className: "p-button-rounded p-button-danger" }}
+                                    className="text-2xl p-4 rounded-md border"
+                                />
+                                <ProgressBar value={(totalSize / 10000) * 10} showValue={false} className="mt-2" />
+                            </div>
+                        </motion.div>
+                    )}
+                    <div className="flex justify-between mt-6">
+                        <Button label="Descartar" className="p-button-danger p-4 text-xl shadow-lg rounded-md" onClick={() => setShowCancelDialog(true)} />
+                        <Button label={currentStep < 1 ? "Siguiente" : "Registrar"} className="p-button-success p-4 text-xl shadow-lg rounded-md" onClick={handleNext} />
+                    </div>
+                </form>
             </div>
+
+            {/* Diálogo de Cancelación */}
+            <Dialog header="Cancelar Registro" visible={showCancelDialog} style={{ width: '50vw' }} onHide={() => setShowCancelDialog(false)}>
+                <p>¿Está seguro de que desea cancelar el registro? Los datos ingresados no se guardarán.</p>
+                <div className="flex justify-end gap-3 mt-4">
+                    <Button label="No" className="p-button-text p-4" onClick={() => setShowCancelDialog(false)} />
+                    <Button label="Sí" className="p-button-danger p-4 text-xl shadow-lg" onClick={() => { resetForm(); setShowCancelDialog(false); }} />
+                </div>
+            </Dialog>
+
+            {/* Diálogo de Registro Exitoso */}
+            <Dialog header="Registro Exitoso" visible={showSuccessDialog} style={{ width: '50vw' }} onHide={resetForm}>
+                <p>El paciente ha sido registrado con éxito.</p>
+                <Button label="Aceptar" className="p-button-success p-4 text-xl shadow-lg" onClick={resetForm} />
+            </Dialog>
+
+            {/* Diálogo de Error en el Registro */}
+            <Dialog header="Error en el Registro" visible={showErrorDialog} style={{ width: '50vw' }} onHide={() => setShowErrorDialog(false)}>
+                <p>Hubo un problema al registrar el paciente. Por favor, intente nuevamente.</p>
+                <Button label="Cerrar" className="p-button-danger p-4 text-xl shadow-lg" onClick={() => setShowErrorDialog(false)} />
+            </Dialog>
+            <ToastContainer position="top-right" autoClose={5000} />
         </div>
     );
-};
+}
 
 export default RegistroPaciente;

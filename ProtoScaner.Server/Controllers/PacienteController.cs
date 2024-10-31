@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,7 +31,9 @@ namespace ProtoScaner.Server.Controllers
                     NombreCompleto = p.NombreCompleto,
                     Cedula = p.Cedula,
                     Genero = p.Genero,
-                    FechaNacimiento = p.FechaNacimiento,
+                    FechaNacimiento = p.FechaNacimiento.HasValue
+                                      ? DateOnly.FromDateTime(p.FechaNacimiento.Value)
+                                      : (DateOnly?)null,
                     Direccion = p.Direccion,
                     Telefono = p.Telefono,
                     TelefonoCelular = p.TelefonoCelular,
@@ -40,7 +43,7 @@ namespace ProtoScaner.Server.Controllers
                     IdEstatusPaciente = p.IdEstatusPaciente,
                     IdEstatusProtesis = p.IdEstatusProtesis,
                     Comentario = p.Comentario,
-                    FotoPaciente = p.FotoPaciente
+                    FotoPaciente = p.FotoPaciente != null ? Convert.ToBase64String(p.FotoPaciente) : null
                 })
                 .ToListAsync();
 
@@ -63,7 +66,9 @@ namespace ProtoScaner.Server.Controllers
                 NombreCompleto = paciente.NombreCompleto,
                 Cedula = paciente.Cedula,
                 Genero = paciente.Genero,
-                FechaNacimiento = paciente.FechaNacimiento,
+                FechaNacimiento = paciente.FechaNacimiento.HasValue
+                                  ? DateOnly.FromDateTime(paciente.FechaNacimiento.Value)
+                                  : (DateOnly?)null,
                 Direccion = paciente.Direccion,
                 Telefono = paciente.Telefono,
                 TelefonoCelular = paciente.TelefonoCelular,
@@ -73,42 +78,7 @@ namespace ProtoScaner.Server.Controllers
                 IdEstatusPaciente = paciente.IdEstatusPaciente,
                 IdEstatusProtesis = paciente.IdEstatusProtesis,
                 Comentario = paciente.Comentario,
-                FotoPaciente = paciente.FotoPaciente
-            };
-
-            return Ok(pacienteDTO);
-        }
-
-        // GET: api/paciente/cedula/{cedula}
-        [HttpGet("cedula/{cedula}")]
-        public async Task<ActionResult<PacienteDTO>> GetPacienteByCedula(string cedula)
-        {
-            var paciente = await dbContext.Pacientes
-                .Where(p => p.Cedula == cedula)
-                .FirstOrDefaultAsync();
-
-            if (paciente == null)
-            {
-                return NotFound();
-            }
-
-            var pacienteDTO = new PacienteDTO
-            {
-                IdPaciente = paciente.IdPaciente,
-                NombreCompleto = paciente.NombreCompleto,
-                Cedula = paciente.Cedula,
-                Genero = paciente.Genero,
-                FechaNacimiento = paciente.FechaNacimiento,
-                Direccion = paciente.Direccion,
-                Telefono = paciente.Telefono,
-                TelefonoCelular = paciente.TelefonoCelular,
-                IdProvincia = paciente.IdProvincia,
-                Sector = paciente.Sector,
-                Insidencia = paciente.Insidencia,
-                IdEstatusPaciente = paciente.IdEstatusPaciente,
-                IdEstatusProtesis = paciente.IdEstatusProtesis,
-                Comentario = paciente.Comentario,
-                FotoPaciente = paciente.FotoPaciente
+                FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null
             };
 
             return Ok(pacienteDTO);
@@ -118,30 +88,45 @@ namespace ProtoScaner.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<PacienteDTO>> CreatePaciente(PacienteDTO nuevoPacienteDTO)
         {
-            var nuevoPaciente = new Paciente
+            if (nuevoPacienteDTO == null)
             {
-                NombreCompleto = nuevoPacienteDTO.NombreCompleto,
-                Cedula = nuevoPacienteDTO.Cedula,
-                Genero = nuevoPacienteDTO.Genero,
-                FechaNacimiento = nuevoPacienteDTO.FechaNacimiento,
-                Direccion = nuevoPacienteDTO.Direccion,
-                Telefono = nuevoPacienteDTO.Telefono,
-                TelefonoCelular = nuevoPacienteDTO.TelefonoCelular,
-                IdProvincia = nuevoPacienteDTO.IdProvincia,
-                Sector = nuevoPacienteDTO.Sector,
-                Insidencia = nuevoPacienteDTO.Insidencia,
-                IdEstatusPaciente = nuevoPacienteDTO.IdEstatusPaciente,
-                IdEstatusProtesis = nuevoPacienteDTO.IdEstatusProtesis,
-                Comentario = nuevoPacienteDTO.Comentario,
-                FotoPaciente = nuevoPacienteDTO.FotoPaciente
-            };
+                return BadRequest("Datos de paciente no válidos.");
+            }
 
-            dbContext.Pacientes.Add(nuevoPaciente);
-            await dbContext.SaveChangesAsync();
+            try
+            {
+                var nuevoPaciente = new Paciente
+                {
+                    NombreCompleto = nuevoPacienteDTO.NombreCompleto,
+                    Cedula = nuevoPacienteDTO.Cedula,
+                    Genero = nuevoPacienteDTO.Genero,
+                    FechaNacimiento = nuevoPacienteDTO.FechaNacimiento?.ToDateTime(TimeOnly.MinValue),
+                    Direccion = nuevoPacienteDTO.Direccion,
+                    Telefono = nuevoPacienteDTO.Telefono,
+                    TelefonoCelular = nuevoPacienteDTO.TelefonoCelular,
+                    IdProvincia = nuevoPacienteDTO.IdProvincia,
+                    Sector = nuevoPacienteDTO.Sector,
+                    Insidencia = nuevoPacienteDTO.Insidencia,
+                    IdEstatusPaciente = nuevoPacienteDTO.IdEstatusPaciente,
+                    IdEstatusProtesis = nuevoPacienteDTO.IdEstatusProtesis,
+                    Comentario = nuevoPacienteDTO.Comentario,
+                    FotoPaciente = !string.IsNullOrEmpty(nuevoPacienteDTO.FotoPaciente)
+                                   ? Convert.FromBase64String(nuevoPacienteDTO.FotoPaciente)
+                                   : null
+                };
 
-            nuevoPacienteDTO.IdPaciente = nuevoPaciente.IdPaciente;
+                dbContext.Pacientes.Add(nuevoPaciente);
+                await dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetPaciente), new { id = nuevoPaciente.IdPaciente }, nuevoPacienteDTO);
+                nuevoPacienteDTO.IdPaciente = nuevoPaciente.IdPaciente;
+
+                return CreatedAtAction(nameof(GetPaciente), new { id = nuevoPaciente.IdPaciente }, nuevoPacienteDTO);
+            }
+            catch (Exception ex)
+            {
+                // Manejar el error de manera más detallada si es necesario
+                return StatusCode(500, $"Error al crear el paciente: {ex.Message}");
+            }
         }
 
         // PUT: api/paciente/{id}
@@ -157,7 +142,7 @@ namespace ProtoScaner.Server.Controllers
             paciente.NombreCompleto = pacienteActualizadoDTO.NombreCompleto;
             paciente.Cedula = pacienteActualizadoDTO.Cedula;
             paciente.Genero = pacienteActualizadoDTO.Genero;
-            paciente.FechaNacimiento = pacienteActualizadoDTO.FechaNacimiento;
+            paciente.FechaNacimiento = pacienteActualizadoDTO.FechaNacimiento?.ToDateTime(TimeOnly.MinValue);
             paciente.Direccion = pacienteActualizadoDTO.Direccion;
             paciente.Telefono = pacienteActualizadoDTO.Telefono;
             paciente.TelefonoCelular = pacienteActualizadoDTO.TelefonoCelular;
@@ -167,7 +152,9 @@ namespace ProtoScaner.Server.Controllers
             paciente.IdEstatusPaciente = pacienteActualizadoDTO.IdEstatusPaciente;
             paciente.IdEstatusProtesis = pacienteActualizadoDTO.IdEstatusProtesis;
             paciente.Comentario = pacienteActualizadoDTO.Comentario;
-            paciente.FotoPaciente = pacienteActualizadoDTO.FotoPaciente;
+            paciente.FotoPaciente = !string.IsNullOrEmpty(pacienteActualizadoDTO.FotoPaciente)
+                                    ? Convert.FromBase64String(pacienteActualizadoDTO.FotoPaciente)
+                                    : paciente.FotoPaciente;
 
             await dbContext.SaveChangesAsync();
             return NoContent();

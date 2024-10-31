@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
 using ProtoScaner.Server.DTOs;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -21,6 +23,7 @@ namespace ProtoScaner.Server.Controllers
         public async Task<ActionResult<IEnumerable<UsuarioDTO>>> GetUsuarios()
         {
             var usuarios = await _context.Usuarios
+                .Include(u => u.ImagenPerfils)
                 .Select(u => new UsuarioDTO
                 {
                     IdUsuario = u.IdUsuario,
@@ -28,8 +31,14 @@ namespace ProtoScaner.Server.Controllers
                     Email = u.Email,
                     IdRol = u.IdRol,
                     FechaCreacion = u.FechaCreacion,
-                    Activo = u.Activo
-                    // Excluye PasswordHash en la respuesta por seguridad
+                    Activo = u.Activo,
+                    ImagenPerfil = u.ImagenPerfils.Select(i => new ImagenPerfilDTO
+                    {
+                        IdImagen = i.IdImagen,
+                        IdUsuario = i.IdUsuario,
+                        Imagen = i.Imagen != null ? Convert.ToBase64String(i.Imagen) : null,
+                        Descripcion = i.Descripcion
+                    }).FirstOrDefault()
                 })
                 .ToListAsync();
 
@@ -40,7 +49,9 @@ namespace ProtoScaner.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<UsuarioDTO>> GetUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _context.Usuarios
+                .Include(u => u.ImagenPerfils)
+                .SingleOrDefaultAsync(u => u.IdUsuario == id);
 
             if (usuario == null)
             {
@@ -54,8 +65,14 @@ namespace ProtoScaner.Server.Controllers
                 Email = usuario.Email,
                 IdRol = usuario.IdRol,
                 FechaCreacion = usuario.FechaCreacion,
-                Activo = usuario.Activo
-                // Excluye PasswordHash en la respuesta por seguridad
+                Activo = usuario.Activo,
+                ImagenPerfil = usuario.ImagenPerfils.Select(i => new ImagenPerfilDTO
+                {
+                    IdImagen = i.IdImagen,
+                    IdUsuario = i.IdUsuario,
+                    Imagen = i.Imagen != null ? Convert.ToBase64String(i.Imagen) : null,
+                    Descripcion = i.Descripcion
+                }).FirstOrDefault()
             };
 
             return usuarioDTO;
@@ -63,17 +80,40 @@ namespace ProtoScaner.Server.Controllers
 
         // POST: api/Usuario
         [HttpPost]
-        public async Task<ActionResult<UsuarioDTO>> PostUsuario(UsuarioDTO usuarioDTO)
+        public async Task<ActionResult<UsuarioDTO>> PostUsuario([FromBody] UsuarioDTO usuarioDTO)
         {
+            if (string.IsNullOrEmpty(usuarioDTO.NombreUsuario) ||
+                string.IsNullOrEmpty(usuarioDTO.Email) ||
+                string.IsNullOrEmpty(usuarioDTO.PasswordHash))
+            {
+                return BadRequest(new { message = "NombreUsuario, Email y PasswordHash son requeridos." });
+            }
+
             var usuario = new Usuario
             {
                 NombreUsuario = usuarioDTO.NombreUsuario,
                 Email = usuarioDTO.Email,
-                PasswordHash = usuarioDTO.PasswordHash,
+                PasswordHash = HashPassword(usuarioDTO.PasswordHash),
                 IdRol = usuarioDTO.IdRol,
                 FechaCreacion = usuarioDTO.FechaCreacion ?? DateOnly.FromDateTime(DateTime.Now),
                 Activo = usuarioDTO.Activo ?? true
             };
+
+            if (usuarioDTO.ImagenPerfil != null && !string.IsNullOrEmpty(usuarioDTO.ImagenPerfil.Imagen))
+            {
+                try
+                {
+                    usuario.ImagenPerfils.Add(new ImagenPerfil
+                    {
+                        Imagen = Convert.FromBase64String(usuarioDTO.ImagenPerfil.Imagen),
+                        Descripcion = usuarioDTO.ImagenPerfil.Descripcion
+                    });
+                }
+                catch (FormatException)
+                {
+                    return BadRequest(new { message = "La imagen de perfil no tiene un formato Base64 válido." });
+                }
+            }
 
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
@@ -85,14 +125,14 @@ namespace ProtoScaner.Server.Controllers
 
         // PUT: api/Usuario/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(int id, UsuarioDTO usuarioDTO)
+        public async Task<IActionResult> PutUsuario(int id, [FromBody] UsuarioDTO usuarioDTO)
         {
             if (id != usuarioDTO.IdUsuario)
             {
                 return BadRequest();
             }
 
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _context.Usuarios.Include(u => u.ImagenPerfils).SingleOrDefaultAsync(u => u.IdUsuario == id);
             if (usuario == null)
             {
                 return NotFound();
@@ -100,9 +140,32 @@ namespace ProtoScaner.Server.Controllers
 
             usuario.NombreUsuario = usuarioDTO.NombreUsuario;
             usuario.Email = usuarioDTO.Email;
-            usuario.PasswordHash = usuarioDTO.PasswordHash;
+
+            if (!string.IsNullOrEmpty(usuarioDTO.PasswordHash))
+            {
+                usuario.PasswordHash = HashPassword(usuarioDTO.PasswordHash);
+            }
+
             usuario.IdRol = usuarioDTO.IdRol;
             usuario.Activo = usuarioDTO.Activo;
+
+            if (usuarioDTO.ImagenPerfil != null && !string.IsNullOrEmpty(usuarioDTO.ImagenPerfil.Imagen))
+            {
+                var imagenPerfil = usuario.ImagenPerfils.FirstOrDefault();
+                if (imagenPerfil != null)
+                {
+                    imagenPerfil.Imagen = Convert.FromBase64String(usuarioDTO.ImagenPerfil.Imagen);
+                    imagenPerfil.Descripcion = usuarioDTO.ImagenPerfil.Descripcion;
+                }
+                else
+                {
+                    usuario.ImagenPerfils.Add(new ImagenPerfil
+                    {
+                        Imagen = Convert.FromBase64String(usuarioDTO.ImagenPerfil.Imagen),
+                        Descripcion = usuarioDTO.ImagenPerfil.Descripcion
+                    });
+                }
+            }
 
             await _context.SaveChangesAsync();
 
@@ -113,7 +176,7 @@ namespace ProtoScaner.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario = await _context.Usuarios.Include(u => u.ImagenPerfils).SingleOrDefaultAsync(u => u.IdUsuario == id);
             if (usuario == null)
             {
                 return NotFound();
@@ -124,6 +187,13 @@ namespace ProtoScaner.Server.Controllers
 
             return NoContent();
         }
+
+        private string HashPassword(string password)
+        {
+            using var hmac = new HMACSHA512();
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+            var hashedPassword = hmac.ComputeHash(passwordBytes);
+            return Convert.ToBase64String(hashedPassword);
+        }
     }
 }
-

@@ -1,7 +1,9 @@
 // postcss.config.js
 module.exports = {
     plugins: {
-        tailwindcss: {}, // Esto habilita Tailwind CSS
-        autoprefixer: {}, // Esto habilita Autoprefixer para manejar prefijos de navegador
+        'postcss-import': {},    // Para importar archivos CSS en el orden adecuado
+        'tailwindcss': {},       // Para ejecutar Tailwind CSS
+        'postcss-nested': {},    // Para permitir CSS anidado
+        'autoprefixer': {},      // Para agregar prefijos automáticamente
     },
 };

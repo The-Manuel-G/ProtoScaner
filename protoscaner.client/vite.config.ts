@@ -9,8 +9,15 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'), // Alias configurado para la carpeta src
         }
     },
+    optimizeDeps: {
+        include: [
+            'primereact/resources/primereact.min.css',
+            'primereact/resources/themes/saga-blue/theme.css',
+            'primeicons/primeicons.css',
+            'react-toastify/dist/ReactToastify.css'
+        ]
+    },
     server: {
-        port: 5173,
-        // Elimina la configuración de HTTPS si no es necesaria.
+        port: 5173
     }
 });

@@ -163,7 +163,7 @@ const secondarylinksArray: LinkItem[] = [
     {
         label: "Salir",
         icon: <MdLogout />,
-        to: "/null",
+        to: "/login",
     },
 ];
 //#endregion
