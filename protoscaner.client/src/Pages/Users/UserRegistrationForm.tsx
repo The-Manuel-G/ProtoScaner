@@ -8,12 +8,13 @@ import { Dropdown } from 'primereact/dropdown';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { useNavigate } from 'react-router-dom';
-import { FileUpload, FileUploadSelectEvent } from 'primereact/fileupload';
+import { FileUpload, FileUploadSelectEvent, ItemTemplateOptions } from 'primereact/fileupload';
+import { ProgressBar } from 'primereact/progressbar';
+import { Tag } from 'primereact/tag';
 import 'primeicons/primeicons.css';
 import { createUsuario } from '../../services/UsuarioService';
 import { CreateUsuarioDTO } from '../../types/Usuario';
 import CameraModal from '../../components/CameraModal';
-import ProgressSpinner from 'primereact/progressspinner';
 
 const roles = [
     { label: 'Diseñador', value: 1 },
@@ -32,7 +33,6 @@ export function UserRegistrationForm() {
     const [imagen, setImagen] = useState<string | null>(null);
     const [totalSize, setTotalSize] = useState(0);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const toast = useRef<Toast>(null);
     const navigate = useNavigate();
@@ -54,8 +54,6 @@ export function UserRegistrationForm() {
             return;
         }
 
-        setIsSubmitting(true);
-
         const usuarioData: CreateUsuarioDTO = {
             nombre,
             nombreUsuario,
@@ -74,8 +72,6 @@ export function UserRegistrationForm() {
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Error al crear el usuario';
             toast.current?.show({ severity: 'error', summary: 'Error', detail: errorMessage, life: 3000 });
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -105,6 +101,45 @@ export function UserRegistrationForm() {
     const onTemplateClear = () => {
         setTotalSize(0);
         setImagen(null);
+    };
+
+    const headerTemplate = (options: any) => {
+        const { className, chooseButton, cancelButton } = options;
+        const value = totalSize / 10000;
+        const formattedValue = fileUploadRef.current?.formatSize(totalSize) || '0 B';
+
+        return (
+            <div className={className} style={{ backgroundColor: 'transparent', display: 'flex', alignItems: 'center' }}>
+                {chooseButton}
+                {cancelButton}
+                <div className="flex align-items-center gap-3 ml-auto">
+                    <span>{formattedValue} / 1 MB</span>
+                    <ProgressBar value={value} showValue={false} style={{ width: '10rem', height: '12px' }}></ProgressBar>
+                </div>
+            </div>
+        );
+    };
+
+    const itemTemplate = (inFile: object, props: ItemTemplateOptions) => {
+        const file = inFile as File;
+        return (
+            <div className="flex align-items-center flex-wrap" style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                <div className="flex align-items-center" style={{ width: '30%' }}>
+                    <img alt={file.name} role="presentation" src={URL.createObjectURL(file)} width={80} height={80} />
+                    <span className="flex flex-column text-left ml-3">
+                        {file.name}
+                        <small>{new Date().toLocaleDateString()}</small>
+                    </span>
+                </div>
+                <Tag value={props.formatSize} severity="warning" className="px-3 py-2" />
+                <Button
+                    type="button"
+                    icon="pi pi-times"
+                    className="p-button-outlined p-button-rounded p-button-danger ml-auto"
+                    onClick={() => props.onRemove?.(file as any)}
+                />
+            </div>
+        );
     };
 
     const emptyTemplate = () => {
@@ -232,6 +267,9 @@ export function UserRegistrationForm() {
                                 maxFileSize={1000000}
                                 onSelect={onTemplateSelect}
                                 onClear={onTemplateClear}
+                                headerTemplate={headerTemplate}
+                                itemTemplate={itemTemplate}
+                                emptyTemplate={emptyTemplate}
                                 chooseOptions={chooseOptions}
                                 cancelOptions={cancelOptions}
                                 className="w-full p-fileupload p-fileupload-basic"
@@ -252,12 +290,8 @@ export function UserRegistrationForm() {
                     onClose={() => setIsCameraOpen(false)}
                     onConfirm={(imageBase64) => setImagen(imageBase64)}
                 />
-                {isSubmitting && (
-                    <div className="flex justify-center mt-6">
-                        <ProgressSpinner style={{ width: '50px', height: '50px' }} strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s" />
-                    </div>
-                )}
             </div>
         </div>
     );
 }
+
