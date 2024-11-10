@@ -28,6 +28,7 @@ namespace ProtoScaner.Server.Controllers
                 {
                     IdUsuario = u.IdUsuario,
                     NombreUsuario = u.NombreUsuario,
+                    Nombre = u.NombreUsuario,
                     Email = u.Email,
                     IdRol = u.IdRol,
                     FechaCreacion = u.FechaCreacion,
@@ -62,6 +63,7 @@ namespace ProtoScaner.Server.Controllers
             {
                 IdUsuario = usuario.IdUsuario,
                 NombreUsuario = usuario.NombreUsuario,
+                Nombre = usuario.Nombre,
                 Email = usuario.Email,
                 IdRol = usuario.IdRol,
                 FechaCreacion = usuario.FechaCreacion,
@@ -79,26 +81,45 @@ namespace ProtoScaner.Server.Controllers
         }
 
         // POST: api/Usuario
+        // POST: api/Usuario
         [HttpPost]
         public async Task<ActionResult<UsuarioDTO>> PostUsuario([FromBody] UsuarioDTO usuarioDTO)
         {
+            // Validación de campos obligatorios
             if (string.IsNullOrEmpty(usuarioDTO.NombreUsuario) ||
                 string.IsNullOrEmpty(usuarioDTO.Email) ||
                 string.IsNullOrEmpty(usuarioDTO.PasswordHash))
             {
-                return BadRequest(new { message = "NombreUsuario, Email y PasswordHash son requeridos." });
+                return BadRequest(new { message = "NombreUsuario, Email y PasswordHash son campos requeridos." });
             }
 
+            // Verificar si el Email ya está registrado
+            var emailExists = await _context.Usuarios.AnyAsync(u => u.Email == usuarioDTO.Email);
+            if (emailExists)
+            {
+                return Conflict(new { message = "El email proporcionado ya está registrado en el sistema." });
+            }
+
+            // Verificar si el NombreUsuario ya está registrado
+            var nombreUsuarioExists = await _context.Usuarios.AnyAsync(u => u.NombreUsuario == usuarioDTO.NombreUsuario);
+            if (nombreUsuarioExists)
+            {
+                return Conflict(new { message = "El nombre de usuario proporcionado ya está registrado en el sistema." });
+            }
+
+            // Creación del usuario
             var usuario = new Usuario
             {
                 NombreUsuario = usuarioDTO.NombreUsuario,
                 Email = usuarioDTO.Email,
+                Nombre = usuarioDTO.Nombre,
                 PasswordHash = HashPassword(usuarioDTO.PasswordHash),
                 IdRol = usuarioDTO.IdRol,
                 FechaCreacion = usuarioDTO.FechaCreacion ?? DateOnly.FromDateTime(DateTime.Now),
                 Activo = usuarioDTO.Activo ?? true
             };
 
+            // Manejo de la imagen de perfil en Base64
             if (usuarioDTO.ImagenPerfil != null && !string.IsNullOrEmpty(usuarioDTO.ImagenPerfil.Imagen))
             {
                 try
@@ -111,15 +132,31 @@ namespace ProtoScaner.Server.Controllers
                 }
                 catch (FormatException)
                 {
-                    return BadRequest(new { message = "La imagen de perfil no tiene un formato Base64 válido." });
+                    return BadRequest(new { message = "La imagen de perfil proporcionada no tiene un formato Base64 válido." });
                 }
             }
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
+            // Agregar el usuario a la base de datos
+            try
+            {
+                _context.Usuarios.Add(usuario);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                // Posible error de conflicto de base de datos
+                return StatusCode(500, new { message = "Ocurrió un error al guardar el usuario en la base de datos.", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Otro error no controlado
+                return StatusCode(500, new { message = "Ocurrió un error inesperado al intentar crear el usuario.", details = ex.Message });
+            }
 
+            // Asignar el Id generado al DTO de respuesta
             usuarioDTO.IdUsuario = usuario.IdUsuario;
 
+            // Respuesta exitosa
             return CreatedAtAction(nameof(GetUsuario), new { id = usuario.IdUsuario }, usuarioDTO);
         }
 

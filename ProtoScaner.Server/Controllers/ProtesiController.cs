@@ -1,145 +1,204 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ProtoScaner.Server.Models;
-using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class ProtesiController : ControllerBase
+    [ApiController]
+    public class ProtesisController : ControllerBase
     {
-        private readonly ProtoScanner3DContext dbContext;
+        private readonly ProtoScanner3DContext _context;
 
-        public ProtesiController(ProtoScanner3DContext _dbContext)
+        public ProtesisController(ProtoScanner3DContext context)
         {
-            dbContext = _dbContext;
+            _context = context;
         }
 
-        // GET: api/protesi
+        // GET: api/Protesis
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProtesiDTO>>> GetProtesis()
+        public async Task<ActionResult<IEnumerable<ProtesiDto>>> GetProtesis()
         {
-            var protesis = await dbContext.Proteses
-                .Select(p => new ProtesiDTO
+            var protesis = await _context.Protesis
+                .Include(p => p.CodigoPacienteNavigation)
+                    .ThenInclude(p => p.HistorialPacienteIngresos) // Incluir historial de ingresos
+                .Select(p => new ProtesiDto
                 {
                     IdProtesis = p.IdProtesis,
+                    CodigoPaciente = p.CodigoPaciente,
                     LinerTipo = p.LinerTipo,
                     LinerTamano = p.LinerTamano,
                     Protesista = p.Protesista,
                     FechaEntrega = p.FechaEntrega,
-                    Material = p.Material
+                    Material = p.Material,
+                    Paciente = p.CodigoPacienteNavigation == null ? null : new PacienteDTO
+                    {
+                        IdPaciente = p.CodigoPacienteNavigation.IdPaciente,
+                        NombreCompleto = p.CodigoPacienteNavigation.NombreCompleto,
+                        Cedula = p.CodigoPacienteNavigation.Cedula,
+                        Genero = p.CodigoPacienteNavigation.Genero,
+                        FechaNacimiento = p.CodigoPacienteNavigation.FechaNacimiento.ToString(),
+                        Direccion = p.CodigoPacienteNavigation.Direccion,
+                        Telefono = p.CodigoPacienteNavigation.Telefono,
+                        TelefonoCelular = p.CodigoPacienteNavigation.TelefonoCelular,
+                        IdProvincia = p.CodigoPacienteNavigation.IdProvincia,
+                        Sector = p.CodigoPacienteNavigation.Sector,
+                        Insidencia = p.CodigoPacienteNavigation.Insidencia,
+                        IdEstatusPaciente = p.CodigoPacienteNavigation.IdEstatusPaciente,
+                        IdEstatusProtesis = p.CodigoPacienteNavigation.IdEstatusProtesis,
+                        Comentario = p.CodigoPacienteNavigation.Comentario,
+                        HistorialPacienteIngresos = p.CodigoPacienteNavigation.HistorialPacienteIngresos
+                            .Select(h => new HistorialPacienteIngresoDTO
+                            {
+                                IdHistorial = h.IdHistorial,
+                                IdPaciente = h.IdPaciente,
+                                TipoAmputacion = h.TipoAmputacion,
+                                LadoAmputacion = h.LadoAmputacion,
+                                FechaAmputacion = h.FechaAmputacion,
+                                Causa = h.Causa,
+                                Terapia = h.Terapia,
+                                TiempoTerapia = h.TiempoTerapia,
+                                IdMedida = h.IdMedida,
+                                Comentario = h.Comentario
+                            }).ToList()
+                    }
                 })
                 .ToListAsync();
 
             return Ok(protesis);
         }
 
-        // GET: api/protesi/{id}
+        // GET: api/Protesis/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProtesiDTO>> GetProtesi(int id)
+        public async Task<ActionResult<ProtesiDto>> GetProtesi(int id)
         {
-            var protesi = await dbContext.Proteses.FindAsync(id);
-            if (protesi == null)
-            {
-                return NotFound();
-            }
-
-            var protesiDTO = new ProtesiDTO
-            {
-                IdProtesis = protesi.IdProtesis,
-                LinerTipo = protesi.LinerTipo,
-                LinerTamano = protesi.LinerTamano,
-                Protesista = protesi.Protesista,
-                FechaEntrega = protesi.FechaEntrega,
-                Material = protesi.Material
-            };
-
-            return Ok(protesiDTO);
-        }
-
-        // GET: api/protesi/cedula/{cedula}
-        [HttpGet("cedula/{cedula}")]
-        public async Task<ActionResult<IEnumerable<ProtesiDTO>>> GetProtesisByCedula(string cedula)
-        {
-            var protesis = await dbContext.Proteses
-                .Where(p => p.Paciente.Cedula == cedula)
-                .Select(p => new ProtesiDTO
+            var protesis = await _context.Protesis
+                .Include(p => p.CodigoPacienteNavigation)
+                .Where(p => p.IdProtesis == id)
+                .Select(p => new ProtesiDto
                 {
                     IdProtesis = p.IdProtesis,
+                    CodigoPaciente = p.CodigoPaciente,
                     LinerTipo = p.LinerTipo,
                     LinerTamano = p.LinerTamano,
                     Protesista = p.Protesista,
                     FechaEntrega = p.FechaEntrega,
-                    Material = p.Material
+                    Material = p.Material,
+                    Paciente = p.CodigoPacienteNavigation == null ? null : new PacienteDTO
+                    {
+                        IdPaciente = p.CodigoPacienteNavigation.IdPaciente,
+                        NombreCompleto = p.CodigoPacienteNavigation.NombreCompleto,
+                        Cedula = p.CodigoPacienteNavigation.Cedula,
+                        Genero = p.CodigoPacienteNavigation.Genero,
+                        FechaNacimiento = p.CodigoPacienteNavigation.FechaNacimiento.ToString(),
+                        Direccion = p.CodigoPacienteNavigation.Direccion,
+                        Telefono = p.CodigoPacienteNavigation.Telefono,
+                        TelefonoCelular = p.CodigoPacienteNavigation.TelefonoCelular,
+                        IdProvincia = p.CodigoPacienteNavigation.IdProvincia,
+                        Sector = p.CodigoPacienteNavigation.Sector,
+                        Insidencia = p.CodigoPacienteNavigation.Insidencia,
+                        IdEstatusPaciente = p.CodigoPacienteNavigation.IdEstatusPaciente,
+                        IdEstatusProtesis = p.CodigoPacienteNavigation.IdEstatusProtesis,
+                        Comentario = p.CodigoPacienteNavigation.Comentario
+                    }
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            if (!protesis.Any())
+            if (protesis == null)
             {
-                return NotFound($"No se encontraron prótesis para la cédula {cedula}.");
+                return NotFound();
             }
 
             return Ok(protesis);
         }
 
-        // POST: api/protesi
+        // POST: api/Protesis
         [HttpPost]
-        public async Task<ActionResult<ProtesiDTO>> CreateProtesi(ProtesiDTO nuevaProtesiDTO)
+        public async Task<ActionResult<ProtesiDto>> CreateProtesi(ProtesiDto protesiDto)
         {
-            var nuevaProtesi = new Protesi
+            var protesis = new Protesi
             {
-                LinerTipo = nuevaProtesiDTO.LinerTipo,
-                LinerTamano = nuevaProtesiDTO.LinerTamano,
-                Protesista = nuevaProtesiDTO.Protesista,
-                FechaEntrega = nuevaProtesiDTO.FechaEntrega,
-                Material = nuevaProtesiDTO.Material
+                CodigoPaciente = protesiDto.CodigoPaciente,
+                LinerTipo = protesiDto.LinerTipo,
+                LinerTamano = protesiDto.LinerTamano,
+                Protesista = protesiDto.Protesista,
+                FechaEntrega = protesiDto.FechaEntrega,
+                Material = protesiDto.Material
             };
 
-            dbContext.Proteses.Add(nuevaProtesi);
-            await dbContext.SaveChangesAsync();
+            _context.Protesis.Add(protesis);
+            await _context.SaveChangesAsync();
 
-            nuevaProtesiDTO.IdProtesis = nuevaProtesi.IdProtesis;
-
-            return CreatedAtAction(nameof(GetProtesi), new { id = nuevaProtesi.IdProtesis }, nuevaProtesiDTO);
+            protesiDto.IdProtesis = protesis.IdProtesis;
+            return CreatedAtAction(nameof(GetProtesi), new { id = protesis.IdProtesis }, protesiDto);
         }
 
-        // PUT: api/protesi/{id}
+        // PUT: api/Protesis/5
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateProtesi(int id, ProtesiDTO protesiActualizadaDTO)
+        public async Task<IActionResult> UpdateProtesi(int id, ProtesiDto protesiDto)
         {
-            var protesi = await dbContext.Proteses.FindAsync(id);
-            if (protesi == null)
+            if (id != protesiDto.IdProtesis)
+            {
+                return BadRequest();
+            }
+
+            var protesis = await _context.Protesis.FindAsync(id);
+            if (protesis == null)
             {
                 return NotFound();
             }
 
-            protesi.LinerTipo = protesiActualizadaDTO.LinerTipo;
-            protesi.LinerTamano = protesiActualizadaDTO.LinerTamano;
-            protesi.Protesista = protesiActualizadaDTO.Protesista;
-            protesi.FechaEntrega = protesiActualizadaDTO.FechaEntrega;
-            protesi.Material = protesiActualizadaDTO.Material;
+            protesis.CodigoPaciente = protesiDto.CodigoPaciente;
+            protesis.LinerTipo = protesiDto.LinerTipo;
+            protesis.LinerTamano = protesiDto.LinerTamano;
+            protesis.Protesista = protesiDto.Protesista;
+            protesis.FechaEntrega = protesiDto.FechaEntrega;
+            protesis.Material = protesiDto.Material;
 
-            await dbContext.SaveChangesAsync();
+            _context.Entry(protesis).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProtesiExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
             return NoContent();
         }
 
-        // DELETE: api/protesi/{id}
+        // DELETE: api/Protesis/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteProtesi(int id)
+        public async Task<IActionResult> DeleteProtesi(int id)
         {
-            var protesi = await dbContext.Proteses.FindAsync(id);
-            if (protesi == null)
+            var protesis = await _context.Protesis.FindAsync(id);
+            if (protesis == null)
             {
                 return NotFound();
             }
 
-            dbContext.Proteses.Remove(protesi);
-            await dbContext.SaveChangesAsync();
+            _context.Protesis.Remove(protesis);
+            await _context.SaveChangesAsync();
+
             return NoContent();
+        }
+
+        private bool ProtesiExists(int id)
+        {
+            return _context.Protesis.Any(e => e.IdProtesis == id);
         }
     }
 }

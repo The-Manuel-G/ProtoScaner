@@ -1,5 +1,4 @@
 // src/components/RegistroPaciente.tsx
-
 import React, { useState, useContext } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
@@ -14,6 +13,7 @@ import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { Paciente } from '../../types/Paciente';
+import { HistorialPacienteIngreso } from '../../types/HistorialPacienteIngreso';
 import { createPaciente } from '../../services/PacienteService';
 import { motion } from 'framer-motion';
 import { ThemeContext } from '../../App';
@@ -22,19 +22,29 @@ export function RegistroPaciente() {
     const [formData, setFormData] = useState<Omit<Paciente, 'idPaciente'>>({
         nombreCompleto: '',
         cedula: '',
-        genero: null,
+        genero: undefined,
         fechaNacimiento: '',
         direccion: '',
         telefono: '',
         telefonoCelular: '',
-        idProvincia: null,
+        idProvincia: undefined,
         sector: '',
         comentario: '',
         fotoPaciente: ''
     });
 
-    const [totalSize, setTotalSize] = useState(0);
+    const [historialData, setHistorialData] = useState<Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'>>({
+        tipoAmputacion: undefined,
+        ladoAmputacion: undefined,
+        fechaAmputacion: '',
+        causa: undefined,
+        terapia: false,
+        tiempoTerapia: '',
+        comentario: ''
+    });
+
     const [currentStep, setCurrentStep] = useState(0);
+    const [totalSize, setTotalSize] = useState(0);
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [showSuccessDialog, setShowSuccessDialog] = useState(false);
     const [showErrorDialog, setShowErrorDialog] = useState(false);
@@ -46,8 +56,75 @@ export function RegistroPaciente() {
     ];
 
     const provincias = [
-        { label: 'Distrito Nacional', value: 1 },
-        { label: 'Santo Domingo', value: 2 }
+        { label: 'Azua', value: 1 },
+        { label: 'Bahoruco', value: 2 },
+        { label: 'Barahona', value: 3 },
+        { label: 'Dajabón', value: 4 },
+        { label: 'Distrito Nacional', value: 5 },
+        { label: 'Duarte', value: 6 },
+        { label: 'El Seibo', value: 7 },
+        { label: 'Elías Piña', value: 8 },
+        { label: 'Espaillat', value: 9 },
+        { label: 'Hato Mayor', value: 10 },
+        { label: 'Hermanas Mirabal', value: 11 },
+        { label: 'Independencia', value: 12 },
+        { label: 'La Altagracia', value: 13 },
+        { label: 'La Romana', value: 14 },
+        { label: 'La Vega', value: 15 },
+        { label: 'María Trinidad Sánchez', value: 16 },
+        { label: 'Monseñor Nouel', value: 17 },
+        { label: 'Monte Cristi', value: 18 },
+        { label: 'Monte Plata', value: 19 },
+        { label: 'Pedernales', value: 20 },
+        { label: 'Peravia', value: 21 },
+        { label: 'Puerto Plata', value: 22 },
+        { label: 'Samaná', value: 23 },
+        { label: 'San Cristóbal', value: 24 },
+        { label: 'San José de Ocoa', value: 25 },
+        { label: 'San Juan', value: 26 },
+        { label: 'San Pedro de Macorís', value: 27 },
+        { label: 'Sánchez Ramírez', value: 28 },
+        { label: 'Santiago', value: 29 },
+        { label: 'Santiago Rodríguez', value: 30 },
+        { label: 'Santo Domingo', value: 31 },
+        { label: 'Valverde', value: 32 }
+    ];
+
+
+    const tiposAmputacion = [
+        { label: 'Transtibial', value: 1 },
+        { label: 'Transfemoral', value: 2 }
+    ];
+
+    const ladosAmputacion = [
+        { label: 'Izquierdo', value: 1 },
+        { label: 'Derecho', value: 2 }
+    ];
+
+    const causasAmputacion = [
+        { label: 'Congénita', value: 1 },
+        { label: 'Enfermedad', value: 2 },
+        { label: 'Accidente', value: 3 },
+        { label: 'Diabetes' , value: 4},
+        { label: 'Infección', value: 5 },
+        { label: 'Traumatismo', value: 6 },
+        { label: 'Cáncer', value: 7 },
+        { label: 'Vascular', value: 8 },
+        { label: 'Quemaduras', value: 9 },
+        { label: 'Lesiones deportivas', value: 10 },
+        { label: 'Mala circulación', value: 11 },
+        { label: 'Frostbite (congelación)', value: 12 },
+        { label: 'Neuropatía periférica', value: 13 },
+        { label: 'Síndrome de compartimento', value: 14 },
+        { label: 'Trombosis venosa profunda', value: 15 },
+        { label: 'Complicaciones quirúrgicas', values: 16 },
+        { label: 'Infecciones óseas', values: 17 },
+        { label: 'Tumores benignos', values: 18 },
+        { label: 'Trastornos neuromusculares', values: 19 },
+        { label: 'Exposición a sustancias tóxicas', values: 20 },
+        { label: 'Malformaciones congénitas', values: 21 },
+        { label: 'Factores genéticos', values: 22 },
+        { label: 'Otro', value: 23 }
     ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -55,8 +132,17 @@ export function RegistroPaciente() {
         setFormData({ ...formData, [name]: value });
     };
 
+    const handleHistorialChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setHistorialData({ ...historialData, [name]: value });
+    };
+
     const handleDropdownChange = (e: { value: any }, field: keyof Omit<Paciente, 'idPaciente'>) => {
         setFormData({ ...formData, [field]: e.value });
+    };
+
+    const handleDropdownHistorialChange = (e: { value: any }, field: keyof Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'>) => {
+        setHistorialData({ ...historialData, [field]: e.value });
     };
 
     const onTemplateSelect = (e: FileUploadSelectEvent) => {
@@ -73,32 +159,50 @@ export function RegistroPaciente() {
         }
     };
 
+    // Función para abrir la cámara y capturar una foto
+    const openCamera = () => {
+        const video = document.createElement("video");
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+            video.srcObject = stream;
+            video.play();
+
+            const capture = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context?.drawImage(video, 0, 0);
+                const dataURL = canvas.toDataURL("image/png");
+                setFormData({ ...formData, fotoPaciente: dataURL });
+                stream.getTracks().forEach(track => track.stop()); // Stop camera
+            };
+
+            setTimeout(capture, 3000); // Captura automática después de 3 segundos
+        });
+    };
+
     const handleNext = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (currentStep === 0) {
-            if (formData.nombreCompleto && formData.cedula && formData.genero !== null && formData.fechaNacimiento) {
+            if (formData.nombreCompleto && formData.cedula && formData.genero !== undefined && formData.fechaNacimiento) {
                 setCurrentStep(1);
             } else {
                 toast.error('Complete los campos obligatorios');
             }
         } else if (currentStep === 1) {
-            handleSubmit(e);
+            setCurrentStep(2);
         }
     };
 
-    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await createPaciente({
-                ...formData,
-                fechaNacimiento: formData.fechaNacimiento
-                    ? new Date(formData.fechaNacimiento).toISOString().split('T')[0]
-                    : ''
-            });
-            setShowSuccessDialog(true);
+            await createPaciente(formData);
+            toast.success('Paciente registrado con éxito');
+            resetForm();
         } catch (error) {
             toast.error('Error al registrar el paciente');
-            setShowErrorDialog(true);
         }
     };
 
@@ -106,15 +210,24 @@ export function RegistroPaciente() {
         setFormData({
             nombreCompleto: '',
             cedula: '',
-            genero: null,
+            genero: undefined,
             fechaNacimiento: '',
             direccion: '',
             telefono: '',
             telefonoCelular: '',
-            idProvincia: null,
+            idProvincia: undefined,
             sector: '',
             comentario: '',
             fotoPaciente: ''
+        });
+        setHistorialData({
+            tipoAmputacion: undefined,
+            ladoAmputacion: undefined,
+            fechaAmputacion: '',
+            causa: undefined,
+            terapia: false,
+            tiempoTerapia: '',
+            comentario: ''
         });
         setCurrentStep(0);
         setShowSuccessDialog(false);
@@ -175,43 +288,6 @@ export function RegistroPaciente() {
                                     required
                                 />
                             </div>
-                        </motion.div>
-                    )}
-                    {currentStep === 1 && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <label htmlFor="direccion" className="block text-lg font-medium mb-2">Dirección</label>
-                                <InputText
-                                    id="direccion"
-                                    name="direccion"
-                                    value={formData.direccion}
-                                    onChange={handleChange}
-                                    className="w-full p-4 text-xl rounded-md border"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="telefono" className="block text-lg font-medium mb-2">Teléfono</label>
-                                <InputText
-                                    id="telefono"
-                                    name="telefono"
-                                    value={formData.telefono}
-                                    onChange={handleChange}
-                                    className="w-full p-4 text-xl rounded-md border"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="telefonoCelular" className="block text-lg font-medium mb-2">Teléfono Celular</label>
-                                <InputText
-                                    id="telefonoCelular"
-                                    name="telefonoCelular"
-                                    value={formData.telefonoCelular}
-                                    onChange={handleChange}
-                                    className="w-full p-4 text-xl rounded-md border"
-                                    required
-                                />
-                            </div>
                             <div>
                                 <label htmlFor="idProvincia" className="block text-lg font-medium mb-2">Provincia</label>
                                 <Dropdown
@@ -226,7 +302,7 @@ export function RegistroPaciente() {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="sector" className="block text-lg font-medium mb-2">Sector (Opcional)</label>
+                                <label htmlFor="sector" className="block text-lg font-medium mb-2">Sector</label>
                                 <InputText
                                     id="sector"
                                     name="sector"
@@ -236,7 +312,7 @@ export function RegistroPaciente() {
                                 />
                             </div>
                             <div>
-                                <label htmlFor="comentario" className="block text-lg font-medium mb-2">Observaciones (Opcional)</label>
+                                <label htmlFor="comentario" className="block text-lg font-medium mb-2">Comentario</label>
                                 <InputTextarea
                                     id="comentario"
                                     name="comentario"
@@ -246,29 +322,123 @@ export function RegistroPaciente() {
                                     className="w-full p-4 text-xl rounded-md border"
                                 />
                             </div>
-                            <div>
-                                <label htmlFor="fotoPaciente" className="block text-lg font-medium mb-2">Foto del Paciente (Opcional)</label>
-                                <FileUpload
-                                    name="fotoPaciente"
-                                    accept="image/*"
-                                    maxFileSize={1000000}
-                                    onSelect={onTemplateSelect}
-                                    chooseOptions={{ icon: 'pi pi-camera', className: 'p-button-rounded p-button-info mr-2' }}
-                                    cancelOptions={{ icon: 'pi pi-times', className: "p-button-rounded p-button-danger" }}
-                                    className="text-2xl p-4 rounded-md border"
-                                />
+                            <div className="flex flex-col">
+                                <label htmlFor="fotoPaciente" className="block text-lg font-medium mb-2">Foto del Paciente</label>
+                                <div className="flex gap-2">
+                                    <FileUpload
+                                        name="fotoPaciente"
+                                        accept="image/*"
+                                        maxFileSize={10000000}
+                                        onSelect={onTemplateSelect}
+                                        chooseOptions={{ icon: 'pi pi-camera', className: 'p-button-rounded p-button-info mr-2' }}
+                                        cancelOptions={{ icon: 'pi pi-times', className: "p-button-rounded p-button-danger" }}
+                                        className="text-2xl p-4 rounded-md border"
+                                    />
+                                    <Button label="Abrir Cámara" icon="pi pi-camera" className="p-button-success p-button-rounded" onClick={openCamera} />
+                                </div>
                                 <ProgressBar value={(totalSize / 10000) * 10} showValue={false} className="mt-2" />
                             </div>
                         </motion.div>
                     )}
+
+                    {currentStep === 1 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                                    <div>
+                                        <label htmlFor="tipoAmputacion" className="block text-lg font-medium mb-2">Tipo de Amputación</label>
+                                        <Dropdown
+                                            id="tipoAmputacion"
+                                            name="tipoAmputacion"
+                                            value={historialData.tipoAmputacion}
+                                            options={tiposAmputacion}
+                                            onChange={(e) => handleDropdownHistorialChange(e, 'tipoAmputacion')}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                            placeholder="Seleccione"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="ladoAmputacion" className="block text-lg font-medium mb-2">Lado de Amputación</label>
+                                        <Dropdown
+                                            id="ladoAmputacion"
+                                            name="ladoAmputacion"
+                                            value={historialData.ladoAmputacion}
+                                            options={ladosAmputacion}
+                                            onChange={(e) => handleDropdownHistorialChange(e, 'ladoAmputacion')}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                            placeholder="Seleccione"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="fechaAmputacion" className="block text-lg font-medium mb-2">Fecha de Amputación</label>
+                                        <Calendar
+                                            id="fechaAmputacion"
+                                            name="fechaAmputacion"
+                                            value={historialData.fechaAmputacion ? new Date(historialData.fechaAmputacion) : null}
+                                            onChange={(e) => setHistorialData({ ...historialData, fechaAmputacion: e.value ? new Date(e.value).toISOString().split('T')[0] : '' })}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                            dateFormat="mm/dd/yy"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="causa" className="block text-lg font-medium mb-2">Causa</label>
+                                        <Dropdown
+                                            id="causa"
+                                            name="causa"
+                                            value={historialData.causa}
+                                            options={causasAmputacion}
+                                            onChange={(e) => handleDropdownHistorialChange(e, 'causa')}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                            placeholder="Seleccione"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="terapia" className="block text-lg font-medium mb-2">Terapia</label>
+                                        <Dropdown
+                                            id="terapia"
+                                            name="terapia"
+                                            value={historialData.terapia}
+                                            options={[
+                                                { label: 'Sí', value: true },
+                                                { label: 'No', value: false }
+                                            ]}
+                                            onChange={(e) => handleDropdownHistorialChange(e, 'terapia')}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                            placeholder="Seleccione"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="tiempoTerapia" className="block text-lg font-medium mb-2">Tiempo de Terapia</label>
+                                        <InputText
+                                            id="tiempoTerapia"
+                                            name="tiempoTerapia"
+                                            value={historialData.tiempoTerapia}
+                                            onChange={handleHistorialChange}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="comentario" className="block text-lg font-medium mb-2">Comentario</label>
+                                        <InputTextarea
+                                            id="comentario"
+                                            name="comentario"
+                                            value={historialData.comentario}
+                                            onChange={handleHistorialChange}
+                                            rows={3}
+                                            className="w-full p-4 text-xl rounded-md border"
+                                        />
+                                    </div>
+                        </motion.div>
+                    )}
                     <div className="flex justify-between mt-6">
                         <Button label="Descartar" className="p-button-danger p-4 text-xl shadow-lg rounded-md" onClick={() => setShowCancelDialog(true)} />
-                        <Button label={currentStep < 1 ? "Siguiente" : "Registrar"} className="p-button-success p-4 text-xl shadow-lg rounded-md" onClick={handleNext} />
+                        <Button label={currentStep < 1 ? "Siguiente" : "Registrar"} className="p-button-success p-4 text-xl shadow-lg rounded-md" onClick={currentStep < 1 ? handleNext : handleSubmit} />
                     </div>
                 </form>
             </div>
 
-            {/* Diálogo de Cancelación */}
+            {/* Diálogos de confirmación y notificaciones */}
             <Dialog header="Cancelar Registro" visible={showCancelDialog} style={{ width: '50vw' }} onHide={() => setShowCancelDialog(false)}>
                 <p>¿Está seguro de que desea cancelar el registro? Los datos ingresados no se guardarán.</p>
                 <div className="flex justify-end gap-3 mt-4">
@@ -277,20 +447,22 @@ export function RegistroPaciente() {
                 </div>
             </Dialog>
 
-            {/* Diálogo de Registro Exitoso */}
             <Dialog header="Registro Exitoso" visible={showSuccessDialog} style={{ width: '50vw' }} onHide={resetForm}>
                 <p>El paciente ha sido registrado con éxito.</p>
                 <Button label="Aceptar" className="p-button-success p-4 text-xl shadow-lg" onClick={resetForm} />
             </Dialog>
 
-            {/* Diálogo de Error en el Registro */}
             <Dialog header="Error en el Registro" visible={showErrorDialog} style={{ width: '50vw' }} onHide={() => setShowErrorDialog(false)}>
                 <p>Hubo un problema al registrar el paciente. Por favor, intente nuevamente.</p>
                 <Button label="Cerrar" className="p-button-danger p-4 text-xl shadow-lg" onClick={() => setShowErrorDialog(false)} />
             </Dialog>
+
             <ToastContainer position="top-right" autoClose={5000} />
         </div>
     );
 }
 
 export default RegistroPaciente;
+
+
+    

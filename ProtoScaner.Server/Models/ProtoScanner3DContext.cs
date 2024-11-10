@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 namespace ProtoScaner.Server.Models;
@@ -63,7 +64,7 @@ public partial class ProtoScanner3DContext : DbContext
 
     public virtual DbSet<Paciente> Pacientes { get; set; }
 
-    public virtual DbSet<Protesi> Proteses { get; set; }
+    public virtual DbSet<Protesi> Protesis { get; set; }
 
     public virtual DbSet<ProtesisComponente> ProtesisComponentes { get; set; }
 
@@ -89,15 +90,20 @@ public partial class ProtoScanner3DContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) 
-    { 
-    
-    }
+    public DbSet<Comentario> Comentarios { get; set; }
+
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=MANUELDEV;Database=ProtoScanner3D;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+
         modelBuilder.Entity<CausaAmputacion>(entity =>
         {
-            entity.HasKey(e => e.IdCausa).HasName("PK__Causa_Am__110B92100C49024C");
+            entity.HasKey(e => e.IdCausa).HasName("PK__Causa_Am__110B9210557D7AA8");
 
             entity.ToTable("Causa_Amputacion");
 
@@ -110,7 +116,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<Componente>(entity =>
         {
-            entity.HasKey(e => e.ComponentId).HasName("PK__Componen__D79CF02E628E1ABC");
+            entity.HasKey(e => e.ComponentId).HasName("PK__Componen__D79CF02E9DE3978F");
 
             entity.Property(e => e.ComponentId).HasColumnName("ComponentID");
             entity.Property(e => e.Codigo)
@@ -121,12 +127,12 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.ComponentTipo).WithMany(p => p.Componentes)
                 .HasForeignKey(d => d.ComponentTipoId)
-                .HasConstraintName("FK__Component__Compo__628FA481");
+                .HasConstraintName("FK__Component__Compo__75A278F5");
         });
 
         modelBuilder.Entity<ComponenteTipo>(entity =>
         {
-            entity.HasKey(e => e.ComponentTipoId).HasName("PK__Componen__70E6A0E0719BEA11");
+            entity.HasKey(e => e.ComponentTipoId).HasName("PK__Componen__70E6A0E0C95F2917");
 
             entity.ToTable("Componente_Tipos");
 
@@ -136,7 +142,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<Entrega>(entity =>
         {
-            entity.HasKey(e => e.IdEntregas).HasName("PK__Entregas__39E3689C5F42B7C3");
+            entity.HasKey(e => e.IdEntregas).HasName("PK__Entregas__39E3689C21CA3CF6");
 
             entity.Property(e => e.IdEntregas).HasColumnName("Id_Entregas");
             entity.Property(e => e.FechaEntrega).HasColumnName("fecha_Entrega");
@@ -155,56 +161,56 @@ public partial class ProtoScanner3DContext : DbContext
                 .HasColumnName("material_relleno");
             entity.Property(e => e.Otros).HasColumnType("text");
             entity.Property(e => e.PracticaMarcha).HasColumnName("practica_Marcha");
-            entity.Property(e => e.Reduccion).HasColumnType("decimal(18, 0)");
+            entity.Property(e => e.Reduccion).HasColumnType("decimal(5, 2)");
 
             entity.HasOne(d => d.IdMantenimientoNavigation).WithMany(p => p.Entregas)
                 .HasForeignKey(d => d.IdMantenimiento)
-                .HasConstraintName("FK__Entregas__Id_man__2FCF1A8A");
+                .HasConstraintName("FK__Entregas__Id_man__43D61337");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.Entregas)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Entregas__Id_Pac__2CF2ADDF");
+                .HasConstraintName("FK__Entregas__Id_Pac__40F9A68C");
 
             entity.HasOne(d => d.IdProtesisNavigation).WithMany(p => p.Entregas)
                 .HasForeignKey(d => d.IdProtesis)
-                .HasConstraintName("FK__Entregas__Id_Pro__2DE6D218");
+                .HasConstraintName("FK__Entregas__Id_Pro__41EDCAC5");
 
             entity.HasOne(d => d.IdPruebaSocketNavigation).WithMany(p => p.Entregas)
                 .HasForeignKey(d => d.IdPruebaSocket)
-                .HasConstraintName("FK__Entregas__Id_pru__30C33EC3");
+                .HasConstraintName("FK__Entregas__Id_pru__44CA3770");
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Entregas)
                 .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK__Entregas__Id_Usu__2EDAF651");
+                .HasConstraintName("FK__Entregas__Id_Usu__42E1EEFE");
         });
 
         modelBuilder.Entity<EstatusPaciente>(entity =>
         {
-            entity.HasKey(e => e.IdEstatusPaciente).HasName("PK__Estatus___2683C758AFE3CB75");
+            entity.HasKey(e => e.IdEstatusPaciente).HasName("PK__Estatus___2683C758D54CF032");
 
             entity.ToTable("Estatus_paciente");
 
             entity.Property(e => e.IdEstatusPaciente).HasColumnName("Id_Estatus_paciente");
             entity.Property(e => e.Descripcion)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .IsUnicode(false);
         });
 
         modelBuilder.Entity<EstatusProtesi>(entity =>
         {
-            entity.HasKey(e => e.IdEstatusProtesis).HasName("PK__Estatus___34BA47CC095E88D0");
+            entity.HasKey(e => e.IdEstatusProtesis).HasName("PK__Estatus___34BA47CCAA05251F");
 
             entity.ToTable("Estatus_protesis");
 
             entity.Property(e => e.IdEstatusProtesis).HasColumnName("Id_Estatus_protesis");
             entity.Property(e => e.Descripcion)
-                .HasMaxLength(20)
+                .HasMaxLength(30)
                 .IsUnicode(false);
         });
 
         modelBuilder.Entity<Genero>(entity =>
         {
-            entity.HasKey(e => e.IdGenero).HasName("PK__Genero__E76DD66E2303B4F7");
+            entity.HasKey(e => e.IdGenero).HasName("PK__Genero__E76DD66E96C6E696");
 
             entity.ToTable("Genero");
 
@@ -217,7 +223,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<HistorialCambio>(entity =>
         {
-            entity.HasKey(e => e.IdHistorial).HasName("PK__Historia__76E6C502907F7B3B");
+            entity.HasKey(e => e.IdHistorial).HasName("PK__Historia__76E6C502CD199D5F");
 
             entity.ToTable("Historial_Cambios");
 
@@ -246,12 +252,12 @@ public partial class ProtoScanner3DContext : DbContext
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.HistorialCambios)
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Historial__id_us__4222D4EF");
+                .HasConstraintName("FK__Historial__id_us__5441852A");
         });
 
         modelBuilder.Entity<HistorialLogin>(entity =>
         {
-            entity.HasKey(e => e.IdHistorial).HasName("PK__Historia__76E6C50220F920E5");
+            entity.HasKey(e => e.IdHistorial).HasName("PK__Historia__76E6C502C337E2E0");
 
             entity.ToTable("Historial_Login");
 
@@ -266,26 +272,23 @@ public partial class ProtoScanner3DContext : DbContext
                 .HasColumnName("dispositivo");
             entity.Property(e => e.Exito).HasColumnName("exito");
             entity.Property(e => e.FechaLogin)
-                .IsRowVersion()
-                .IsConcurrencyToken()
+                .HasColumnType("datetime")
                 .HasColumnName("fecha_login");
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.HistorialLogins)
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Historial__id_us__3F466844");
+                .HasConstraintName("FK__Historial__id_us__5165187F");
         });
 
         modelBuilder.Entity<HistorialPacienteIngreso>(entity =>
         {
-            entity.HasKey(e => e.IdHistorial).HasName("PK__Historia__EA5F513B2EE7129D");
+            entity.HasKey(e => e.IdHistorial).HasName("PK__Historia__EA5F513BA8CB0B38");
 
             entity.ToTable("Historial_Paciente_Ingreso");
 
-            entity.Property(e => e.IdHistorial)
-                .ValueGeneratedNever()
-                .HasColumnName("Id_historial");
+            entity.Property(e => e.IdHistorial).HasColumnName("Id_historial");
             entity.Property(e => e.Comentario).HasColumnType("text");
             entity.Property(e => e.FechaAmputacion).HasColumnName("fecha_amputacion");
             entity.Property(e => e.IdMedida).HasColumnName("Id_Medida");
@@ -299,24 +302,24 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.CausaNavigation).WithMany(p => p.HistorialPacienteIngresos)
                 .HasForeignKey(d => d.Causa)
-                .HasConstraintName("FK__Historial__Causa__5AEE82B9");
+                .HasConstraintName("FK__Historial__Causa__6E01572D");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.HistorialPacienteIngresos)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Historial__Id_pa__5812160E");
+                .HasConstraintName("FK__Historial__Id_pa__6B24EA82");
 
             entity.HasOne(d => d.LadoAmputacionNavigation).WithMany(p => p.HistorialPacienteIngresos)
                 .HasForeignKey(d => d.LadoAmputacion)
-                .HasConstraintName("FK__Historial__lado___59FA5E80");
+                .HasConstraintName("FK__Historial__lado___6D0D32F4");
 
             entity.HasOne(d => d.TipoAmputacionNavigation).WithMany(p => p.HistorialPacienteIngresos)
                 .HasForeignKey(d => d.TipoAmputacion)
-                .HasConstraintName("FK__Historial__tipo___59063A47");
+                .HasConstraintName("FK__Historial__tipo___6C190EBB");
         });
 
         modelBuilder.Entity<ImagenPerfil>(entity =>
         {
-            entity.HasKey(e => e.IdImagen).HasName("PK__Imagen_P__27CC2689856A21A1");
+            entity.HasKey(e => e.IdImagen).HasName("PK__Imagen_P__27CC26899F7B5A40");
 
             entity.ToTable("Imagen_Perfil");
 
@@ -325,19 +328,17 @@ public partial class ProtoScanner3DContext : DbContext
                 .HasColumnType("text")
                 .HasColumnName("descripcion");
             entity.Property(e => e.IdUsuario).HasColumnName("Id_usuario");
-            entity.Property(e => e.Imagen)
-                .HasMaxLength(1)
-                .HasColumnName("imagen");
+            entity.Property(e => e.Imagen).HasColumnName("imagen");
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.ImagenPerfils)
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Imagen_Pe__Id_us__5DCAEF64");
+                .HasConstraintName("FK__Imagen_Pe__Id_us__70DDC3D8");
         });
 
         modelBuilder.Entity<Insidencia>(entity =>
         {
-            entity.HasKey(e => e.IdInsidencias).HasName("PK__Insidenc__FEC33014BD1CD794");
+            entity.HasKey(e => e.IdInsidencias).HasName("PK__Insidenc__FEC3301469A2940B");
 
             entity.Property(e => e.IdInsidencias).HasColumnName("Id_Insidencias");
             entity.Property(e => e.Componentes)
@@ -353,24 +354,24 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdEntregasNavigation).WithMany(p => p.InsidenciaNavigation)
                 .HasForeignKey(d => d.IdEntregas)
-                .HasConstraintName("FK__Insidenci__Id_En__339FAB6E");
+                .HasConstraintName("FK__Insidenci__Id_En__47A6A41B");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.InsidenciaNavigation)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Insidenci__Id_Pa__3493CFA7");
+                .HasConstraintName("FK__Insidenci__Id_Pa__489AC854");
 
             entity.HasOne(d => d.IdProtesisNavigation).WithMany(p => p.Insidencia)
                 .HasForeignKey(d => d.IdProtesis)
-                .HasConstraintName("FK__Insidenci__Id_Pr__3587F3E0");
+                .HasConstraintName("FK__Insidenci__Id_Pr__498EEC8D");
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Insidencia)
                 .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK__Insidenci__Id_Us__367C1819");
+                .HasConstraintName("FK__Insidenci__Id_Us__4A8310C6");
         });
 
         modelBuilder.Entity<LadoAmputacion>(entity =>
         {
-            entity.HasKey(e => e.IdLado).HasName("PK__Lado_Amp__0C78995056763AFE");
+            entity.HasKey(e => e.IdLado).HasName("PK__Lado_Amp__0C789950118F7587");
 
             entity.ToTable("Lado_Amputacion");
 
@@ -383,7 +384,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<Liner>(entity =>
         {
-            entity.HasKey(e => e.IdLiner).HasName("PK__Liner__F8F1538DC57D3C43");
+            entity.HasKey(e => e.IdLiner).HasName("PK__Liner__F8F1538DA9F455E5");
 
             entity.ToTable("Liner");
 
@@ -400,7 +401,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<LinerTransfemoral>(entity =>
         {
-            entity.HasKey(e => e.IdLiner).HasName("PK__Liner_Tr__F8F1538D7096A1C3");
+            entity.HasKey(e => e.IdLiner).HasName("PK__Liner_Tr__F8F1538D04328236");
 
             entity.ToTable("Liner_Transfemoral");
 
@@ -410,12 +411,16 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.Talla).WithMany(p => p.LinerTransfemorals)
                 .HasForeignKey(d => d.TallaId)
-                .HasConstraintName("FK__Liner_Tra__Talla__6EF57B66");
+                .HasConstraintName("FK__Liner_Tra__Talla__02FC7413");
+
+            entity.HasOne(d => d.TipoLiner).WithMany(p => p.LinerTransfemorals)
+                .HasForeignKey(d => d.TipoLinerId)
+                .HasConstraintName("FK__Liner_Tra__TipoL__02084FDA");
         });
 
         modelBuilder.Entity<LinerTranstibial>(entity =>
         {
-            entity.HasKey(e => e.IdLiner).HasName("PK__Liner_Tr__F8F1538D73C0A2B8");
+            entity.HasKey(e => e.IdLiner).HasName("PK__Liner_Tr__F8F1538D88E3A7FA");
 
             entity.ToTable("Liner_Transtibial");
 
@@ -425,16 +430,16 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.Talla).WithMany(p => p.LinerTranstibials)
                 .HasForeignKey(d => d.TallaId)
-                .HasConstraintName("FK__Liner_Tra__Talla__6C190EBB");
+                .HasConstraintName("FK__Liner_Tra__Talla__7F2BE32F");
 
             entity.HasOne(d => d.TipoLiner).WithMany(p => p.LinerTranstibials)
                 .HasForeignKey(d => d.TipoLinerId)
-                .HasConstraintName("FK__Liner_Tra__TipoL__6B24EA82");
+                .HasConstraintName("FK__Liner_Tra__TipoL__7E37BEF6");
         });
 
         modelBuilder.Entity<Mantenimiento>(entity =>
         {
-            entity.HasKey(e => e.IdMantenimiento).HasName("PK__Mantenim__707E5D16342052AD");
+            entity.HasKey(e => e.IdMantenimiento).HasName("PK__Mantenim__707E5D166DD0579E");
 
             entity.ToTable("Mantenimiento");
 
@@ -451,21 +456,21 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.Mantenimientos)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Mantenimi__id_co__2180FB33");
+                .HasConstraintName("FK__Mantenimi__Id_pa__3587F3E0");
 
             entity.HasOne(d => d.IdProtesisNavigation).WithMany(p => p.Mantenimientos)
                 .HasForeignKey(d => d.IdProtesis)
-                .HasConstraintName("FK__Mantenimi__Id_pr__22751F6C");
+                .HasConstraintName("FK__Mantenimi__Id_pr__367C1819");
 
             entity.HasOne(d => d.IdSocketNavigation).WithMany(p => p.Mantenimientos)
                 .HasForeignKey(d => d.IdSocket)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Mantenimi__Id_so__236943A5");
+                .HasConstraintName("FK__Mantenimi__Id_so__37703C52");
         });
 
         modelBuilder.Entity<MantenimientoComponente>(entity =>
         {
-            entity.HasKey(e => new { e.ProtesisId, e.ComponentId }).HasName("PK__Mantenim__87BBF2544405C768");
+            entity.HasKey(e => new { e.ProtesisId, e.ComponentId }).HasName("PK__Mantenim__87BBF25413B6D4D3");
 
             entity.ToTable("Mantenimiento_Componentes");
 
@@ -477,29 +482,29 @@ public partial class ProtoScanner3DContext : DbContext
             entity.HasOne(d => d.Component).WithMany(p => p.MantenimientoComponentes)
                 .HasForeignKey(d => d.ComponentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Mantenimi__Compo__2739D489");
+                .HasConstraintName("FK__Mantenimi__Compo__3B40CD36");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.MantenimientoComponentes)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Mantenimi__Id_pa__29221CFB");
+                .HasConstraintName("FK__Mantenimi__Id_pa__3D2915A8");
 
             entity.HasOne(d => d.Mantenimiento).WithMany(p => p.MantenimientoComponentes)
                 .HasForeignKey(d => d.MantenimientoId)
-                .HasConstraintName("FK__Mantenimi__Mante__282DF8C2");
+                .HasConstraintName("FK__Mantenimi__Mante__3C34F16F");
 
             entity.HasOne(d => d.MedidasNavigation).WithMany(p => p.MantenimientoComponentes)
                 .HasForeignKey(d => d.Medidas)
-                .HasConstraintName("FK__Mantenimi__Medid__2A164134");
+                .HasConstraintName("FK__Mantenimi__Medid__3E1D39E1");
 
             entity.HasOne(d => d.Protesis).WithMany(p => p.MantenimientoComponentes)
                 .HasForeignKey(d => d.ProtesisId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Mantenimi__Prote__2645B050");
+                .HasConstraintName("FK__Mantenimi__Prote__3A4CA8FD");
         });
 
         modelBuilder.Entity<MedidaTransfemoral>(entity =>
         {
-            entity.HasKey(e => e.IdMedidaT).HasName("PK__Medida_T__14B4624D5B52A53D");
+            entity.HasKey(e => e.IdMedidaT).HasName("PK__Medida_T__14B4624DB1FE15D3");
 
             entity.ToTable("Medida_Transfemoral");
 
@@ -531,26 +536,24 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdEscaneoNavigation).WithMany(p => p.MedidaTransfemorals)
                 .HasForeignKey(d => d.IdEscaneo)
-                .HasConstraintName("FK__Medida_Tr__Id_es__7C4F7684");
+                .HasConstraintName("FK__Medida_Tr__Id_es__0F624AF8");
 
             entity.HasOne(d => d.IdLinerNavigation).WithMany(p => p.MedidaTransfemorals)
                 .HasForeignKey(d => d.IdLiner)
-                .HasConstraintName("FK__Medida_Tr__id_Li__7B5B524B");
+                .HasConstraintName("FK__Medida_Tr__id_Li__10566F31");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.MedidaTransfemorals)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Medida_Tr__Id_pa__7D439ABD");
+                .HasConstraintName("FK__Medida_Tr__Id_pa__114A936A");
         });
 
         modelBuilder.Entity<MedidaTransfemoralPrueba>(entity =>
         {
-            entity.HasKey(e => e.IdMedida).HasName("PK__Medida_T__88604D55F90C484C");
+            entity.HasKey(e => e.IdMedida).HasName("PK__Medida_T__88604D55C94B680D");
 
             entity.ToTable("Medida_Transfemoral_Prueba");
 
-            entity.Property(e => e.IdMedida)
-                .ValueGeneratedNever()
-                .HasColumnName("Id_medida");
+            entity.Property(e => e.IdMedida).HasColumnName("Id_medida");
             entity.Property(e => e.AlturaTalon)
                 .HasMaxLength(30)
                 .IsUnicode(false)
@@ -578,26 +581,24 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdLinerNavigation).WithMany(p => p.MedidaTransfemoralPruebas)
                 .HasForeignKey(d => d.IdLiner)
-                .HasConstraintName("FK__Medida_Tr__id_Li__123EB7A3");
+                .HasConstraintName("FK__Medida_Tr__id_Li__2645B050");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.MedidaTransfemoralPruebas)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Medida_Tr__Id_pa__114A936A");
+                .HasConstraintName("FK__Medida_Tr__Id_pa__25518C17");
 
             entity.HasOne(d => d.IdPruebaNavigation).WithMany(p => p.MedidaTransfemoralPruebas)
                 .HasForeignKey(d => d.IdPrueba)
-                .HasConstraintName("FK__Medida_Tr__Id_pr__1332DBDC");
+                .HasConstraintName("FK__Medida_Tr__Id_pr__2739D489");
         });
 
         modelBuilder.Entity<MedidaTranstibial>(entity =>
         {
-            entity.HasKey(e => e.IdMedida).HasName("PK__Medida_T__E038E090D5A27E17");
+            entity.HasKey(e => e.IdMedida).HasName("PK__Medida_T__E038E0903CD00E88");
 
             entity.ToTable("Medida_Transtibial");
 
-            entity.Property(e => e.IdMedida)
-                .ValueGeneratedNever()
-                .HasColumnName("id_medida");
+            entity.Property(e => e.IdMedida).HasColumnName("id_medida");
             entity.Property(e => e.AlturaTacon)
                 .HasMaxLength(30)
                 .IsUnicode(false)
@@ -664,20 +665,20 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdEscaneoNavigation).WithMany(p => p.MedidaTranstibials)
                 .HasForeignKey(d => d.IdEscaneo)
-                .HasConstraintName("FK__Medida_Tr__Id_es__778AC167");
+                .HasConstraintName("FK__Medida_Tr__Id_es__0B91BA14");
 
             entity.HasOne(d => d.IdLinerNavigation).WithMany(p => p.MedidaTranstibials)
                 .HasForeignKey(d => d.IdLiner)
-                .HasConstraintName("FK__Medida_Tr__Id_Li__76969D2E");
+                .HasConstraintName("FK__Medida_Tr__Id_Li__0C85DE4D");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.MedidaTranstibials)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Medida_Tr__Id_pa__787EE5A0");
+                .HasConstraintName("FK__Medida_Tr__Id_pa__0A9D95DB");
         });
 
         modelBuilder.Entity<MedidasCircunferenciaPrueba>(entity =>
         {
-            entity.HasKey(e => e.IdMedida).HasName("PK__MedidasC__E038E090F59CA66E");
+            entity.HasKey(e => e.IdMedida).HasName("PK__MedidasC__E038E090B054CC66");
 
             entity.ToTable("MedidasCircunferencia_Prueba");
 
@@ -690,12 +691,12 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdValorNavigation).WithMany(p => p.MedidasCircunferenciaPruebas)
                 .HasForeignKey(d => d.IdValor)
-                .HasConstraintName("FK__MedidasCi__id_va__160F4887");
+                .HasConstraintName("FK__MedidasCi__id_va__2A164134");
         });
 
         modelBuilder.Entity<MedidasCircunferencium>(entity =>
         {
-            entity.HasKey(e => e.IdMedida).HasName("PK__MedidasC__E038E09014E772D5");
+            entity.HasKey(e => e.IdMedida).HasName("PK__MedidasC__E038E0909C6A9A50");
 
             entity.Property(e => e.IdMedida).HasColumnName("id_medida");
             entity.Property(e => e.IdValor).HasColumnName("id_valor");
@@ -706,18 +707,18 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdValorNavigation).WithMany(p => p.MedidasCircunferencia)
                 .HasForeignKey(d => d.IdValor)
-                .HasConstraintName("FK__MedidasCi__id_va__00200768");
+                .HasConstraintName("FK__MedidasCi__id_va__14270015");
         });
 
         modelBuilder.Entity<Paciente>(entity =>
         {
-            entity.HasKey(e => e.IdPaciente).HasName("PK__Paciente__3874F59A74D68654");
+            entity.HasKey(e => e.IdPaciente).HasName("PK__Paciente__3874F59A800A147C");
 
             entity.ToTable("Paciente");
 
-            entity.Property(e => e.IdPaciente)
-                .ValueGeneratedNever()
-                .HasColumnName("Id_paciente");
+            entity.HasIndex(e => e.Cedula, "UQ__Paciente__415B7BE589E50B25").IsUnique();
+
+            entity.Property(e => e.IdPaciente).HasColumnName("Id_paciente");
             entity.Property(e => e.Cedula)
                 .HasMaxLength(11)
                 .IsUnicode(false)
@@ -737,7 +738,7 @@ public partial class ProtoScanner3DContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("nombre_completo");
             entity.Property(e => e.Sector)
-                .HasMaxLength(1)
+                .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("sector");
             entity.Property(e => e.Telefono)
@@ -751,32 +752,29 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.GeneroNavigation).WithMany(p => p.Pacientes)
                 .HasForeignKey(d => d.Genero)
-                .HasConstraintName("FK__Paciente__Genero__534D60F1");
+                .HasConstraintName("FK__Paciente__Genero__6383C8BA");
 
             entity.HasOne(d => d.IdEstatusPacienteNavigation).WithMany(p => p.Pacientes)
                 .HasForeignKey(d => d.IdEstatusPaciente)
-                .HasConstraintName("FK__Paciente__Id_Est__52593CB8");
+                .HasConstraintName("FK__Paciente__Id_Est__656C112C");
 
             entity.HasOne(d => d.IdEstatusProtesisNavigation).WithMany(p => p.Pacientes)
                 .HasForeignKey(d => d.IdEstatusProtesis)
-                .HasConstraintName("FK__Paciente__Id_Est__5165187F");
+                .HasConstraintName("FK__Paciente__Id_Est__66603565");
 
             entity.HasOne(d => d.IdProvinciaNavigation).WithMany(p => p.Pacientes)
                 .HasForeignKey(d => d.IdProvincia)
-                .HasConstraintName("FK__Paciente__Id_Pro__5070F446");
+                .HasConstraintName("FK__Paciente__Id_Pro__6477ECF3");
         });
 
         modelBuilder.Entity<Protesi>(entity =>
         {
-            entity.HasKey(e => e.IdProtesis).HasName("PK__Protesis__D4FF3CA8D2BC6127");
+            entity.HasKey(e => e.IdProtesis).HasName("PK__Protesis__D4FF3CA8DDD286A7");
 
             entity.ToTable("Protesis");
 
             entity.Property(e => e.IdProtesis).HasColumnName("id_protesis");
-            entity.Property(e => e.Cedula) // Cambiado de CodigoPaciente a Cedula
-                .HasMaxLength(11)
-                .IsUnicode(false)
-                .HasColumnName("cedula");
+            entity.Property(e => e.CodigoPaciente).HasColumnName("codigo_paciente");
             entity.Property(e => e.FechaEntrega).HasColumnName("fecha_entrega");
             entity.Property(e => e.LinerTamano).HasColumnName("liner_tamano");
             entity.Property(e => e.LinerTipo).HasColumnName("liner_tipo");
@@ -789,26 +787,22 @@ public partial class ProtoScanner3DContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("protesista");
 
-            // Actualiza la relación de Foreign Key usando Cedula en lugar de CodigoPaciente
-            entity.HasOne(d => d.Paciente) // Cambiado de CodigoPacienteNavigation a Paciente
-                .WithMany(p => p.Protesis)
-                .HasForeignKey(d => d.Cedula) // ForeignKey ahora apunta a Cedula
-                .HasPrincipalKey(p => p.Cedula) // Relacionado con la propiedad Cedula en Paciente
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Protesis_Paciente_Cedula");
+            entity.HasOne(d => d.CodigoPacienteNavigation).WithMany(p => p.Protesis)
+                .HasForeignKey(d => d.CodigoPaciente)
+                .HasConstraintName("FK__Protesis__codigo__2CF2ADDF");
 
             entity.HasOne(d => d.LinerTamanoNavigation).WithMany(p => p.Protesis)
                 .HasForeignKey(d => d.LinerTamano)
-                .HasConstraintName("FK__Protesis__liner___1AD3FDA4");
+                .HasConstraintName("FK__Protesis__liner___2EDAF651");
 
             entity.HasOne(d => d.LinerTipoNavigation).WithMany(p => p.Protesis)
                 .HasForeignKey(d => d.LinerTipo)
-                .HasConstraintName("FK__Protesis__liner___19DFD96B");
+                .HasConstraintName("FK__Protesis__liner___2DE6D218");
         });
 
         modelBuilder.Entity<ProtesisComponente>(entity =>
         {
-            entity.HasKey(e => new { e.ProtesisId, e.ComponentId }).HasName("PK__Protesis__87BBF254B0581971");
+            entity.HasKey(e => new { e.ProtesisId, e.ComponentId }).HasName("PK__Protesis__87BBF2547182BF5A");
 
             entity.ToTable("Protesis_Componentes");
 
@@ -818,17 +812,17 @@ public partial class ProtoScanner3DContext : DbContext
             entity.HasOne(d => d.Component).WithMany(p => p.ProtesisComponentes)
                 .HasForeignKey(d => d.ComponentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Protesis___Compo__1EA48E88");
+                .HasConstraintName("FK__Protesis___Compo__32AB8735");
 
             entity.HasOne(d => d.Protesis).WithMany(p => p.ProtesisComponentes)
                 .HasForeignKey(d => d.ProtesisId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Protesis___Prote__1DB06A4F");
+                .HasConstraintName("FK__Protesis___Prote__31B762FC");
         });
 
         modelBuilder.Entity<Provincium>(entity =>
         {
-            entity.HasKey(e => e.IdProvincia).HasName("PK__Provinci__1B62027383B2EB62");
+            entity.HasKey(e => e.IdProvincia).HasName("PK__Provinci__1B620273206CC6FB");
 
             entity.Property(e => e.IdProvincia).HasColumnName("Id_Provincia");
             entity.Property(e => e.NombreProvincia)
@@ -839,13 +833,11 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<PruebaSocket>(entity =>
         {
-            entity.HasKey(e => e.IdPrueba).HasName("PK__Prueba_S__328A45731C2FD3F5");
+            entity.HasKey(e => e.IdPrueba).HasName("PK__Prueba_S__328A45737C22E3B9");
 
             entity.ToTable("Prueba_Socket");
 
-            entity.Property(e => e.IdPrueba)
-                .ValueGeneratedNever()
-                .HasColumnName("id_prueba");
+            entity.Property(e => e.IdPrueba).HasColumnName("id_prueba");
             entity.Property(e => e.DuracionTerapia)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -874,47 +866,45 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdComponenteNavigation).WithMany(p => p.PruebaSockets)
                 .HasForeignKey(d => d.IdComponente)
-                .HasConstraintName("FK__Prueba_So__Id_Co__07C12930");
+                .HasConstraintName("FK__Prueba_So__Id_Co__1BC821DD");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.PruebaSockets)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Prueba_So__Id_pa__06CD04F7");
+                .HasConstraintName("FK__Prueba_So__Id_pa__1AD3FDA4");
 
             entity.HasOne(d => d.IdSocketNavigation).WithMany(p => p.PruebaSockets)
                 .HasForeignKey(d => d.IdSocket)
-                .HasConstraintName("FK__Prueba_So__Id_so__09A971A2");
+                .HasConstraintName("FK__Prueba_So__Id_so__1DB06A4F");
 
             entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.PruebaSockets)
                 .HasForeignKey(d => d.IdUsuario)
-                .HasConstraintName("FK__Prueba_So__Id_Us__08B54D69");
+                .HasConstraintName("FK__Prueba_So__Id_Us__1CBC4616");
         });
 
         modelBuilder.Entity<Reporte>(entity =>
         {
-            entity.HasKey(e => e.IdReporte).HasName("PK__Reportes__87E4F5CB49E6CF98");
+            entity.HasKey(e => e.IdReporte).HasName("PK__Reportes__87E4F5CB15AC1038");
 
-            entity.Property(e => e.IdReporte)
-                .ValueGeneratedNever()
-                .HasColumnName("id_reporte");
+            entity.Property(e => e.IdReporte).HasColumnName("id_reporte");
             entity.Property(e => e.CodigoPaciente).HasColumnName("codigo_paciente");
             entity.Property(e => e.NumSocketsFabricados).HasColumnName("num_sockets_fabricados");
 
             entity.HasOne(d => d.CodigoPacienteNavigation).WithMany(p => p.Reportes)
                 .HasForeignKey(d => d.CodigoPaciente)
-                .HasConstraintName("FK__Reportes__codigo__395884C4");
+                .HasConstraintName("FK__Reportes__codigo__4D5F7D71");
 
             entity.HasOne(d => d.NumSocketsFabricadosNavigation).WithMany(p => p.Reportes)
                 .HasForeignKey(d => d.NumSocketsFabricados)
-                .HasConstraintName("FK__Reportes__num_so__3A4CA8FD");
+                .HasConstraintName("FK__Reportes__num_so__4E53A1AA");
         });
 
         modelBuilder.Entity<Rol>(entity =>
         {
-            entity.HasKey(e => e.IdRol).HasName("PK__Rol__6ABCB5E0F9009A3B");
+            entity.HasKey(e => e.IdRol).HasName("PK__Rol__6ABCB5E02BCF416E");
 
             entity.ToTable("Rol");
 
-            entity.HasIndex(e => e.NombreRol, "UQ__Rol__673CB43570AC484A").IsUnique();
+            entity.HasIndex(e => e.NombreRol, "UQ__Rol__673CB435816DEBBB").IsUnique();
 
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
             entity.Property(e => e.Descripcion)
@@ -928,7 +918,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<SocketPaciente>(entity =>
         {
-            entity.HasKey(e => e.IdSocket).HasName("PK__Socket_P__14CC4DA6A1BCEB76");
+            entity.HasKey(e => e.IdSocket).HasName("PK__Socket_P__14CC4DA62456D9F9");
 
             entity.ToTable("Socket_Paciente");
 
@@ -948,12 +938,12 @@ public partial class ProtoScanner3DContext : DbContext
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.SocketPacientes)
                 .HasForeignKey(d => d.IdPaciente)
                 .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK__Socket_Pa__Id_pa__03F0984C");
+                .HasConstraintName("FK__Socket_Pa__Id_pa__17F790F9");
         });
 
         modelBuilder.Entity<Talla>(entity =>
         {
-            entity.HasKey(e => e.IdTalla).HasName("PK__Tallas__A135FE6EDC15A448");
+            entity.HasKey(e => e.IdTalla).HasName("PK__Tallas__A135FE6E637EC9A6");
 
             entity.Property(e => e.IdTalla).HasColumnName("Id_Talla");
             entity.Property(e => e.TallaNombre)
@@ -963,7 +953,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<TipoAmputacion>(entity =>
         {
-            entity.HasKey(e => e.IdAmputacion).HasName("PK__Tipo_Amp__1A5D1A33D43D0397");
+            entity.HasKey(e => e.IdAmputacion).HasName("PK__Tipo_Amp__1A5D1A33897FDC1C");
 
             entity.ToTable("Tipo_Amputacion");
 
@@ -976,7 +966,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<TipoLiner>(entity =>
         {
-            entity.HasKey(e => e.IdTipoLiner).HasName("PK__Tipo_Lin__EAA776676FEE0F1A");
+            entity.HasKey(e => e.IdTipoLiner).HasName("PK__Tipo_Lin__EAA77667F87552F7");
 
             entity.ToTable("Tipo_Liner");
 
@@ -988,7 +978,7 @@ public partial class ProtoScanner3DContext : DbContext
 
         modelBuilder.Entity<TomaMedidasEscaneo>(entity =>
         {
-            entity.HasKey(e => e.IdEscaneo).HasName("PK__Toma_med__83D46B0D3B64D724");
+            entity.HasKey(e => e.IdEscaneo).HasName("PK__Toma_med__83D46B0D4684ED4A");
 
             entity.ToTable("Toma_medidas_escaneo");
 
@@ -1006,26 +996,24 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdAmputacionNavigation).WithMany(p => p.TomaMedidasEscaneos)
                 .HasForeignKey(d => d.IdAmputacion)
-                .HasConstraintName("FK__Toma_medi__Id_am__72C60C4A");
+                .HasConstraintName("FK__Toma_medi__Id_am__06CD04F7");
 
             entity.HasOne(d => d.IdLinerNavigation).WithMany(p => p.TomaMedidasEscaneos)
                 .HasForeignKey(d => d.IdLiner)
-                .HasConstraintName("FK__Toma_medi__Id_Li__73BA3083");
+                .HasConstraintName("FK__Toma_medi__Id_Li__07C12930");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.TomaMedidasEscaneos)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Toma_medi__Id_pa__71D1E811");
+                .HasConstraintName("FK__Toma_medi__Id_pa__05D8E0BE");
         });
 
         modelBuilder.Entity<TranstibialPrueba>(entity =>
         {
-            entity.HasKey(e => e.IdEscaneo).HasName("PK__Transtib__83D46B0D6A357B8B");
+            entity.HasKey(e => e.IdEscaneo).HasName("PK__Transtib__83D46B0D409C63E6");
 
             entity.ToTable("Transtibial_Prueba");
 
-            entity.Property(e => e.IdEscaneo)
-                .ValueGeneratedNever()
-                .HasColumnName("id_escaneo");
+            entity.Property(e => e.IdEscaneo).HasColumnName("id_escaneo");
             entity.Property(e => e.AlturaTacon)
                 .HasMaxLength(30)
                 .IsUnicode(false)
@@ -1092,26 +1080,27 @@ public partial class ProtoScanner3DContext : DbContext
 
             entity.HasOne(d => d.IdLinerNavigation).WithMany(p => p.TranstibialPruebas)
                 .HasForeignKey(d => d.IdLiner)
-                .HasConstraintName("FK__Transtibi__Id_Li__0D7A0286");
+                .HasConstraintName("FK__Transtibi__Id_Li__2180FB33");
 
             entity.HasOne(d => d.IdPacienteNavigation).WithMany(p => p.TranstibialPruebas)
                 .HasForeignKey(d => d.IdPaciente)
-                .HasConstraintName("FK__Transtibi__Id_pa__0C85DE4D");
+                .HasConstraintName("FK__Transtibi__Id_pa__208CD6FA");
 
             entity.HasOne(d => d.IdPruebaNavigation).WithMany(p => p.TranstibialPruebas)
                 .HasForeignKey(d => d.IdPrueba)
-                .HasConstraintName("FK__Transtibi__Id_pr__0E6E26BF");
+                .HasConstraintName("FK__Transtibi__Id_pr__22751F6C");
         });
+
 
         modelBuilder.Entity<Usuario>(entity =>
         {
-            entity.HasKey(e => e.IdUsuario).HasName("PK__Usuario__4E3E04AD5B8FAE9D");
+            entity.HasKey(e => e.IdUsuario).HasName("PK__Usuario__4E3E04AD65D9EBEA");
 
             entity.ToTable("Usuario");
 
-            entity.HasIndex(e => e.Email, "UQ__Usuario__AB6E6164B7C17AB9").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Usuario__AB6E6164D5DD97DE").IsUnique();
 
-            entity.HasIndex(e => e.NombreUsuario, "UQ__Usuario__D4D22D743A7B762B").IsUnique();
+            entity.HasIndex(e => e.NombreUsuario, "UQ__Usuario__D4D22D7475FEE1D0").IsUnique();
 
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
             entity.Property(e => e.Activo).HasColumnName("activo");
@@ -1121,6 +1110,10 @@ public partial class ProtoScanner3DContext : DbContext
                 .HasColumnName("email");
             entity.Property(e => e.FechaCreacion).HasColumnName("fecha_creacion");
             entity.Property(e => e.IdRol).HasColumnName("id_rol");
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(220)
+                .IsUnicode(false)
+                .HasColumnName("nombre");
             entity.Property(e => e.NombreUsuario)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -1133,8 +1126,42 @@ public partial class ProtoScanner3DContext : DbContext
             entity.HasOne(d => d.IdRolNavigation).WithMany(p => p.Usuarios)
                 .HasForeignKey(d => d.IdRol)
                 .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK__Usuario__id_rol__3C69FB99");
+                .HasConstraintName("FK__Usuario__id_rol__4E88ABD4");
         });
+
+
+
+        // Configuración de la tabla Comentarios
+        modelBuilder.Entity<Comentario>()
+            .HasOne(c => c.Usuario)
+            .WithMany()
+            .HasForeignKey(c => c.IdUsuario)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Comentario>()
+            .HasOne(c => c.Paciente)
+            .WithMany()
+            .HasForeignKey(c => c.IdPaciente);
+
+        modelBuilder.Entity<Comentario>()
+            .HasOne(c => c.TomaMedida)
+            .WithMany()
+            .HasForeignKey(c => c.IdTomaMedida);
+
+        modelBuilder.Entity<Comentario>()
+            .HasOne(c => c.PruebaSocket)
+            .WithMany()
+            .HasForeignKey(c => c.IdPruebaSocket);
+
+        modelBuilder.Entity<Comentario>()
+            .HasOne(c => c.Mantenimiento)
+            .WithMany()
+            .HasForeignKey(c => c.IdMantenimiento);
+
+        modelBuilder.Entity<Comentario>()
+            .HasOne(c => c.Protesis)
+            .WithMany()
+            .HasForeignKey(c => c.IdProtesis);
 
         OnModelCreatingPartial(modelBuilder);
     }

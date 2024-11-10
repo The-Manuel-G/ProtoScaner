@@ -13,7 +13,7 @@ builder.Services.AddDbContext<ProtoScanner3DContext>(options =>
     options.UseSqlServer(connectionString)
 );
 
-// Configuración de autenticación JWT
+// Configuración de autenticación JWT (actualmente no se usará en el middleware)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -44,6 +44,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+
+
 // Configuración de Swagger para la documentación de la API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -61,8 +63,9 @@ app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication(); // Agregar autenticación antes de la autorización
-app.UseAuthorization();
+// Comentando autenticación y autorización para evitar interferencias
+// app.UseAuthentication(); // Comentar autenticación temporalmente
+// app.UseAuthorization();
 
 app.MapControllers();
 app.MapFallbackToFile("/index.html");

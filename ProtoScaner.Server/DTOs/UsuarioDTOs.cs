@@ -4,6 +4,7 @@
     {
         public int? IdUsuario { get; set; }
         public string NombreUsuario { get; set; } = null!;
+        public string Nombre { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string PasswordHash { get; set; } = null!; // En el DTO para nuevas cuentas
         public int? IdRol { get; set; }

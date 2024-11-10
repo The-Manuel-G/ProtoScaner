@@ -14,7 +14,9 @@ export interface ImagenPerfilDTO {
 
 
 export interface Usuario {
+    
     idUsuario: number;
+    nombre: string;
     nombreUsuario: string;
     email: string;
     passwordHash: string;

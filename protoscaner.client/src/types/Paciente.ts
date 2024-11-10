@@ -4,7 +4,7 @@ export interface Paciente {
     nombreCompleto?: string;
     cedula?: string;
     genero?: number | null; // Cambiado a aceptar null
-    fechaNacimiento?: Date | string;
+    fechaNacimiento?: string ;
     direccion?: string;
     telefono?: string;
     telefonoCelular?: string;
@@ -14,5 +14,5 @@ export interface Paciente {
     idEstatusPaciente?: number;
     idEstatusProtesis?: number;
     comentario?: string;
-    fotoPaciente?: string;
+    fotoPaciente?: Blob | string;
 }

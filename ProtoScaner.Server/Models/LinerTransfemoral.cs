@@ -16,4 +16,6 @@ public partial class LinerTransfemoral
     public virtual ICollection<MedidaTransfemoral> MedidaTransfemorals { get; set; } = new List<MedidaTransfemoral>();
 
     public virtual Talla? Talla { get; set; }
+
+    public virtual TipoLiner? TipoLiner { get; set; }
 }

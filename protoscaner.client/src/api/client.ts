@@ -1,5 +1,3 @@
-// src/api/client.ts
-
 import axios from 'axios';
 
 const apiClient = axios.create({
@@ -17,7 +15,7 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response) {
             if (error.response.status === 401) {
-                console.log("No autorizado. Redirigiendo al login...");
+                console.log("No autorizado."); // Mensaje simple sin redirección al login
                 // Aquí puedes redirigir al usuario al login cuando implementes la autenticación
             } else if (error.response.status === 403) {
                 console.warn("Acceso prohibido: permisos insuficientes.");

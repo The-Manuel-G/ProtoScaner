@@ -33,7 +33,5 @@ public partial class Mantenimiento
 
     public virtual SocketPaciente? IdSocketNavigation { get; set; }
 
-    public virtual ICollection<Insidencia> Insidencia { get; set; } = new List<Insidencia>();
-
     public virtual ICollection<MantenimientoComponente> MantenimientoComponentes { get; set; } = new List<MantenimientoComponente>();
 }

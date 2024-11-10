@@ -9,6 +9,8 @@ public partial class Usuario
 
     public string NombreUsuario { get; set; } = null!;
 
+    public string Nombre { get; set; } = null!;
+
     public string Email { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
@@ -28,6 +30,8 @@ public partial class Usuario
     public virtual Rol? IdRolNavigation { get; set; }
 
     public virtual ICollection<ImagenPerfil> ImagenPerfils { get; set; } = new List<ImagenPerfil>();
+
+    public virtual ICollection<Insidencia> Insidencia { get; set; } = new List<Insidencia>();
 
     public virtual ICollection<PruebaSocket> PruebaSockets { get; set; } = new List<PruebaSocket>();
 }

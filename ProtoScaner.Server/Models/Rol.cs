@@ -1,5 +1,4 @@
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ProtoScaner.Server.Models;
@@ -13,5 +12,4 @@ public partial class Rol
     public string? Descripcion { get; set; }
 
     public virtual ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
-
 }
