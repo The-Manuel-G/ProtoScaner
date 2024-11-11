@@ -26,7 +26,7 @@ namespace ProtoScaner.Server.Controllers
                 .Select(pc => new ProtesisComponenteDTO
                 {
                     ProtesisId = pc.ProtesisId,
-                    ComponentId = pc.ComponentId,
+                    ComponentID = pc.ComponentId, // Verifica que coincida con el DTO
                     Cantidad = pc.Cantidad
                 })
                 .ToListAsync();
@@ -47,7 +47,7 @@ namespace ProtoScaner.Server.Controllers
             var componenteDTO = new ProtesisComponenteDTO
             {
                 ProtesisId = componente.ProtesisId,
-                ComponentId = componente.ComponentId,
+                ComponentID = componente.ComponentId, // Asegúrate de que coincida con el nombre en el DTO
                 Cantidad = componente.Cantidad
             };
 
@@ -58,10 +58,15 @@ namespace ProtoScaner.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<ProtesisComponenteDTO>> CreateProtesisComponente(ProtesisComponenteDTO nuevoComponenteDTO)
         {
+            if (nuevoComponenteDTO.Cantidad < 0)
+            {
+                return BadRequest("La cantidad no puede ser negativa.");
+            }
+
             var nuevoComponente = new ProtesisComponente
             {
                 ProtesisId = nuevoComponenteDTO.ProtesisId,
-                ComponentId = nuevoComponenteDTO.ComponentId,
+                ComponentId = nuevoComponenteDTO.ComponentID,
                 Cantidad = nuevoComponenteDTO.Cantidad
             };
 
@@ -69,7 +74,7 @@ namespace ProtoScaner.Server.Controllers
             await dbContext.SaveChangesAsync();
 
             nuevoComponenteDTO.ProtesisId = nuevoComponente.ProtesisId;
-            nuevoComponenteDTO.ComponentId = nuevoComponente.ComponentId;
+            nuevoComponenteDTO.ComponentID = nuevoComponente.ComponentId;
 
             return CreatedAtAction(nameof(GetProtesisComponente), new { protesisId = nuevoComponente.ProtesisId, componentId = nuevoComponente.ComponentId }, nuevoComponenteDTO);
         }
@@ -78,6 +83,11 @@ namespace ProtoScaner.Server.Controllers
         [HttpPut("{protesisId}/{componentId}")]
         public async Task<ActionResult> UpdateProtesisComponente(int protesisId, int componentId, ProtesisComponenteDTO componenteActualizadoDTO)
         {
+            if (componenteActualizadoDTO.Cantidad < 0)
+            {
+                return BadRequest("La cantidad no puede ser negativa.");
+            }
+
             var componente = await dbContext.ProtesisComponentes.FindAsync(protesisId, componentId);
             if (componente == null)
             {
@@ -106,5 +116,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-
-

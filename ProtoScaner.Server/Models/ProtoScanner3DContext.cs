@@ -17,80 +17,49 @@ public partial class ProtoScanner3DContext : DbContext
     }
 
     public virtual DbSet<CausaAmputacion> CausaAmputacions { get; set; }
-
     public virtual DbSet<Componente> Componentes { get; set; }
-
     public virtual DbSet<ComponenteTipo> ComponenteTipos { get; set; }
-
     public virtual DbSet<Entrega> Entregas { get; set; }
-
     public virtual DbSet<EstatusPaciente> EstatusPacientes { get; set; }
-
     public virtual DbSet<EstatusProtesi> EstatusProteses { get; set; }
-
     public virtual DbSet<Genero> Generos { get; set; }
-
     public virtual DbSet<HistorialCambio> HistorialCambios { get; set; }
-
     public virtual DbSet<HistorialLogin> HistorialLogins { get; set; }
-
     public virtual DbSet<HistorialPacienteIngreso> HistorialPacienteIngresos { get; set; }
+    public virtual DbSet<MovimientoInventario> MovimientosInventario { get; set; }
 
     public virtual DbSet<ImagenPerfil> ImagenPerfils { get; set; }
-
     public virtual DbSet<Insidencia> Insidencias { get; set; }
-
     public virtual DbSet<LadoAmputacion> LadoAmputacions { get; set; }
-
     public virtual DbSet<Liner> Liners { get; set; }
-
     public virtual DbSet<LinerTransfemoral> LinerTransfemorals { get; set; }
-
     public virtual DbSet<LinerTranstibial> LinerTranstibials { get; set; }
-
     public virtual DbSet<Mantenimiento> Mantenimientos { get; set; }
-
     public virtual DbSet<MantenimientoComponente> MantenimientoComponentes { get; set; }
-
     public virtual DbSet<MedidaTransfemoral> MedidaTransfemorals { get; set; }
-
     public virtual DbSet<MedidaTransfemoralPrueba> MedidaTransfemoralPruebas { get; set; }
-
     public virtual DbSet<MedidaTranstibial> MedidaTranstibials { get; set; }
-
     public virtual DbSet<MedidasCircunferenciaPrueba> MedidasCircunferenciaPruebas { get; set; }
-
     public virtual DbSet<MedidasCircunferencium> MedidasCircunferencia { get; set; }
-
     public virtual DbSet<Paciente> Pacientes { get; set; }
-
     public virtual DbSet<Protesi> Protesis { get; set; }
-
     public virtual DbSet<ProtesisComponente> ProtesisComponentes { get; set; }
-
     public virtual DbSet<Provincium> Provincia { get; set; }
-
     public virtual DbSet<PruebaSocket> PruebaSockets { get; set; }
-
     public virtual DbSet<Reporte> Reportes { get; set; }
-
     public virtual DbSet<Rol> Rols { get; set; }
-
     public virtual DbSet<SocketPaciente> SocketPacientes { get; set; }
-
     public virtual DbSet<Talla> Tallas { get; set; }
-
     public virtual DbSet<TipoAmputacion> TipoAmputacions { get; set; }
-
     public virtual DbSet<TipoLiner> TipoLiners { get; set; }
-
     public virtual DbSet<TomaMedidasEscaneo> TomaMedidasEscaneos { get; set; }
-
     public virtual DbSet<TranstibialPrueba> TranstibialPruebas { get; set; }
-
     public virtual DbSet<Usuario> Usuarios { get; set; }
+    public virtual DbSet<Comentario> Comentarios { get; set; }
+  
+    public virtual DbSet<UsuarioProtesis> UsuarioProtesis { get; set; }
+    public virtual DbSet<InventarioComponentes> InventarioComponentes { get; set; }
 
-    public DbSet<Comentario> Comentarios { get; set; }
 
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -1130,6 +1099,69 @@ public partial class ProtoScanner3DContext : DbContext
         });
 
 
+        modelBuilder.Entity<MovimientoInventario>(entity =>
+        {
+            entity.HasKey(e => e.MovimientoID);  // Define la clave primaria
+
+            entity.Property(e => e.MovimientoID).HasColumnName("MovimientoID");
+            entity.Property(e => e.ComponentID).HasColumnName("ComponentID");
+            entity.Property(e => e.FechaMovimiento).HasColumnName("FechaMovimiento");
+            entity.Property(e => e.TipoMovimiento)
+                  .HasMaxLength(10)
+                  .HasColumnName("TipoMovimiento");
+            entity.Property(e => e.Cantidad).HasColumnName("Cantidad");
+            entity.Property(e => e.Descripcion)
+                  .HasMaxLength(255)
+                  .HasColumnName("Descripcion");
+
+            // Configura la relación con la tabla Componentes
+            entity.HasOne(e => e.Componente)
+                .WithMany(c => c.MovimientosInventarios)
+                .HasForeignKey(e => e.ComponentID)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+
+        // Usuario_Protesis Entity Configuration
+        modelBuilder.Entity<UsuarioProtesis>(entity =>
+        {
+            entity.HasKey(e => new { e.IdUsuario, e.IdProtesis });
+
+            entity.Property(e => e.IdUsuario).HasColumnName("IdUsuario");
+            entity.Property(e => e.IdProtesis).HasColumnName("IdProtesis");
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany(u => u.UsuarioProtesis)
+                .HasForeignKey(e => e.IdUsuario)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Protesis)
+                .WithMany(p => p.UsuarioProtesis)
+                .HasForeignKey(e => e.IdProtesis)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Inventario_Componentes Entity Configuration
+        modelBuilder.Entity<InventarioComponentes>(entity =>
+        {
+            entity.HasKey(e => e.InventarioID);
+
+            entity.Property(e => e.InventarioID).HasColumnName("InventarioID");
+            entity.Property(e => e.ComponentID).HasColumnName("ComponentID");
+            entity.Property(e => e.StockActual)
+                .HasColumnName("StockActual")
+                .HasDefaultValue(0);
+            entity.Property(e => e.PuntoReorden)
+                .HasColumnName("PuntoReorden")
+                .HasDefaultValue(5);
+
+            entity.HasOne(e => e.Componente)
+                .WithOne(c => c.InventarioComponentes)
+                .HasForeignKey<InventarioComponentes>(e => e.ComponentID)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
 
         // Configuración de la tabla Comentarios
         modelBuilder.Entity<Comentario>()
@@ -1166,5 +1198,27 @@ public partial class ProtoScanner3DContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
+
+
+    public async Task EntradaInventarioAsync(int componentID, int cantidad, string descripcion)
+    {
+        await Database.ExecuteSqlRawAsync(
+            "EXEC EntradaInventario @ComponentID = {0}, @Cantidad = {1}, @Descripcion = {2}",
+            componentID, cantidad, descripcion);
+    }
+
+    public async Task SalidaInventarioAsync(int componentID, int cantidad, string descripcion)
+    {
+        await Database.ExecuteSqlRawAsync(
+            "EXEC SalidaInventario @ComponentID = {0}, @Cantidad = {1}, @Descripcion = {2}",
+            componentID, cantidad, descripcion);
+    }
+
+    public async Task AsignarUsuariosAProtesisAsync(int protesisID, string usuariosAsignados)
+    {
+        await Database.ExecuteSqlRawAsync(
+            "EXEC AsignarUsuariosAProtesis @ProtesisID = {0}, @UsuariosAsignados = {1}",
+            protesisID, usuariosAsignados);
+    }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

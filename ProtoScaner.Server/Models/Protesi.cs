@@ -34,5 +34,7 @@ namespace ProtoScaner.Server.Models
         public virtual ICollection<Mantenimiento> Mantenimientos { get; set; } = new List<Mantenimiento>();
 
         public virtual ICollection<ProtesisComponente> ProtesisComponentes { get; set; } = new List<ProtesisComponente>();
+
+        public virtual ICollection<UsuarioProtesis> UsuarioProtesis { get; set; } = new List<UsuarioProtesis>();
     }
 }

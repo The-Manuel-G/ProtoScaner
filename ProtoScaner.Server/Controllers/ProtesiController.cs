@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
 using ProtoScaner.Server.DTOs;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProtoScaner.Server.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class ProtesisController : ControllerBase
     {
         private readonly ProtoScanner3DContext _context;
@@ -24,8 +24,9 @@ namespace ProtoScaner.Server.Controllers
         public async Task<ActionResult<IEnumerable<ProtesiDto>>> GetProtesis()
         {
             var protesis = await _context.Protesis
+                .AsNoTracking()
                 .Include(p => p.CodigoPacienteNavigation)
-                    .ThenInclude(p => p.HistorialPacienteIngresos) // Incluir historial de ingresos
+                    .ThenInclude(p => p.HistorialPacienteIngresos)
                 .Select(p => new ProtesiDto
                 {
                     IdProtesis = p.IdProtesis,
@@ -72,133 +73,105 @@ namespace ProtoScaner.Server.Controllers
             return Ok(protesis);
         }
 
-        // GET: api/Protesis/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ProtesiDto>> GetProtesi(int id)
+        // POST: api/Protesis/AsignarComponenteProtesis
+        [HttpPost("AsignarComponenteProtesis")]
+        public async Task<IActionResult> AsignarComponenteProtesis(int protesisId, int componentId, int cantidad)
         {
-            var protesis = await _context.Protesis
-                .Include(p => p.CodigoPacienteNavigation)
-                .Where(p => p.IdProtesis == id)
-                .Select(p => new ProtesiDto
-                {
-                    IdProtesis = p.IdProtesis,
-                    CodigoPaciente = p.CodigoPaciente,
-                    LinerTipo = p.LinerTipo,
-                    LinerTamano = p.LinerTamano,
-                    Protesista = p.Protesista,
-                    FechaEntrega = p.FechaEntrega,
-                    Material = p.Material,
-                    Paciente = p.CodigoPacienteNavigation == null ? null : new PacienteDTO
-                    {
-                        IdPaciente = p.CodigoPacienteNavigation.IdPaciente,
-                        NombreCompleto = p.CodigoPacienteNavigation.NombreCompleto,
-                        Cedula = p.CodigoPacienteNavigation.Cedula,
-                        Genero = p.CodigoPacienteNavigation.Genero,
-                        FechaNacimiento = p.CodigoPacienteNavigation.FechaNacimiento.ToString(),
-                        Direccion = p.CodigoPacienteNavigation.Direccion,
-                        Telefono = p.CodigoPacienteNavigation.Telefono,
-                        TelefonoCelular = p.CodigoPacienteNavigation.TelefonoCelular,
-                        IdProvincia = p.CodigoPacienteNavigation.IdProvincia,
-                        Sector = p.CodigoPacienteNavigation.Sector,
-                        Insidencia = p.CodigoPacienteNavigation.Insidencia,
-                        IdEstatusPaciente = p.CodigoPacienteNavigation.IdEstatusPaciente,
-                        IdEstatusProtesis = p.CodigoPacienteNavigation.IdEstatusProtesis,
-                        Comentario = p.CodigoPacienteNavigation.Comentario
-                    }
-                })
-                .FirstOrDefaultAsync();
+            var inventario = await _context.InventarioComponentes
+                .Include(i => i.Componente)
+                .FirstOrDefaultAsync(i => i.ComponentID == componentId);
 
-            if (protesis == null)
+            if (inventario == null || inventario.StockActual < cantidad)
+                return BadRequest("Stock insuficiente para asignar a la prótesis.");
+
+            var protesisComponente = new ProtesisComponente
             {
-                return NotFound();
-            }
+                ProtesisId = protesisId,
+                ComponentId = componentId,
+                Cantidad = cantidad
+            };
+            _context.ProtesisComponentes.Add(protesisComponente);
 
-            return Ok(protesis);
-        }
+            inventario.StockActual -= cantidad;
 
-        // POST: api/Protesis
-        [HttpPost]
-        public async Task<ActionResult<ProtesiDto>> CreateProtesi(ProtesiDto protesiDto)
-        {
-            var protesis = new Protesi
+            var movimiento = new MovimientoInventario
             {
-                CodigoPaciente = protesiDto.CodigoPaciente,
-                LinerTipo = protesiDto.LinerTipo,
-                LinerTamano = protesiDto.LinerTamano,
-                Protesista = protesiDto.Protesista,
-                FechaEntrega = protesiDto.FechaEntrega,
-                Material = protesiDto.Material
+                ComponentID = componentId,
+                TipoMovimiento = "Salida",
+                Cantidad = cantidad,
+                Descripcion = $"Asignación a prótesis {protesisId}"
+            };
+            _context.MovimientosInventario.Add(movimiento);
+
+            await _context.SaveChangesAsync();
+
+            var componenteDTO = new ComponenteDTO
+            {
+                ComponentId = componentId,
+                ComponentTipoId = inventario.Componente.ComponentTipoId,
+                Codigo = inventario.Componente.Codigo,
+                Description = inventario.Componente.Description
             };
 
-            _context.Protesis.Add(protesis);
-            await _context.SaveChangesAsync();
-
-            protesiDto.IdProtesis = protesis.IdProtesis;
-            return CreatedAtAction(nameof(GetProtesi), new { id = protesis.IdProtesis }, protesiDto);
+            return Ok(new { mensaje = "Componente asignado a la prótesis y stock actualizado.", inventario, componenteDTO });
         }
 
-        // PUT: api/Protesis/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProtesi(int id, ProtesiDto protesiDto)
+        // POST: api/Protesis/AsignarMultiplesComponentesAProtesis
+        [HttpPost("AsignarMultiplesComponentesAProtesis")]
+        public async Task<IActionResult> AsignarMultiplesComponentesAProtesis(int protesisId, List<ProtesisComponenteDTO> componentes)
         {
-            if (id != protesiDto.IdProtesis)
-            {
-                return BadRequest();
-            }
+            var errores = new List<string>();
 
-            var protesis = await _context.Protesis.FindAsync(id);
-            if (protesis == null)
+            foreach (var componenteDto in componentes)
             {
-                return NotFound();
-            }
+                var inventario = await _context.InventarioComponentes
+                    .Include(i => i.Componente)
+                    .FirstOrDefaultAsync(i => i.ComponentID == componenteDto.ComponentID); // Usa ComponentID
 
-            protesis.CodigoPaciente = protesiDto.CodigoPaciente;
-            protesis.LinerTipo = protesiDto.LinerTipo;
-            protesis.LinerTamano = protesiDto.LinerTamano;
-            protesis.Protesista = protesiDto.Protesista;
-            protesis.FechaEntrega = protesiDto.FechaEntrega;
-            protesis.Material = protesiDto.Material;
-
-            _context.Entry(protesis).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProtesiExists(id))
+                if (inventario == null)
                 {
-                    return NotFound();
+                    errores.Add($"Componente con ID {componenteDto.ComponentID} no encontrado en el inventario."); // Usa ComponentID
+                    continue;
                 }
-                else
+
+                if (inventario.StockActual < (componenteDto.Cantidad ?? 0))
                 {
-                    throw;
+                    errores.Add($"Stock insuficiente para el componente con ID {componenteDto.ComponentID}. Stock actual: {inventario.StockActual}, requerido: {componenteDto.Cantidad ?? 0}."); // Usa ComponentID
                 }
             }
 
-            return NoContent();
-        }
+            if (errores.Any())
+                return BadRequest(new { mensaje = "Errores en la asignación de componentes", errores });
 
-        // DELETE: api/Protesis/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProtesi(int id)
-        {
-            var protesis = await _context.Protesis.FindAsync(id);
-            if (protesis == null)
+            foreach (var componenteDto in componentes)
             {
-                return NotFound();
+                var protesisComponente = new ProtesisComponente
+                {
+                    ProtesisId = protesisId,
+                    ComponentId = componenteDto.ComponentID,  // Usa ComponentID aquí
+                    Cantidad = componenteDto.Cantidad ?? 0
+                };
+                _context.ProtesisComponentes.Add(protesisComponente);
+
+                var inventario = await _context.InventarioComponentes.FirstOrDefaultAsync(i => i.ComponentID == componenteDto.ComponentID); // Usa ComponentID aquí también
+                inventario.StockActual -= componenteDto.Cantidad ?? 0;
+
+                var movimiento = new MovimientoInventario
+                {
+                    ComponentID = componenteDto.ComponentID,  // Usa ComponentID aquí también
+                    TipoMovimiento = "Salida",
+                    Cantidad = componenteDto.Cantidad ?? 0,
+                    Descripcion = $"Asignación a prótesis {protesisId}"
+                };
+                _context.MovimientosInventario.Add(movimiento);
             }
 
-            _context.Protesis.Remove(protesis);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { mensaje = "Componentes asignados a la prótesis y stock actualizado." });
         }
 
-        private bool ProtesiExists(int id)
-        {
-            return _context.Protesis.Any(e => e.IdProtesis == id);
-        }
+
+
     }
 }

@@ -20,4 +20,9 @@ public partial class Componente
     public virtual ICollection<ProtesisComponente> ProtesisComponentes { get; set; } = new List<ProtesisComponente>();
 
     public virtual ICollection<PruebaSocket> PruebaSockets { get; set; } = new List<PruebaSocket>();
+
+    public virtual ICollection<MovimientoInventario> MovimientosInventarios { get; set; } = new List<MovimientoInventario>();
+
+
+    public virtual InventarioComponentes InventarioComponentes { get; set; }
 }
