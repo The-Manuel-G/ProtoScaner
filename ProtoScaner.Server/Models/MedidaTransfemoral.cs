@@ -7,15 +7,15 @@ public partial class MedidaTransfemoral
 {
     public int IdMedidaT { get; set; }
 
-    public int? IdEscaneo { get; set; }
+    public int IdEscaneo { get; set; }
 
     public int? IdValor { get; set; }
 
-    public int? IdPaciente { get; set; }
+    public int IdPaciente { get; set; }
 
     public byte[]? FotoMunon { get; set; }
 
-    public DateOnly? FechaEscaneo { get; set; }
+    public DateOnly FechaEscaneo { get; set; }
 
     public string? DisenadorSocket { get; set; }
 

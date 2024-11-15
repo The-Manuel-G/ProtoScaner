@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,20 +25,28 @@ namespace ProtoScaner.Server.Controllers
         public async Task<ActionResult<IEnumerable<MedidaTransfemoralDTO>>> GetMedidasTransfemoral()
         {
             var medidas = await dbContext.MedidaTransfemorals
+                .Include(m => m.MedidasCircunferencia)
                 .Select(m => new MedidaTransfemoralDTO
                 {
                     IdMedidaT = m.IdMedidaT,
                     IdEscaneo = m.IdEscaneo,
-                    IdValor = m.IdValor,
+                    IdValor = m.IdValor ?? 0, // Handling nullable IdValor with default value
                     IdPaciente = m.IdPaciente,
-                    FotoMunon = m.FotoMunon,
-                    FechaEscaneo = m.FechaEscaneo,
+                    FotoMunon = m.FotoMunon != null ? Convert.ToBase64String(m.FotoMunon) : null,
+                    FechaEscaneo = m.FechaEscaneo.ToDateTime(new TimeOnly()),
                     DisenadorSocket = m.DisenadorSocket,
-                    LongitudPie = m.LongitudPie,
-                    AlturaTalon = m.AlturaTalon,
-                    Medida1 = m.Medida1,
-                    Medida2 = m.Medida2,
-                    IdLiner = m.IdLiner
+                    LongitudPie = ParseDoubleOrDefault(m.LongitudPie),
+                    AlturaTalon = ParseDoubleOrDefault(m.AlturaTalon),
+                    Medida1 = ParseDoubleOrDefault(m.Medida1),
+                    Medida2 = ParseDoubleOrDefault(m.Medida2),
+                    IdLiner = m.IdLiner ?? 0, // Handling nullable IdLiner with default value
+                    Circunferencias = m.MedidasCircunferencia.Select(c => new MedidasCircunferenciumDTO
+                    {
+                        IdMedida = c.IdMedida,
+                        IdValor = c.IdValor,
+                        NumeroCircunferencia = c.NumeroCircunferencia,
+                        ValorMm = c.ValorMm
+                    }).ToList()
                 })
                 .ToListAsync();
 
@@ -46,31 +55,41 @@ namespace ProtoScaner.Server.Controllers
 
         // GET: api/medidaTransfemoral/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<MedidaTransfemoralDTO>> GetMedidaTransfemoral(int id)
+        public async Task<ActionResult<MedidaTransfemoralDTO>> GetMedidaTransfemoralById(int id)
         {
-            var medida = await dbContext.MedidaTransfemorals.FindAsync(id);
+            var medida = await dbContext.MedidaTransfemorals
+                .Include(m => m.MedidasCircunferencia)
+                .Where(m => m.IdMedidaT == id)
+                .Select(m => new MedidaTransfemoralDTO
+                {
+                    IdMedidaT = m.IdMedidaT,
+                    IdEscaneo = m.IdEscaneo,
+                    IdValor = m.IdValor ?? 0, // Handling nullable IdValor with default value
+                    IdPaciente = m.IdPaciente,
+                    FotoMunon = m.FotoMunon != null ? Convert.ToBase64String(m.FotoMunon) : null,
+                    FechaEscaneo = m.FechaEscaneo.ToDateTime(new TimeOnly()),
+                    DisenadorSocket = m.DisenadorSocket,
+                    LongitudPie = ParseDoubleOrDefault(m.LongitudPie),
+                    AlturaTalon = ParseDoubleOrDefault(m.AlturaTalon),
+                    Medida1 = ParseDoubleOrDefault(m.Medida1),
+                    Medida2 = ParseDoubleOrDefault(m.Medida2),
+                    IdLiner = m.IdLiner ?? 0, // Handling nullable IdLiner with default value
+                    Circunferencias = m.MedidasCircunferencia.Select(c => new MedidasCircunferenciumDTO
+                    {
+                        IdMedida = c.IdMedida,
+                        IdValor = c.IdValor,
+                        NumeroCircunferencia = c.NumeroCircunferencia,
+                        ValorMm = c.ValorMm
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
             if (medida == null)
             {
                 return NotFound();
             }
 
-            var medidaDTO = new MedidaTransfemoralDTO
-            {
-                IdMedidaT = medida.IdMedidaT,
-                IdEscaneo = medida.IdEscaneo,
-                IdValor = medida.IdValor,
-                IdPaciente = medida.IdPaciente,
-                FotoMunon = medida.FotoMunon,
-                FechaEscaneo = medida.FechaEscaneo,
-                DisenadorSocket = medida.DisenadorSocket,
-                LongitudPie = medida.LongitudPie,
-                AlturaTalon = medida.AlturaTalon,
-                Medida1 = medida.Medida1,
-                Medida2 = medida.Medida2,
-                IdLiner = medida.IdLiner
-            };
-
-            return Ok(medidaDTO);
+            return Ok(medida);
         }
 
         // POST: api/medidaTransfemoral
@@ -82,14 +101,20 @@ namespace ProtoScaner.Server.Controllers
                 IdEscaneo = nuevaMedidaDTO.IdEscaneo,
                 IdValor = nuevaMedidaDTO.IdValor,
                 IdPaciente = nuevaMedidaDTO.IdPaciente,
-                FotoMunon = nuevaMedidaDTO.FotoMunon,
-                FechaEscaneo = nuevaMedidaDTO.FechaEscaneo,
+                FotoMunon = !string.IsNullOrEmpty(nuevaMedidaDTO.FotoMunon) ? Convert.FromBase64String(nuevaMedidaDTO.FotoMunon) : null,
+                FechaEscaneo = DateOnly.FromDateTime(nuevaMedidaDTO.FechaEscaneo),
                 DisenadorSocket = nuevaMedidaDTO.DisenadorSocket,
-                LongitudPie = nuevaMedidaDTO.LongitudPie,
-                AlturaTalon = nuevaMedidaDTO.AlturaTalon,
-                Medida1 = nuevaMedidaDTO.Medida1,
-                Medida2 = nuevaMedidaDTO.Medida2,
-                IdLiner = nuevaMedidaDTO.IdLiner
+                LongitudPie = nuevaMedidaDTO.LongitudPie.ToString(),
+                AlturaTalon = nuevaMedidaDTO.AlturaTalon.ToString(),
+                Medida1 = nuevaMedidaDTO.Medida1.ToString(),
+                Medida2 = nuevaMedidaDTO.Medida2.ToString(),
+                IdLiner = nuevaMedidaDTO.IdLiner,
+                MedidasCircunferencia = nuevaMedidaDTO.Circunferencias.Select(c => new MedidasCircunferencium
+                {
+                    IdValor = c.IdValor,
+                    NumeroCircunferencia = c.NumeroCircunferencia,
+                    ValorMm = c.ValorMm
+                }).ToList()
             };
 
             dbContext.MedidaTransfemorals.Add(nuevaMedida);
@@ -97,50 +122,13 @@ namespace ProtoScaner.Server.Controllers
 
             nuevaMedidaDTO.IdMedidaT = nuevaMedida.IdMedidaT;
 
-            return CreatedAtAction(nameof(GetMedidaTransfemoral), new { id = nuevaMedida.IdMedidaT }, nuevaMedidaDTO);
+            return CreatedAtAction(nameof(GetMedidaTransfemoralById), new { id = nuevaMedida.IdMedidaT }, nuevaMedidaDTO);
         }
 
-        // PUT: api/medidaTransfemoral/{id}
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateMedidaTransfemoral(int id, MedidaTransfemoralDTO medidaActualizadaDTO)
+        // Helper method for parsing double with a fallback to zero
+        private static double ParseDoubleOrDefault(string? value)
         {
-            var medida = await dbContext.MedidaTransfemorals.FindAsync(id);
-            if (medida == null)
-            {
-                return NotFound();
-            }
-
-            medida.IdEscaneo = medidaActualizadaDTO.IdEscaneo;
-            medida.IdValor = medidaActualizadaDTO.IdValor;
-            medida.IdPaciente = medidaActualizadaDTO.IdPaciente;
-            medida.FotoMunon = medidaActualizadaDTO.FotoMunon;
-            medida.FechaEscaneo = medidaActualizadaDTO.FechaEscaneo;
-            medida.DisenadorSocket = medidaActualizadaDTO.DisenadorSocket;
-            medida.LongitudPie = medidaActualizadaDTO.LongitudPie;
-            medida.AlturaTalon = medidaActualizadaDTO.AlturaTalon;
-            medida.Medida1 = medidaActualizadaDTO.Medida1;
-            medida.Medida2 = medidaActualizadaDTO.Medida2;
-            medida.IdLiner = medidaActualizadaDTO.IdLiner;
-
-            await dbContext.SaveChangesAsync();
-            return NoContent();
-        }
-
-        // DELETE: api/medidaTransfemoral/{id}
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteMedidaTransfemoral(int id)
-        {
-            var medida = await dbContext.MedidaTransfemorals.FindAsync(id);
-            if (medida == null)
-            {
-                return NotFound();
-            }
-
-            dbContext.MedidaTransfemorals.Remove(medida);
-            await dbContext.SaveChangesAsync();
-            return NoContent();
+            return double.TryParse(value, out var result) ? result : 0.0;
         }
     }
 }
-
-

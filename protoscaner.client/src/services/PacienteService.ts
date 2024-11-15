@@ -24,68 +24,51 @@ export const getPacienteById = async (id: number): Promise<Paciente> => {
     }
 };
 
-// Function to get a patient by their cedula
-export const getPacienteByCedula = async (cedula: string): Promise<Paciente> => {
-    try {
-        const response = await apiClient.get(`/pacientes/cedula/${cedula}`);
-        return response.data;
-    } catch (error) {
-        console.error(`Error al obtener el paciente con cédula ${cedula}:`, error);
-        throw error;
-    }
-};
-
-// Function to get patients by name
-export const getPacientesByNombre = async (nombre: string): Promise<Paciente[]> => {
-    try {
-        const response = await apiClient.get(`/pacientes/nombre/${nombre}`);
-        return response.data;
-    } catch (error) {
-        console.error(`Error al obtener los pacientes con nombre ${nombre}:`, error);
-        throw error;
-    }
-};
-
-// Utility function to convert image to base64
-const toBase64 = (file: Blob): Promise<string | null> => {
-    return new Promise((resolve, reject) => {
+// Utility function to ensure image is in base64
+const ensureBase64 = async (image: string | Blob): Promise<string | null> => {
+    if (typeof image === 'string' && image.startsWith('data:image')) {
+        return image.split(',')[1]; // Already in base64 format
+    } else if (image instanceof Blob) {
         const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result?.toString().split(',')[1] || null);
-        reader.onerror = error => reject(error);
-    });
+        return new Promise((resolve, reject) => {
+            reader.onload = () => resolve(reader.result?.toString().split(',')[1] || null);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(image);
+        });
+    }
+    return null;
 };
 
-
+// Create patient ensuring fotoPaciente is in base64
 export const createPaciente = async (paciente: Omit<Paciente, 'idPaciente'>, historial?: HistorialPacienteIngreso): Promise<Paciente> => {
     try {
-        const fotoBase64 = paciente.fotoPaciente instanceof Blob
-            ? await toBase64(paciente.fotoPaciente)
-            : paciente.fotoPaciente || null;
+        // Convierte la imagen a base64 si está presente
+        const fotoBase64 = paciente.fotoPaciente
+            ? await ensureBase64(paciente.fotoPaciente)
+            : null;
 
+        // Construye el payload de paciente y asigna la imagen en base64 si existe
         const pacientePayload = {
             ...paciente,
             fotoPaciente: fotoBase64
         };
 
-        const response = await apiClient.post('/pacientes', { paciente: pacientePayload, historial });
+        // Asegúrate de que las propiedades sean 'Paciente' y 'Historial' como espera el backend
+        const response = await apiClient.post('/pacientes', { Paciente: pacientePayload, Historial: historial });
+
         return response.data;
     } catch (error: any) {
-        if (error.response) {
-            console.error('Error al crear el paciente:', error.response.data);
-        } else {
-            console.error('Error de conexión o desconocido al crear el paciente:', error);
-        }
+        console.error('Error al crear el paciente:', error.response?.data || error);
         throw error;
     }
 };
 
-// Function to update an existing patient by ID
+// Update patient ensuring fotoPaciente is in base64
 export const updatePaciente = async (id: number, paciente: Paciente, historial?: HistorialPacienteIngreso): Promise<void> => {
     try {
-        const fotoBase64 = paciente.fotoPaciente instanceof Blob
-            ? await toBase64(paciente.fotoPaciente)
-            : paciente.fotoPaciente || null;
+        const fotoBase64 = paciente.fotoPaciente
+            ? await ensureBase64(paciente.fotoPaciente)
+            : null;
 
         const pacientePayload = {
             ...paciente,

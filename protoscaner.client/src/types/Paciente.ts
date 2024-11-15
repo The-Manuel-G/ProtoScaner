@@ -1,4 +1,5 @@
 // src/types/Paciente.ts
+import { HistorialPacienteIngreso } from './HistorialPacienteIngreso';
 export interface Paciente {
     idPaciente: number;
     nombreCompleto?: string;
@@ -14,5 +15,7 @@ export interface Paciente {
     idEstatusPaciente?: number;
     idEstatusProtesis?: number;
     comentario?: string;
-    fotoPaciente?: Blob | string;
+    fotoPaciente?: string;
+
+    historialPacienteIngresos?: HistorialPacienteIngreso[];
 }

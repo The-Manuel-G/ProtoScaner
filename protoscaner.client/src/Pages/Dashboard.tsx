@@ -1,3 +1,5 @@
+// src/pages/Dashboard.tsx
+
 import React, { useState, useEffect, useContext } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -10,7 +12,7 @@ import { Paciente } from '../types/Paciente';
 import { getPacientes, deletePaciente } from '../services/PacienteService';
 import { Pagination } from '@nextui-org/react';
 import { ThemeContext } from '../App';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaEye } from 'react-icons/fa';
 import ContentGrid from '../components/ContentGrid';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
@@ -83,6 +85,10 @@ export function Dashboard({ sidebarOpen }: DashboardProps): JSX.Element {
         return <Tag value={estatusInfo?.name || 'Sin Estatus'} className={`${estatusInfo?.color} text-white p-2 rounded-full`} />;
     };
 
+    const handleViewPaciente = (pacienteId: number) => {
+        navigate(`/paciente/${pacienteId}`);
+    };
+
     const paginatedPacientes = pacientes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
@@ -91,7 +97,7 @@ export function Dashboard({ sidebarOpen }: DashboardProps): JSX.Element {
 
             <div className={`${sidebarOpen ? 'ml-72' : 'ml-20'} transition-all duration-500 ease-in-out w-full max-w-6xl`}>
                 <h2 className="text-4xl font-semibold mb-6">Gestión de Pacientes</h2>
-                <ContentGrid /> {/* Adjust to match larger screens without a container */}
+                <ContentGrid />
 
                 <div className="flex justify-between items-center mb-6">
                     <span className="p-input-icon-left">
@@ -138,13 +144,20 @@ export function Dashboard({ sidebarOpen }: DashboardProps): JSX.Element {
                                 <Column
                                     header="Acciones"
                                     body={(rowData) => (
-                                        <Button
-                                            icon="pi pi-trash"
-                                            className="p-button-danger p-button-rounded"
-                                            onClick={() => confirmDeletePaciente(rowData)}
-                                        />
+                                        <div className="flex space-x-2">
+                                            <Button
+                                                icon={<FaEye />}
+                                                className="p-button-info p-button-rounded"
+                                                onClick={() => handleViewPaciente(rowData.idPaciente)}
+                                            />
+                                            <Button
+                                                icon="pi pi-trash"
+                                                className="p-button-danger p-button-rounded"
+                                                onClick={() => confirmDeletePaciente(rowData)}
+                                            />
+                                        </div>
                                     )}
-                                    style={{ textAlign: 'center', width: '8rem' }}
+                                    style={{ textAlign: 'center', width: '10rem' }}
                                 />
                             </DataTable>
                             <div className="flex justify-center mt-4">

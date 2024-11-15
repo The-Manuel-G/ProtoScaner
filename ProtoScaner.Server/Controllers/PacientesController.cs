@@ -61,6 +61,8 @@ namespace ProtoScaner.Server.Controllers
             return Ok(pacientesDto);
         }
 
+
+
         // GET: api/Pacientes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PacienteDTO>> GetPacienteById(int id)
@@ -152,6 +154,31 @@ namespace ProtoScaner.Server.Controllers
             }
 
             return CreatedAtAction(nameof(GetPacienteById), new { id = paciente.IdPaciente }, pacienteDto);
+        }
+
+
+        // DELETE: api/Pacientes/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePaciente(int id)
+        {
+            var paciente = await _context.Pacientes
+                .Include(p => p.HistorialPacienteIngresos)
+                .FirstOrDefaultAsync(p => p.IdPaciente == id);
+
+            if (paciente == null)
+            {
+                return NotFound("Paciente no encontrado.");
+            }
+
+            // Remove historial records first
+            _context.HistorialPacienteIngresos.RemoveRange(paciente.HistorialPacienteIngresos);
+
+            // Remove the paciente record
+            _context.Pacientes.Remove(paciente);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         // PUT: api/Pacientes/5

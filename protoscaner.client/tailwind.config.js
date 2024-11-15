@@ -7,7 +7,8 @@ module.exports = {
     content: [
         './src/**/*.{js,ts,jsx,tsx}',       // Incluye solo archivos en `src` y sus subdirectorios
         './public/index.html',              // Incluye el archivo de índice
-        "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}" // Configuración NextUI
+        './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
+        './node_modules/@shadcn/ui/dist/**/*.{js,ts,jsx,tsx}', 
     ],
     theme: {
         extend: {

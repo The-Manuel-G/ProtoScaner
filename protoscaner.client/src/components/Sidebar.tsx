@@ -145,7 +145,7 @@ const linksArray: LinkItem[] = [
     {
         label: "Entregas",
         icon: <FaCartArrowDown />,
-        to: "/entregas",
+        to: "/paciente-Registro",
     },
     {
         label: "Mantenimiento",

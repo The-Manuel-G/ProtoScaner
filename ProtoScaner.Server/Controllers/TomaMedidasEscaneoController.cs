@@ -2,11 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
 using ProtoScaner.Server.DTOs;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ProtoScaner.Server.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class TomaMedidasEscaneoController : ControllerBase
     {
         private readonly ProtoScanner3DContext _context;
@@ -31,21 +34,18 @@ namespace ProtoScaner.Server.Controllers
                     Comentario = t.Comentario,
                     ResultadoScaneo = t.ResultadoScaneo
                 })
+                .AsNoTracking()
                 .ToListAsync();
 
             return Ok(tomasMedidas);
         }
 
-        // GET: api/TomaMedidasEscaneo/5
+        // GET: api/TomaMedidasEscaneo/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<TomaMedidasEscaneoDTO>> GetTomaMedidasEscaneo(int id)
         {
             var tomaMedidas = await _context.TomaMedidasEscaneos.FindAsync(id);
-
-            if (tomaMedidas == null)
-            {
-                return NotFound();
-            }
+            if (tomaMedidas == null) return NotFound();
 
             var tomaMedidasDTO = new TomaMedidasEscaneoDTO
             {
@@ -79,53 +79,19 @@ namespace ProtoScaner.Server.Controllers
             await _context.SaveChangesAsync();
 
             tomaMedidasEscaneoDTO.IdEscaneo = tomaMedidasEscaneo.IdEscaneo;
-
             return CreatedAtAction(nameof(GetTomaMedidasEscaneo), new { id = tomaMedidasEscaneo.IdEscaneo }, tomaMedidasEscaneoDTO);
         }
 
-        // PUT: api/TomaMedidasEscaneo/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTomaMedidasEscaneo(int id, TomaMedidasEscaneoDTO tomaMedidasEscaneoDTO)
-        {
-            if (id != tomaMedidasEscaneoDTO.IdEscaneo)
-            {
-                return BadRequest();
-            }
-
-            var tomaMedidas = await _context.TomaMedidasEscaneos.FindAsync(id);
-            if (tomaMedidas == null)
-            {
-                return NotFound();
-            }
-
-            tomaMedidas.IdPaciente = tomaMedidasEscaneoDTO.IdPaciente;
-            tomaMedidas.IdAmputacion = tomaMedidasEscaneoDTO.IdAmputacion;
-            tomaMedidas.IdLiner = tomaMedidasEscaneoDTO.IdLiner;
-            tomaMedidas.FechaEscaneo = tomaMedidasEscaneoDTO.FechaEscaneo;
-            tomaMedidas.Comentario = tomaMedidasEscaneoDTO.Comentario;
-            tomaMedidas.ResultadoScaneo = tomaMedidasEscaneoDTO.ResultadoScaneo;
-
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // DELETE: api/TomaMedidasEscaneo/5
+        // DELETE: api/TomaMedidasEscaneo/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTomaMedidasEscaneo(int id)
         {
             var tomaMedidas = await _context.TomaMedidasEscaneos.FindAsync(id);
-            if (tomaMedidas == null)
-            {
-                return NotFound();
-            }
+            if (tomaMedidas == null) return NotFound();
 
             _context.TomaMedidasEscaneos.Remove(tomaMedidas);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
     }
 }
-
-
