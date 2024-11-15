@@ -24,6 +24,8 @@ export const getPacienteById = async (id: number): Promise<Paciente> => {
     }
 };
 
+
+
 // Utility function to ensure image is in base64
 const ensureBase64 = async (image: string | Blob): Promise<string | null> => {
     if (typeof image === 'string' && image.startsWith('data:image')) {
@@ -40,21 +42,23 @@ const ensureBase64 = async (image: string | Blob): Promise<string | null> => {
 };
 
 // Create patient ensuring fotoPaciente is in base64
-export const createPaciente = async (paciente: Omit<Paciente, 'idPaciente'>, historial?: HistorialPacienteIngreso): Promise<Paciente> => {
+export const createPaciente = async (data: { Paciente: Omit<Paciente, 'idPaciente'>, Historial: Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'> }): Promise<Paciente> => {
     try {
+        const { Paciente, Historial } = data;
+
         // Convierte la imagen a base64 si está presente
-        const fotoBase64 = paciente.fotoPaciente
-            ? await ensureBase64(paciente.fotoPaciente)
+        const fotoBase64 = Paciente.fotoPaciente
+            ? await ensureBase64(Paciente.fotoPaciente)
             : null;
 
         // Construye el payload de paciente y asigna la imagen en base64 si existe
         const pacientePayload = {
-            ...paciente,
+            ...Paciente,
             fotoPaciente: fotoBase64
         };
 
-        // Asegúrate de que las propiedades sean 'Paciente' y 'Historial' como espera el backend
-        const response = await apiClient.post('/pacientes', { Paciente: pacientePayload, Historial: historial });
+        // Envía la solicitud al backend
+        const response = await apiClient.post('/pacientes', { Paciente: pacientePayload, Historial: Historial });
 
         return response.data;
     } catch (error: any) {
