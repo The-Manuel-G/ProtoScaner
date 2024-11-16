@@ -8,10 +8,9 @@ namespace ProtoScaner.Server.Context
         public AppDbContext(DbContextOptions<AppDbContext> opcions)
             : base(opcions)
         {
-
         }
+
         public DbSet<Rol> Rol { get; set; }
         public DbSet<Usuario> Usuarios { get; set; }
-
     }
 }
