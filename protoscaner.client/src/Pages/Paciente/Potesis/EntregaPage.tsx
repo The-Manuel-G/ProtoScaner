@@ -1,4 +1,4 @@
-// src/pages/Entregas.tsx
+// src/Pages/EntregaPage.tsx
 
 import React, { useState, useEffect, useContext } from 'react';
 import { DataTable } from 'primereact/datatable';
@@ -8,24 +8,19 @@ import { Button } from 'primereact/button';
 import { Tag } from 'primereact/tag';
 import { Dialog } from 'primereact/dialog';
 import { ToastContainer, toast } from 'react-toastify';
-import { Entrega } from '../types/Entrega';
-import { getEntregas, deleteEntrega } from '../services/EntregaService';
+import { Entrega } from '../../../types/Entrega';
+import { getEntregas, deleteEntrega } from "../../../services/EntregaService";
 import { Pagination } from '@nextui-org/react';
-import { ThemeContext } from '../App';
+import { ThemeContext } from "../../../App";
 import { FaPlus, FaEye } from 'react-icons/fa';
-import ContentGrid from '../components/ContentGrid';
+import ContentGrid2 from "../../../components/ContentGrid2";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+
 
 interface EntregasProps {
     sidebarOpen: boolean;
 }
-
-const estatusEntrega = [
-    { id: 1, name: 'Entregada', color: 'bg-green-500' },
-    { id: 2, name: 'Pendiente', color: 'bg-yellow-500' },
-    { id: 3, name: 'Cancelada', color: 'bg-red-500' },
-];
 
 const itemsPerPage = 10;
 
@@ -60,8 +55,8 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
     const handleDeleteEntrega = async () => {
         if (selectedEntrega) {
             try {
-                await deleteEntrega(selectedEntrega.idEntrega);
-                setEntregas(entregas.filter(e => e.idEntrega !== selectedEntrega.idEntrega));
+                await deleteEntrega(selectedEntrega.idEntregas);
+                setEntregas(entregas.filter(e => e.idEntregas !== selectedEntrega.idEntregas));
                 toast.success('Entrega eliminada exitosamente.');
             } catch (error) {
                 toast.error('Error al eliminar la entrega.');
@@ -70,13 +65,23 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
         setIsDeleteDialogVisible(false);
     };
 
-    const estatusBodyTemplate = (rowData: Entrega) => {
-        const estatusInfo = estatusEntrega.find(e => e.id === rowData.idEstatusEntrega);
-        return <Tag value={estatusInfo?.name || 'Sin Estatus'} className={`${estatusInfo?.color} text-white p-2 rounded-full`} />;
+    const FechaBodyTemplate = (rowData: Entrega) => {
+        const formattedDate = rowData.fechaEntrega
+            ? new Date(rowData.fechaEntrega).toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            })
+            : 'Fecha no disponible';
+
+        return (
+            <Tag value={formattedDate} className="bg-blue-500 text-white p-2 rounded-full" />
+        );
     };
 
+
     const handleViewEntrega = (entregaId: number) => {
-        navigate(`/entrega/${entregaId}`);
+        navigate(`/Entrega/${entregaId}`);
     };
 
     const paginatedEntregas = entregas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -87,7 +92,7 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
 
             <div className={`${sidebarOpen ? 'ml-72' : 'ml-20'} transition-all duration-500 ease-in-out w-full max-w-6xl`}>
                 <h2 className="text-4xl font-semibold mb-6">Gestión de Entregas de Prótesis</h2>
-                <ContentGrid />
+                <ContentGrid2 />
 
                 <div className="flex justify-between items-center mb-6">
                     <span className="p-input-icon-left">
@@ -102,7 +107,7 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
                     <Button
                         label="Agregar Entrega"
                         icon={<FaPlus />}
-                        onClick={() => navigate('/entrega-Registro')}
+                        onClick={() => navigate('/Formulario-entregas/:id')} // Cambia EntregaForm por la ruta
                         className="ml-4 bg-green-600 hover:bg-green-500 text-white shadow-lg rounded-full px-4 py-2 text-lg transition duration-300 ease-in-out"
                     />
                 </div>
@@ -112,7 +117,7 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
                         <div className="flex flex-col items-center justify-center h-80 text-center text-gray-500">
                             <p>No hay entregas registradas.</p>
                             <button
-                                onClick={() => navigate('/entrega-Registro')}
+                                onClick={() => navigate('/Formulario-entregas/:id')}
                                 className={`mt-4 w-14 h-14 flex items-center justify-center rounded-full shadow-lg transition-transform duration-300 hover:scale-105 ${themeContext?.theme === "dark" ? "bg-blue-600 text-white" : "bg-blue-500 text-black"}`}
                             >
                                 <FaPlus className="text-2xl" />
@@ -129,7 +134,7 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
                                 <Column field="paciente" header="Paciente" sortable />
                                 <Column field="protesisTipo" header="Tipo de Prótesis" sortable />
                                 <Column field="fechaEntrega" header="Fecha de Entrega" sortable />
-                                <Column field="idEstatusEntrega" header="Estatus" body={estatusBodyTemplate} />
+                                <Column field="fechaEntrega" header="Estatus" body={FechaBodyTemplate} />
                                 <Column
                                     header="Acciones"
                                     body={(rowData) => (
@@ -167,7 +172,7 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
                         </>
                     }
                 >
-                    <p>¿Está seguro de que desea eliminar la entrega del paciente <b>{selectedEntrega?.paciente}</b>?</p>
+                    <p>¿Está seguro de que desea eliminar la entrega del paciente <b>{selectedEntrega?.idPaciente}</b>?</p>
                 </Dialog>
             </div>
         </div>
@@ -175,4 +180,5 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
 }
 
 export default Entregas;
+
 

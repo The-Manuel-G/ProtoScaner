@@ -16,7 +16,7 @@ import PruebasSokerPaciente from '../Pages/Paciente/PruebasSokerPaciente';
 import EntregaPaciente from '../Pages/Paciente/EntregaPaciente';
 import MantenimientoPaciente from '../Pages/Paciente/MantenimientoPaciente';
 import TomaMedidasForm from '../Pages/Paciente/TomaMedidasForm';
-
+import EntregaForm from "../Pages/Paciente/EntregaForm";
 export function MyRoutes() {
     return (
         <Routes>
@@ -25,6 +25,7 @@ export function MyRoutes() {
             <Route path="/usuarios" element={<UserDashboard />} />
             <Route path="/reportes" element={<Reportepage />} />
             <Route path="/entregas" element={<EntregaPage />} />
+            <Route path="/Formulario-entregas/:id" element={<EntregaForm />} />
             <Route path="/mantenimiento" element={<MantenimientoPage />} />
             <Route path="/Usuario-Registro" element={<UserRegistrationForm />} />
             <Route path="/paciente-Registro" element={<RegistroPaciente />} />
