@@ -181,4 +181,3 @@ export function Entregas({ sidebarOpen }: EntregasProps): JSX.Element {
 
 export default Entregas;
 
-

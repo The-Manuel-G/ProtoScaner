@@ -187,7 +187,7 @@ const RegistroEntrega: React.FC = () => {
                                 dateFormat="dd/mm/yy"
                                 placeholder="Seleccione una fecha"
                                 required
-                                className={`w-full p-3 text-lg rounded-md border ${Error.fechaEntrega ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                className={`w-full p-3 text-lg rounded-md border ${Error.fecha ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                             />
                         </div>
 
