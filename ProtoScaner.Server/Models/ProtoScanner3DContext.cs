@@ -654,9 +654,12 @@ public partial class ProtoScanner3DContext : DbContext
             entity.Property(e => e.IdMedida).HasColumnName("id_medida");
             entity.Property(e => e.IdValor).HasColumnName("id_valor");
             entity.Property(e => e.NumeroCircunferencia).HasColumnName("numero_circunferencia");
-            entity.Property(e => e.ValorMm)
+            entity.Property(e => e.ValorMmSinPresion)
                 .HasColumnType("decimal(10, 2)")
-                .HasColumnName("valor_mm");
+                .HasColumnName("valor_mmSinPresion");
+            entity.Property(e => e.ValorMmConPresion)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("valor_mmConPresion");
 
             entity.HasOne(d => d.IdValorNavigation).WithMany(p => p.MedidasCircunferenciaPruebas)
                 .HasForeignKey(d => d.IdValor)
@@ -670,9 +673,12 @@ public partial class ProtoScanner3DContext : DbContext
             entity.Property(e => e.IdMedida).HasColumnName("id_medida");
             entity.Property(e => e.IdValor).HasColumnName("id_valor");
             entity.Property(e => e.NumeroCircunferencia).HasColumnName("numero_circunferencia");
-            entity.Property(e => e.ValorMm)
+            entity.Property(e => e.ValorMmSinPresion)
                 .HasColumnType("decimal(10, 2)")
-                .HasColumnName("valor_mm");
+                .HasColumnName("valor_mmSinPresion");
+            entity.Property(e => e.ValorMmConPresion)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("valor_mmConPresion");
 
             entity.HasOne(d => d.IdValorNavigation).WithMany(p => p.MedidasCircunferencia)
                 .HasForeignKey(d => d.IdValor)

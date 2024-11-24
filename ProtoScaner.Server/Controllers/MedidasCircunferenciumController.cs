@@ -29,7 +29,8 @@ namespace ProtoScaner.Server.Controllers
                     IdMedida = m.IdMedida,
                     IdValor = m.IdValor,
                     NumeroCircunferencia = m.NumeroCircunferencia,
-                    ValorMm = m.ValorMm
+                    ValorMmSinPresion = m.ValorMmSinPresion,
+                    ValorMmConPresion = m.ValorMmConPresion
                 })
                 .ToListAsync();
 
@@ -51,7 +52,8 @@ namespace ProtoScaner.Server.Controllers
                 IdMedida = medidaCircunferencium.IdMedida,
                 IdValor = medidaCircunferencium.IdValor,
                 NumeroCircunferencia = medidaCircunferencium.NumeroCircunferencia,
-                ValorMm = medidaCircunferencium.ValorMm
+                ValorMmSinPresion = medidaCircunferencium.ValorMmSinPresion,
+                ValorMmConPresion = medidaCircunferencium.ValorMmConPresion
             };
 
             return Ok(medidaDTO);
@@ -65,7 +67,8 @@ namespace ProtoScaner.Server.Controllers
             {
                 IdValor = nuevaMedidaDTO.IdValor,
                 NumeroCircunferencia = nuevaMedidaDTO.NumeroCircunferencia,
-                ValorMm = nuevaMedidaDTO.ValorMm
+                ValorMmSinPresion = (decimal)nuevaMedidaDTO.ValorMmSinPresion,
+                ValorMmConPresion = (decimal)nuevaMedidaDTO.ValorMmConPresion
             };
 
             dbContext.MedidasCircunferencia.Add(nuevaMedida);
@@ -87,7 +90,8 @@ namespace ProtoScaner.Server.Controllers
             }
 
             medidaCircunferencium.NumeroCircunferencia = medidaActualizadaDTO.NumeroCircunferencia;
-            medidaCircunferencium.ValorMm = medidaActualizadaDTO.ValorMm;
+            medidaCircunferencium.ValorMmSinPresion = (decimal)medidaActualizadaDTO.ValorMmSinPresion;
+            medidaCircunferencium.ValorMmConPresion = (decimal)medidaActualizadaDTO.ValorMmConPresion;
 
             await dbContext.SaveChangesAsync();
             return NoContent();

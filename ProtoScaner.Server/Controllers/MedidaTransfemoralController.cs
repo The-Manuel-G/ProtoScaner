@@ -45,7 +45,8 @@ namespace ProtoScaner.Server.Controllers
                         IdMedida = c.IdMedida,
                         IdValor = c.IdValor,
                         NumeroCircunferencia = c.NumeroCircunferencia,
-                        ValorMm = c.ValorMm
+                        ValorMmSinPresion = c.ValorMmSinPresion,
+                        ValorMmConPresion = c.ValorMmConPresion
                     }).ToList()
                 })
                 .ToListAsync();
@@ -79,7 +80,8 @@ namespace ProtoScaner.Server.Controllers
                         IdMedida = c.IdMedida,
                         IdValor = c.IdValor,
                         NumeroCircunferencia = c.NumeroCircunferencia,
-                        ValorMm = c.ValorMm
+                        ValorMmSinPresion = c.ValorMmSinPresion,
+                        ValorMmConPresion = c.ValorMmConPresion
                     }).ToList()
                 })
                 .FirstOrDefaultAsync();
@@ -113,7 +115,8 @@ namespace ProtoScaner.Server.Controllers
                 {
                     IdValor = c.IdValor,
                     NumeroCircunferencia = c.NumeroCircunferencia,
-                    ValorMm = c.ValorMm
+                    ValorMmSinPresion = (decimal)c.ValorMmSinPresion,
+                    ValorMmConPresion = (decimal)c.ValorMmConPresion
                 }).ToList()
             };
 

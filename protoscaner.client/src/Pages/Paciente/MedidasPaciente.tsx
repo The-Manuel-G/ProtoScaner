@@ -162,7 +162,8 @@ const MedidasPaciente: React.FC = () => {
                                 {medida.circunferencias && medida.circunferencias.length > 0 ? (
                                     medida.circunferencias.map((circ) => (
                                         <div key={circ.idMedida} className="p-2 border-b border-gray-300">
-                                            <p><strong>Circunferencia {circ.numeroCircunferencia}:</strong> {circ.valorMm} mm</p>
+                                            <p><strong>Circunferencia {circ.numeroCircunferencia}:</strong> {circ.valorMmSinPresion} mm</p>
+                                            <p><strong>Circunferencia {circ.numeroCircunferencia}:</strong> {circ.valorMmConPresion} mm</p>
                                         </div>
                                     ))
                                 ) : (

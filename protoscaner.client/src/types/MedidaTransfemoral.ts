@@ -17,6 +17,7 @@ export interface MedidaTransfemoral {
         idMedida: number;
         idValor: number;
         numeroCircunferencia: number;
-        valorMm: number;
+        valorMmSinPresion: number;
+        valorMmConPresion: number;
     }>; // Added circunferencias field
 }
