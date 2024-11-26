@@ -64,7 +64,7 @@ public partial class ProtoScanner3DContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=MANUELDEV;Database=ProtoScanner3D;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-TFNBFUK;Database=ProtoScanner3D;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -654,9 +654,12 @@ public partial class ProtoScanner3DContext : DbContext
             entity.Property(e => e.IdMedida).HasColumnName("id_medida");
             entity.Property(e => e.IdValor).HasColumnName("id_valor");
             entity.Property(e => e.NumeroCircunferencia).HasColumnName("numero_circunferencia");
-            entity.Property(e => e.ValorMm)
+            entity.Property(e => e.ValorMmSinPresion)
                 .HasColumnType("decimal(10, 2)")
-                .HasColumnName("valor_mm");
+                .HasColumnName("valor_mmSinPresion");
+            entity.Property(e => e.ValorMmConPresion)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("valor_mmConPresion");
 
             entity.HasOne(d => d.IdValorNavigation).WithMany(p => p.MedidasCircunferenciaPruebas)
                 .HasForeignKey(d => d.IdValor)
@@ -670,9 +673,12 @@ public partial class ProtoScanner3DContext : DbContext
             entity.Property(e => e.IdMedida).HasColumnName("id_medida");
             entity.Property(e => e.IdValor).HasColumnName("id_valor");
             entity.Property(e => e.NumeroCircunferencia).HasColumnName("numero_circunferencia");
-            entity.Property(e => e.ValorMm)
+            entity.Property(e => e.ValorMmSinPresion)
                 .HasColumnType("decimal(10, 2)")
-                .HasColumnName("valor_mm");
+                .HasColumnName("valor_mmSinPresion");
+            entity.Property(e => e.ValorMmConPresion)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("valor_mmConPresion");
 
             entity.HasOne(d => d.IdValorNavigation).WithMany(p => p.MedidasCircunferencia)
                 .HasForeignKey(d => d.IdValor)

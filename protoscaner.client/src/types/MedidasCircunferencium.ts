@@ -3,5 +3,6 @@ export interface MedidasCircunferencium {
     idMedida: number;
     idValor?: number;
     numeroCircunferencia?: number;
-    valorMm?: number;
+    valorMmSinPresion?: number;
+    valorMmConPresion?: number;
 }
