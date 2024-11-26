@@ -1,3 +1,5 @@
+// src/services/PacienteService.ts
+
 import apiClient from '../api/client';
 import { Paciente } from '../types/Paciente';
 import { HistorialPacienteIngreso } from '../types/HistorialPacienteIngreso';
@@ -24,12 +26,15 @@ export const getPacienteById = async (id: number): Promise<Paciente> => {
     }
 };
 
-
-
 // Utility function to ensure image is in base64
 const ensureBase64 = async (image: string | Blob): Promise<string | null> => {
-    if (typeof image === 'string' && image.startsWith('data:image')) {
-        return image.split(',')[1]; // Already in base64 format
+    if (typeof image === 'string') {
+        // Si la cadena comienza con 'data:image', elimina el prefijo
+        if (image.startsWith('data:image')) {
+            return image.replace(/^data:image\/[a-z]+;base64,/, '');
+        }
+        // Asume que ya es una cadena base64 sin prefijo
+        return image;
     } else if (image instanceof Blob) {
         const reader = new FileReader();
         return new Promise((resolve, reject) => {
@@ -57,6 +62,8 @@ export const createPaciente = async (data: { Paciente: Omit<Paciente, 'idPacient
             fotoPaciente: fotoBase64
         };
 
+        console.log('Creando paciente:', { Paciente: pacientePayload, Historial });
+
         // Envía la solicitud al backend
         const response = await apiClient.post('/pacientes', { Paciente: pacientePayload, Historial: Historial });
 
@@ -68,7 +75,11 @@ export const createPaciente = async (data: { Paciente: Omit<Paciente, 'idPacient
 };
 
 // Update patient ensuring fotoPaciente is in base64
-export const updatePaciente = async (id: number, paciente: Paciente, historial?: HistorialPacienteIngreso): Promise<void> => {
+export const updatePaciente = async (
+    id: number,
+    paciente: Paciente,
+    historial?: HistorialPacienteIngreso
+): Promise<void> => {
     try {
         const fotoBase64 = paciente.fotoPaciente
             ? await ensureBase64(paciente.fotoPaciente)
@@ -79,7 +90,10 @@ export const updatePaciente = async (id: number, paciente: Paciente, historial?:
             fotoPaciente: fotoBase64
         };
 
-        await apiClient.put(`/pacientes/${id}`, { paciente: pacientePayload, historial });
+        console.log(`Actualizando paciente con ID ${id}:`, { Paciente: pacientePayload, Historial: historial }); // Log para depuración
+
+        // Asegurarse de usar las mismas claves que en createPaciente
+        await apiClient.put(`/pacientes/${id}`, { Paciente: pacientePayload, Historial: historial });
     } catch (error) {
         console.error(`Error al actualizar el paciente con ID ${id}:`, error);
         throw error;

@@ -13,7 +13,7 @@ import { getMedidasTranstibial } from '../../services/MedidaTranstibialService';
 import { getTomasMedidasEscaneo } from '../../services/TomaMedidasEscaneoService';
 import MedidasTranstibialForm from '../../components/pacienteForm/MedidasTranstibialForm';
 import MedidasTransfemoralForm from '../../components/pacienteForm/MedidasTransfemoralForm';
-import { AMPUTATION_TYPES } from '../../constants';
+import { tiposAmputacion } from '../../constants'; // Importar solo tiposAmputacion
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'react-toastify';
@@ -27,6 +27,10 @@ const MedidasPaciente: React.FC = () => {
     const [transtibialMeasurements, setTranstibialMeasurements] = useState<MedidaTranstibial[]>([]);
     const [transfemoralMeasurements, setTransfemoralMeasurements] = useState<MedidaTransfemoral[]>([]);
     const [escaneos, setEscaneos] = useState<TomaMedidasEscaneo[]>([]);
+
+    // Definir los valores de amputación según las constantes
+    const TRANTIBIAL_VALUE = tiposAmputacion.find(t => t.label === 'Transtibial')?.value;
+    const TRANSFEMORAL_VALUE = tiposAmputacion.find(t => t.label === 'Transfemoral')?.value;
 
     useEffect(() => {
         const fetchPaciente = async () => {
@@ -53,20 +57,29 @@ const MedidasPaciente: React.FC = () => {
     }, [id]);
 
     useEffect(() => {
-        if (tipoAmputacion === AMPUTATION_TYPES.TRANSTIBIAL.value) {
+        if (tipoAmputacion === TRANTIBIAL_VALUE) {
             getMedidasTranstibial()
                 .then(setTranstibialMeasurements)
-                .catch(console.error);
-        } else if (tipoAmputacion === AMPUTATION_TYPES.TRANSFEMORAL.value) {
+                .catch(error => {
+                    console.error('Error fetching medidas transtibial:', error);
+                    toast.error('Error al obtener las medidas transtibial');
+                });
+        } else if (tipoAmputacion === TRANSFEMORAL_VALUE) {
             getMedidasTransfemoral()
                 .then(setTransfemoralMeasurements)
-                .catch(console.error);
+                .catch(error => {
+                    console.error('Error fetching medidas transfemoral:', error);
+                    toast.error('Error al obtener las medidas transfemoral');
+                });
         }
 
         getTomasMedidasEscaneo()
             .then(setEscaneos)
-            .catch(console.error);
-    }, [tipoAmputacion]);
+            .catch(error => {
+                console.error('Error fetching escaneos:', error);
+                toast.error('Error al obtener los escaneos');
+            });
+    }, [tipoAmputacion, TRANTIBIAL_VALUE, TRANSFEMORAL_VALUE]);
 
     const handleNewMeasurement = () => setShowForm(true);
     const handleViewMeasurements = () => {
@@ -103,10 +116,12 @@ const MedidasPaciente: React.FC = () => {
             )}
 
             {showForm ? (
-                tipoAmputacion === AMPUTATION_TYPES.TRANSTIBIAL.value ? (
+                tipoAmputacion === TRANTIBIAL_VALUE ? (
                     <MedidasTranstibialForm />
-                ) : (
+                ) : tipoAmputacion === TRANSFEMORAL_VALUE ? (
                     <MedidasTransfemoralForm />
+                ) : (
+                    <p className="text-gray-500">Tipo de amputación no válido.</p>
                 )
             ) : (
                 <div className="space-y-4">
@@ -121,8 +136,24 @@ const MedidasPaciente: React.FC = () => {
                                 <p><strong>Fecha de Escaneo:</strong> {escaneo.fechaEscaneo}</p>
                                 <p><strong>Comentario:</strong> {escaneo.comentario}</p>
                                 <p><strong>Resultado del Escaneo:</strong> {escaneo.resultadoScaneo}</p>
-                                <p><strong>Documento de Resultado:</strong> <a href={`data:application/pdf;base64,${escaneo.resultadoDoc}`} download="Resultado.pdf" className="text-blue-600 flex items-center gap-2"><FaDownload /> Descargar</a></p>
-                                <p><strong>Foto del Muñón:</strong> <img src={`data:image/jpeg;base64,${escaneo.fotosMunon}`} alt="Foto del Muñón" className="w-20 h-20 object-cover mt-2 rounded border" /></p>
+                                <p>
+                                    <strong>Documento de Resultado:</strong>
+                                    <a
+                                        href={`data:application/pdf;base64,${escaneo.resultadoDoc}`}
+                                        download="Resultado.pdf"
+                                        className="text-blue-600 flex items-center gap-2"
+                                    >
+                                        <FaDownload /> Descargar
+                                    </a>
+                                </p>
+                                <p>
+                                    <strong>Foto del Muñón:</strong>
+                                    <img
+                                        src={`data:image/jpeg;base64,${escaneo.fotosMunon}`}
+                                        alt="Foto del Muñón"
+                                        className="w-20 h-20 object-cover mt-2 rounded border"
+                                    />
+                                </p>
                             </Card>
                         ))
                     ) : (
@@ -130,7 +161,7 @@ const MedidasPaciente: React.FC = () => {
                     )}
 
                     <h3 className="text-lg font-semibold text-gray-800 mt-4">Medidas Anteriores</h3>
-                    {tipoAmputacion === AMPUTATION_TYPES.TRANSTIBIAL.value && transtibialMeasurements.length > 0 ? (
+                    {tipoAmputacion === TRANTIBIAL_VALUE && transtibialMeasurements.length > 0 ? (
                         transtibialMeasurements.map((medida) => (
                             <Card key={medida.idMedida} className="border shadow-sm p-4 bg-gray-50">
                                 <p><strong>Longitud Total del Muñón:</strong> {medida.longitudTotalMunon} cm</p>
@@ -143,21 +174,28 @@ const MedidasPaciente: React.FC = () => {
                                 <p><strong>AP Tensión:</strong> {medida.apTension} cm</p>
                                 <p><strong>ML Supracondilar:</strong> {medida.mlSupracondilar} cm</p>
                                 <p><strong>ML Tendón:</strong> {medida.mlTendon} cm</p>
-                                <p><strong>Longitud Ósea:</strong> {medida.longitudOsea}</p>
-                                <p><strong>Longitud Pies:</strong> {medida.longitudPies}</p>
-                                <p><strong>Altura Tacón:</strong> {medida.alturaTacon}</p>
+                                <p><strong>Longitud Ósea:</strong> {medida.longitudOsea} cm</p>
+                                <p><strong>Longitud Pies:</strong> {medida.longitudPies} cm</p>
+                                <p><strong>Altura Tacón:</strong> {medida.alturaTacon} cm</p>
                                 <p><strong>Notas:</strong> {medida.notas}</p>
                             </Card>
                         ))
-                    ) : tipoAmputacion === AMPUTATION_TYPES.TRANSFEMORAL.value && transfemoralMeasurements.length > 0 ? (
+                    ) : tipoAmputacion === TRANSFEMORAL_VALUE && transfemoralMeasurements.length > 0 ? (
                         transfemoralMeasurements.map((medida) => (
                             <Card key={medida.idMedidaT} className="border shadow-sm p-4 bg-gray-50">
                                 <p><strong>Longitud del Pie:</strong> {medida.longitudPie} cm</p>
                                 <p><strong>Altura del Talón:</strong> {medida.alturaTalon} cm</p>
-                                <p><strong>Medida 1 (Periné a Punta del Muñón):</strong> {medida.medida1}</p>
-                                <p><strong>Medida 2 (Isquion a Punta del Muñón):</strong> {medida.medida2}</p>
+                                <p><strong>Medida 1 (Periné a Punta del Muñón):</strong> {medida.medida1} cm</p>
+                                <p><strong>Medida 2 (Isquion a Punta del Muñón):</strong> {medida.medida2} cm</p>
                                 <p><strong>Diseñador de Socket:</strong> {medida.disenadorSocket}</p>
-                                <p><strong>Foto del Muñón:</strong> <img src={`data:image/jpeg;base64,${medida.fotoMunon}`} alt="Foto del Muñón" className="w-20 h-20 object-cover mt-2 rounded border" /></p>
+                                <p>
+                                    <strong>Foto del Muñón:</strong>
+                                    <img
+                                        src={`data:image/jpeg;base64,${medida.fotoMunon}`}
+                                        alt="Foto del Muñón"
+                                        className="w-20 h-20 object-cover mt-2 rounded border"
+                                    />
+                                </p>
                                 <h4 className="font-semibold mt-4">Medidas Circunferenciales</h4>
                                 {medida.circunferencias && medida.circunferencias.length > 0 ? (
                                     medida.circunferencias.map((circ) => (

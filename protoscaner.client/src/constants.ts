@@ -1,19 +1,12 @@
 // src/constants.ts
 
-// Amputation Types
-export const AMPUTATION_TYPES = {
-    TRANSTIBIAL: { value: 1, label: 'Transtibial' },
-    TRANSFEMORAL: { value: 2, label: 'Transfemoral' },
-};
-
-// Genders (if you want to use them across components)
-export const GENDERS = [
+export const generos = [
     { label: 'Masculino', value: 1 },
-    { label: 'Femenino', value: 2 },
+    { label: 'Femenino', value: 2 }
 ];
 
-// Provinces
-export const PROVINCES = [
+
+export const provincias = [
     { label: 'Azua', value: 1 },
     { label: 'Bahoruco', value: 2 },
     { label: 'Barahona', value: 3 },
@@ -45,11 +38,22 @@ export const PROVINCES = [
     { label: 'Santiago', value: 29 },
     { label: 'Santiago Rodríguez', value: 30 },
     { label: 'Santo Domingo', value: 31 },
-    { label: 'Valverde', value: 32 },
+    { label: 'Valverde', value: 32 }
 ];
 
-// Causes of Amputation
-export const CAUSES_AMPUTATION = [
+
+
+export const tiposAmputacion = [
+    { label: 'Transtibial', value: 1 },
+    { label: 'Transfemoral', value: 2 }
+];
+
+export const ladosAmputacion = [
+    { label: 'Izquierdo', value: 1 },
+    { label: 'Derecho', value: 2 }
+];
+
+export const causasAmputacion = [
     { label: 'Congénita', value: 1 },
     { label: 'Enfermedad', value: 2 },
     { label: 'Accidente', value: 3 },
@@ -72,7 +76,8 @@ export const CAUSES_AMPUTATION = [
     { label: 'Exposición a sustancias tóxicas', value: 20 },
     { label: 'Malformaciones congénitas', value: 21 },
     { label: 'Factores genéticos', value: 22 },
-    { label: 'Otro', value: 23 },
+    { label: 'Otro', value: 23 }
 ];
+
 
 

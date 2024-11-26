@@ -1,14 +1,13 @@
-// src/Pages/Paciente/RegistroPaciente.tsx
+// src/Pages/Paciente/RegistroPaciente.tsx 
 
 import React, { useState, useContext } from 'react';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
-import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext'; // Importación corregida
 import { ToastContainer, toast } from 'react-toastify';
 import { Steps } from 'primereact/steps';
+import 'primereact/resources/themes/saga-blue/theme.css';  // Asegúrate de tener el tema adecuado
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -18,13 +17,34 @@ import { createPaciente } from '../../services/PacienteService';
 import { motion } from 'framer-motion';
 import { ThemeContext } from '../../App';
 import ImageCaptureUpload from '../../components/ImageCaptureUpload';
+import { generos, tiposAmputacion, ladosAmputacion, provincias, causasAmputacion } from '../../constants';
+import ConfirmationModal from '../../components/ui/ConfirmationModal'; // Importar el modal de confirmación
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '../../components/ui/Dialog'; // Importar tus componentes Dialog personalizados
+import InputWithIcon from '../../components/ui/InputWithIcon'; // Importar el input con icono
+
+// Importar iconos de react-icons
+import {
+    FaUser,
+    FaIdBadge,
+    FaVenusMars,
+    FaBirthdayCake,
+    FaMapMarkedAlt,
+    FaPhone,
+    FaMobileAlt,
+    FaStreetView,
+    FaComment,
+    FaWheelchair,
+    FaCalendarAlt
+} from 'react-icons/fa';
+import { GiLungs } from 'react-icons/gi'; // Otros iconos de Game Icons
+import { AiOutlineMedicineBox } from 'react-icons/ai';
 
 export function RegistroPaciente() {
     const [formData, setFormData] = useState<Omit<Paciente, 'idPaciente'>>({
         nombreCompleto: '',
         cedula: '',
         genero: undefined,
-        fechaNacimiento: '',
+        fechaNacimiento: '2000-01-01',
         direccion: '',
         telefono: '',
         telefonoCelular: '',
@@ -37,7 +57,7 @@ export function RegistroPaciente() {
     const [historialData, setHistorialData] = useState<Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'>>({
         tipoAmputacion: undefined,
         ladoAmputacion: undefined,
-        fechaAmputacion: '',
+        fechaAmputacion: '2000-01-01',
         causa: undefined,
         terapia: false,
         tiempoTerapia: '',
@@ -46,56 +66,14 @@ export function RegistroPaciente() {
 
     const [currentStep, setCurrentStep] = useState(0);
     const [showCancelDialog, setShowCancelDialog] = useState(false);
+    const [showCedulaModal, setShowCedulaModal] = useState(false);
 
     const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
 
+    const [isCedulaValidating, setIsCedulaValidating] = useState(false);
+    const [isCedulaValid, setIsCedulaValid] = useState<boolean | null>(null); // null: no validada aún
+
     const themeContext = useContext(ThemeContext);
-
-    const generos = [
-        { label: 'Masculino', value: 1 },
-        { label: 'Femenino', value: 2 }
-    ];
-
-    const provincias = [
-        { label: 'Distrito Nacional', value: 1 },
-        { label: 'Santo Domingo', value: 2 }
-    ];
-
-    const tiposAmputacion = [
-        { label: 'Transtibial', value: 1 },
-        { label: 'Transfemoral', value: 2 }
-    ];
-
-    const ladosAmputacion = [
-        { label: 'Izquierdo', value: 1 },
-        { label: 'Derecho', value: 2 }
-    ];
-
-    const causasAmputacion = [
-        { label: 'Congenita', value: 1 },
-        { label: 'Enfermedad', value: 2 },
-        { label: 'Accidente', value: 3 },
-        { label: 'Diabetes', value: 4 },
-        { label: 'Infección', value: 5 },
-        { label: 'Traumatismo', value: 6 },
-        { label: 'Cancer', value: 7 },
-        { label: 'Vascular', value: 8 },
-        { label: 'Quemaduras', value: 9 },
-        { label: 'Lesiones deportivas', value: 10 },
-        { label: 'Mala circulación', value: 11 },
-        { label: 'Congelacion', value: 12 },
-        { label: 'Neuropatía periferica', value: 13 },
-        { label: 'Sindrome de compartimiento', value: 14 },
-        { label: 'Trombosis venosa profunda', value: 15 },
-        { label: 'Complicaciones quirurgicas', value: 16 },
-        { label: 'Infecciones oseas', value: 17 },
-        { label: 'Tumores benignos', value: 18 },
-        { label: 'Trastornos neuromusculares', value: 19 },
-        { label: 'Exposicion a sustancias toxicas', value: 20 },
-        { label: 'Malformaciones congenitas', value: 21 },
-        { label: 'Factores geneticos', value: 22 },
-        { label: 'Otro', value: 23 }
-    ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -193,9 +171,12 @@ export function RegistroPaciente() {
             };
 
             await createPaciente(requestData);
-            toast.success('Paciente registrado con éxito');
+            toast.success('Paciente registrado con exito');
             resetForm();
+            // Opcional: Navegar a otra página después de registrar
+            // navigate('/');
         } catch (error) {
+            console.error("Error al registrar el paciente:", error);
             toast.error('Error al registrar el paciente');
         }
     };
@@ -205,7 +186,7 @@ export function RegistroPaciente() {
             nombreCompleto: '',
             cedula: '',
             genero: undefined,
-            fechaNacimiento: '',
+            fechaNacimiento: '2000-01-01',
             direccion: '',
             telefono: '',
             telefonoCelular: '',
@@ -217,7 +198,7 @@ export function RegistroPaciente() {
         setHistorialData({
             tipoAmputacion: undefined,
             ladoAmputacion: undefined,
-            fechaAmputacion: '',
+            fechaAmputacion: '2000-01-01',
             causa: undefined,
             terapia: false,
             tiempoTerapia: '',
@@ -225,7 +206,46 @@ export function RegistroPaciente() {
         });
         setCurrentStep(0);
         setShowCancelDialog(false);
+        setShowCedulaModal(false);
+        setIsCedulaValid(null);
         setErrors({});
+    };
+
+    // Función para validar la cédula
+    const validateCedula = async () => {
+        if (!formData.cedula.trim()) {
+            toast.error('Por favor, ingrese una cedula valida para validar.');
+            return;
+        }
+
+        setIsCedulaValidating(true);
+
+        try {
+            const response = await fetch(`https://api.digital.gob.do/v3/cedulas/${formData.cedula}/validate`, {
+                method: 'GET',
+                headers: {
+                    'accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error en la validación de la cédula');
+            }
+
+            const data = await response.json();
+            if (data.valid) {
+                setIsCedulaValid(true);
+                toast.success('Cédula validada correctamente.');
+            } else {
+                setIsCedulaValid(false);
+                setShowCedulaModal(true);
+            }
+        } catch (error) {
+            console.error("Error al validar la cedula:", error);
+            toast.error('Error al validar la cedula.');
+        } finally {
+            setIsCedulaValidating(false);
+        }
     };
 
     return (
@@ -240,34 +260,52 @@ export function RegistroPaciente() {
                     {currentStep === 0 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Nombre Completo */}
-                            <div className="flex flex-col">
-                                <label htmlFor="nombreCompleto" className="block text-lg font-medium mb-2">Nombre Completo *</label>
-                                <InputText
-                                    id="nombreCompleto"
-                                    name="nombreCompleto"
-                                    value={formData.nombreCompleto}
-                                    onChange={handleChange}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.nombreCompleto ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    required
-                                />
-                                {errors.nombreCompleto && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
-                            {/* Cédula */}
-                            <div className="flex flex-col">
-                                <label htmlFor="cedula" className="block text-lg font-medium mb-2">Cedula *</label>
+                            <InputWithIcon
+                                label="Nombre Completo"
+                                name="nombreCompleto"
+                                value={formData.nombreCompleto}
+                                onChange={handleChange}
+                                placeholder="Ingrese su nombre completo"
+                                error={errors.nombreCompleto}
+                                icon={FaUser}
+                            />
+                            {/* Cédula con botón de validación */}
+                            <div className="flex flex-col relative">
+                                <label htmlFor="cedula" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaIdBadge className="mr-2 text-xl" />
+                                    Cedula *
+                                </label>
                                 <InputText
                                     id="cedula"
                                     name="cedula"
                                     value={formData.cedula}
                                     onChange={handleChange}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.cedula ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                                    placeholder="Ingrese su cedula"
+                                    className={`w-full p-3 pl-10 text-lg rounded-md border ${errors.cedula ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     required
+                                />
+                                {/* Icono de cédula */}
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                                    <FaIdBadge className="text-xl" />
+                                </div>
+                                {/* Botón de validar cédula */}
+                                <Button
+                                    icon="pi pi-check-circle"
+                                    className="absolute right-2 top-10 p-button-text p-button-rounded p-button-success"
+                                    onClick={validateCedula}
+                                    loading={isCedulaValidating}
+                                    tooltip="Validar Cedula"
+                                    tooltipOptions={{ position: 'top' }}
+                                    type="button"
                                 />
                                 {errors.cedula && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Género */}
                             <div className="flex flex-col">
-                                <label htmlFor="genero" className="block text-lg font-medium mb-2">Genero *</label>
+                                <label htmlFor="genero" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaVenusMars className="mr-2 text-xl" />
+                                    Genero *
+                                </label>
                                 <Dropdown
                                     id="genero"
                                     name="genero"
@@ -275,18 +313,21 @@ export function RegistroPaciente() {
                                     options={generos}
                                     onChange={(e) => handleDropdownChange(e, 'genero')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.genero ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione"
+                                    placeholder="Seleccione su genero"
                                     required
                                 />
                                 {errors.genero && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Fecha de Nacimiento */}
                             <div className="flex flex-col">
-                                <label htmlFor="fechaNacimiento" className="block text-lg font-medium mb-2">Fecha de Nacimiento *</label>
+                                <label htmlFor="fechaNacimiento" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaBirthdayCake className="mr-2 text-xl" />
+                                    Fecha de Nacimiento *
+                                </label>
                                 <Calendar
                                     id="fechaNacimiento"
                                     name="fechaNacimiento"
-                                    value={formData.fechaNacimiento ? new Date(formData.fechaNacimiento) : null}
+                                    value={formData.fechaNacimiento ? new Date(formData.fechaNacimiento) : new Date('2000-01-01')}
                                     onChange={(e) => {
                                         const fecha = e.value ? new Date(e.value).toISOString().split('T')[0] : '';
                                         setFormData({ ...formData, fechaNacimiento: fecha });
@@ -296,14 +337,17 @@ export function RegistroPaciente() {
                                     }}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.fechaNacimiento ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     dateFormat="dd/mm/yy"
-                                    placeholder="Seleccione una fecha"
+                                    placeholder="Seleccione su fecha de nacimiento"
                                     required
                                 />
                                 {errors.fechaNacimiento && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Provincia */}
                             <div className="flex flex-col">
-                                <label htmlFor="idProvincia" className="block text-lg font-medium mb-2">Provincia *</label>
+                                <label htmlFor="idProvincia" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaMapMarkedAlt className="mr-2 text-xl" />
+                                    Provincia *
+                                </label>
                                 <Dropdown
                                     id="idProvincia"
                                     name="idProvincia"
@@ -311,80 +355,81 @@ export function RegistroPaciente() {
                                     options={provincias}
                                     onChange={(e) => handleDropdownChange(e, 'idProvincia')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.idProvincia ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione"
+                                    placeholder="Seleccione su provincia"
                                     required
                                 />
                                 {errors.idProvincia && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Dirección */}
-                            <div className="flex flex-col">
-                                <label htmlFor="direccion" className="block text-lg font-medium mb-2">Direccion</label>
-                                <InputText
-                                    id="direccion"
-                                    name="direccion"
-                                    value={formData.direccion}
-                                    onChange={handleChange}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.direccion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                />
-                                {errors.direccion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
+                            <InputWithIcon
+                                label="Direccion"
+                                name="direccion"
+                                value={formData.direccion}
+                                onChange={handleChange}
+                                placeholder="Ingrese su direccion"
+                                error={errors.direccion}
+                                icon={FaMapMarkedAlt}
+                            />
                             {/* Teléfono */}
-                            <div className="flex flex-col">
-                                <label htmlFor="telefono" className="block text-lg font-medium mb-2">Telefono</label>
-                                <InputText
-                                    id="telefono"
-                                    name="telefono"
-                                    value={formData.telefono}
-                                    onChange={handleChange}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.telefono ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                />
-                                {errors.telefono && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
+                            <InputWithIcon
+                                label="Telefono"
+                                name="telefono"
+                                value={formData.telefono}
+                                onChange={handleChange}
+                                placeholder="Ingrese su telefono fijo"
+                                error={errors.telefono}
+                                icon={FaPhone}
+                            />
                             {/* Teléfono Celular */}
-                            <div className="flex flex-col">
-                                <label htmlFor="telefonoCelular" className="block text-lg font-medium mb-2">Telefono Celular</label>
-                                <InputText
-                                    id="telefonoCelular"
-                                    name="telefonoCelular"
-                                    value={formData.telefonoCelular}
-                                    onChange={handleChange}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.telefonoCelular ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                />
-                                {errors.telefonoCelular && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
+                            <InputWithIcon
+                                label="Telefono Celular"
+                                name="telefonoCelular"
+                                value={formData.telefonoCelular}
+                                onChange={handleChange}
+                                placeholder="Ingrese su telefono celular"
+                                error={errors.telefonoCelular}
+                                icon={FaMobileAlt}
+                            />
                             {/* Sector */}
-                            <div className="flex flex-col">
-                                <label htmlFor="sector" className="block text-lg font-medium mb-2">Sector</label>
-                                <InputText
-                                    id="sector"
-                                    name="sector"
-                                    value={formData.sector}
-                                    onChange={handleChange}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.sector ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                />
-                                {errors.sector && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
-                            {/* Comentario */}
-                            <div className="flex flex-col lg:col-span-3">
-                                <label htmlFor="comentario" className="block text-lg font-medium mb-2">Comentario</label>
-                                <InputTextarea
-                                    id="comentario"
-                                    name="comentario"
-                                    value={formData.comentario}
-                                    onChange={handleChange}
-                                    rows={3}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.comentario ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                />
-                                {errors.comentario && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
-                            {/* Foto del Paciente */}
-                            <div className="flex flex-col lg:col-span-3">
-                                <label className="block text-lg font-medium mb-2">Foto del Paciente</label>
-                                <ImageCaptureUpload
-                                    onImageSelect={handleImageSelect}
-                                    label="Subir Foto"
-                                    fileName="fotoPaciente"
-                                />
+                            <InputWithIcon
+                                label="Sector"
+                                name="sector"
+                                value={formData.sector}
+                                onChange={handleChange}
+                                placeholder="Ingrese su sector"
+                                error={errors.sector}
+                                icon={FaStreetView}
+                            />
+                            {/* Comentario y Foto del Paciente en la misma fila */}
+                            <div className="flex flex-col lg:col-span-3 lg:flex-row lg:space-x-6">
+                                {/* Comentario */}
+                                <div className="flex-1 mb-6 lg:mb-0">
+                                    <InputWithIcon
+                                        label="Comentario"
+                                        name="comentario"
+                                        value={formData.comentario}
+                                        onChange={handleChange}
+                                        placeholder="Ingrese cualquier comentario adicional"
+                                        error={errors.comentario}
+                                        icon={FaComment}
+                                        textarea
+                                    />
+                                </div>
+                                {/* Foto del Paciente */}
+                                <div className="flex flex-col flex-1">
+                                    <label className="block text-lg font-medium mb-2 flex items-center">
+                                        <FaUser className="mr-2 text-xl" />
+                                        Foto del Paciente
+                                    </label>
+                                    <ImageCaptureUpload
+                                        onImageSelect={handleImageSelect}
+                                        label="Subir Foto"
+                                        fileName="fotoPaciente"
+                                    />
+                                    {formData.fotoPaciente && (
+                                        <img src={formData.fotoPaciente} alt="Foto Actualizada" className="w-32 h-32 rounded-full mb-2 mt-2" />
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -392,7 +437,10 @@ export function RegistroPaciente() {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Tipo de Amputación */}
                             <div className="flex flex-col">
-                                <label htmlFor="tipoAmputacion" className="block text-lg font-medium mb-2">Tipo de Amputacion *</label>
+                                <label htmlFor="tipoAmputacion" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaWheelchair className="mr-2 text-xl" /> {/* Usando FaWheelchair */}
+                                    Tipo de Amputacion *
+                                </label>
                                 <Dropdown
                                     id="tipoAmputacion"
                                     name="tipoAmputacion"
@@ -400,14 +448,17 @@ export function RegistroPaciente() {
                                     options={tiposAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'tipoAmputacion')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.tipoAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione"
+                                    placeholder="Seleccione el tipo de amputacion"
                                     required
                                 />
                                 {errors.tipoAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Lado de Amputación */}
                             <div className="flex flex-col">
-                                <label htmlFor="ladoAmputacion" className="block text-lg font-medium mb-2">Lado de Amputación *</label>
+                                <label htmlFor="ladoAmputacion" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaWheelchair className="mr-2 text-xl" /> {/* Usando FaWheelchair */}
+                                    Lado de Amputacion *
+                                </label>
                                 <Dropdown
                                     id="ladoAmputacion"
                                     name="ladoAmputacion"
@@ -415,18 +466,21 @@ export function RegistroPaciente() {
                                     options={ladosAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'ladoAmputacion')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.ladoAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione"
+                                    placeholder="Seleccione el lado de amputacion"
                                     required
                                 />
                                 {errors.ladoAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Fecha de Amputación */}
                             <div className="flex flex-col">
-                                <label htmlFor="fechaAmputacion" className="block text-lg font-medium mb-2">Fecha de Amputación</label>
+                                <label htmlFor="fechaAmputacion" className="block text-lg font-medium mb-2 flex items-center">
+                                    <FaCalendarAlt className="mr-2 text-xl" />
+                                    Fecha de Amputacion * 
+                                </label>
                                 <Calendar
                                     id="fechaAmputacion"
                                     name="fechaAmputacion"
-                                    value={historialData.fechaAmputacion ? new Date(historialData.fechaAmputacion) : null}
+                                    value={historialData.fechaAmputacion ? new Date(historialData.fechaAmputacion) : new Date('2000-01-01')}
                                     onChange={(e) => {
                                         const fecha = e.value ? new Date(e.value).toISOString().split('T')[0] : '';
                                         setHistorialData({ ...historialData, fechaAmputacion: fecha });
@@ -436,13 +490,17 @@ export function RegistroPaciente() {
                                     }}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.fechaAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     dateFormat="dd/mm/yy"
-                                    placeholder="Seleccione una fecha"
+                                    placeholder="Seleccione la fecha de amputacion"
+                                    required
                                 />
                                 {errors.fechaAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Causa */}
                             <div className="flex flex-col">
-                                <label htmlFor="causa" className="block text-lg font-medium mb-2">Causa *</label>
+                                <label htmlFor="causa" className="block text-lg font-medium mb-2 flex items-center">
+                                    <GiLungs className="mr-2 text-xl" />
+                                    Causa *
+                                </label>
                                 <Dropdown
                                     id="causa"
                                     name="causa"
@@ -450,64 +508,62 @@ export function RegistroPaciente() {
                                     options={causasAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'causa')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.causa ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione"
+                                    placeholder="Seleccione la causa de la amputacion"
                                     required
                                 />
                                 {errors.causa && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Terapia */}
                             <div className="flex flex-col">
-                                <label htmlFor="terapia" className="block text-lg font-medium mb-2">Terapia *</label>
+                                <label htmlFor="terapia" className="block text-lg font-medium mb-2 flex items-center">
+                                    <AiOutlineMedicineBox className="mr-2 text-xl" />
+                                    Terapia *
+                                </label>
                                 <Dropdown
                                     id="terapia"
                                     name="terapia"
                                     value={historialData.terapia}
                                     options={[
-                                        { label: 'Sí', value: true },
+                                        { label: 'Si', value: true },
                                         { label: 'No', value: false }
                                     ]}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'terapia')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.terapia ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione"
+                                    placeholder="Seleccione si ha recibido terapia"
                                     required
                                 />
                                 {errors.terapia && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
                             </div>
                             {/* Tiempo de Terapia */}
                             {historialData.terapia && (
-                                <div className="flex flex-col">
-                                    <label htmlFor="tiempoTerapia" className="block text-lg font-medium mb-2">Tiempo de Terapia *</label>
-                                    <InputText
-                                        id="tiempoTerapia"
-                                        name="tiempoTerapia"
-                                        value={historialData.tiempoTerapia}
-                                        onChange={handleHistorialChange}
-                                        className={`w-full p-3 text-lg rounded-md border ${errors.tiempoTerapia ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                        required={historialData.terapia}
-                                    />
-                                    {errors.tiempoTerapia && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                                </div>
+                                <InputWithIcon
+                                    label="Tiempo de Terapia"
+                                    name="tiempoTerapia"
+                                    value={historialData.tiempoTerapia}
+                                    onChange={handleHistorialChange}
+                                    placeholder="Ingrese el tiempo de terapia"
+                                    error={errors.tiempoTerapia}
+                                    icon={AiOutlineMedicineBox}
+                                />
                             )}
                             {/* Comentario */}
-                            <div className="flex flex-col lg:col-span-3">
-                                <label htmlFor="comentario" className="block text-lg font-medium mb-2">Comentario</label>
-                                <InputTextarea
-                                    id="comentario"
-                                    name="comentario"
-                                    value={historialData.comentario}
-                                    onChange={handleHistorialChange}
-                                    rows={3}
-                                    className={`w-full p-3 text-lg rounded-md border ${errors.comentario ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                />
-                                {errors.comentario && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
-                            </div>
+                            <InputWithIcon
+                                label="Comentario"
+                                name="comentario"
+                                value={historialData.comentario}
+                                onChange={handleHistorialChange}
+                                placeholder="Ingrese cualquier comentario adicional"
+                                error={errors.comentario}
+                                icon={FaComment}
+                                textarea
+                            />
                         </motion.div>
                     )}
                     {/* Botones de Navegación */}
                     <div className="flex justify-between mt-8">
                         <Button
                             label={currentStep === 0 ? "Descartar" : "Atrás"}
-                            className="p-button-danger p-3 text-lg shadow-lg rounded-md"
+                            className={`p-button-danger p-3 text-lg shadow-lg rounded-md ${currentStep === 0 ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
                             onClick={() => {
                                 if (currentStep === 0) {
                                     setShowCancelDialog(true);
@@ -519,7 +575,7 @@ export function RegistroPaciente() {
                         />
                         <Button
                             label={currentStep < 1 ? "Siguiente" : "Registrar"}
-                            className="p-button-success p-3 text-lg shadow-lg rounded-md"
+                            className={`p-button-success p-3 text-lg shadow-lg rounded-md ${currentStep < 1 ? 'bg-green-500 hover:bg-green-600' : 'bg-purple-500 hover:bg-purple-600'}`}
                             onClick={handleNext}
                             type="button"
                         />
@@ -527,23 +583,55 @@ export function RegistroPaciente() {
                 </form>
             </div>
             {/* Diálogo de Cancelación */}
-            <Dialog
-                header="Cancelar Registro"
-                visible={showCancelDialog}
-                style={{ width: '90vw', maxWidth: '500px' }}
-                onHide={() => setShowCancelDialog(false)}
-                modal
-                draggable={false}
-                resizable={false}
-            >
-                <p>¿Esta seguro de que desea cancelar el registro? Los datos ingresados no se guardarán.</p>
-                <div className="flex justify-end gap-4 mt-6">
-                    <Button label="No" className="p-button-text p-3" onClick={() => setShowCancelDialog(false)} />
-                    <Button label="Sí" className="p-button-danger p-3 text-lg shadow-lg" onClick={() => { resetForm(); setShowCancelDialog(false); }} />
-                </div>
+            <Dialog open={showCancelDialog} onOpenChange={(open) => { if (!open) setShowCancelDialog(false); }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            <FaUser className="mr-2 text-xl inline-block" />
+                            Cancelar Registro
+                        </DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        <FaComment className="mr-2 text-xl inline-block" />
+                        Estas seguro de que deseas cancelar el registro? Los datos ingresados no se guardaran.
+                    </DialogDescription>
+                    <DialogFooter>
+                        <Button
+                            label="No"
+                            className="p-button-text p-3 mr-2"
+                            onClick={() => setShowCancelDialog(false)}
+                            style={{ backgroundColor: 'transparent', color: '#6B7280' }} // Gris claro
+                        />
+                        <Button
+                            label="Sí"
+                            className="p-button-danger p-3"
+                            onClick={() => { resetForm(); setShowCancelDialog(false); }}
+                            style={{ backgroundColor: '#EF4444', borderColor: '#EF4444' }} // Rojo
+                        />
+                    </DialogFooter>
+                </DialogContent>
             </Dialog>
+            {/* Confirmación de cédula inválida */}
+            <ConfirmationModal
+                isOpen={showCedulaModal}
+                title="Cédula No Validada"
+                description={
+                    <div className="flex items-center">
+                        <FaIdBadge className="mr-2 text-2xl text-red-500" />
+                        La cedula no esta validada y no se reconoce. ¿Deseas continuar con el registro del paciente?
+                    </div>
+                }
+                onConfirm={() => {
+                    setShowCedulaModal(false);
+                    toast.info('Continuando con el registro del paciente.');
+                }}
+                onCancel={() => {
+                    setShowCedulaModal(false);
+                }}
+            />
             <ToastContainer position="top-right" autoClose={5000} />
         </div>
+
     );
 
 }

@@ -3,20 +3,28 @@ const { nextui } = require("@nextui-org/react");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+    // Configura el modo oscuro para que use la clase 'dark'
     darkMode: ['class'],
+
+    // Especifica las rutas donde Tailwind debe buscar clases para generar estilos
     content: [
-        './src/**/*.{js,ts,jsx,tsx}',       // Incluye solo archivos en `src` y sus subdirectorios
+        './src/**/*.{js,ts,jsx,tsx}',       // Incluye todos los archivos JS, TS, JSX, TSX en src
         './public/index.html',              // Incluye el archivo de índice
-        './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
-        './node_modules/@shadcn/ui/dist/**/*.{js,ts,jsx,tsx}', 
+        './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}', // NextUI
+        './node_modules/@shadcn/ui/dist/**/*.{js,ts,jsx,tsx}',        // shadcn/ui
+        './node_modules/primereact/**/*.{js,ts,jsx,tsx}',           // PrimeReact (Añadido para mayor compatibilidad)
     ],
+
+    // Extiende el tema predeterminado de Tailwind
     theme: {
         extend: {
+            // Personaliza los bordes redondeados utilizando variables CSS
             borderRadius: {
                 lg: 'var(--radius)',
                 md: 'calc(var(--radius) - 2px)',
                 sm: 'calc(var(--radius) - 4px)'
             },
+            // Define colores personalizados basados en variables CSS
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
@@ -58,6 +66,7 @@ module.exports = {
                     '4': 'hsl(var(--chart-4))',
                     '5': 'hsl(var(--chart-5))'
                 },
+                // Colores personalizados para Toastify
                 toastify: {
                     dark: '#121212',
                     info: '#3498db',
@@ -68,8 +77,10 @@ module.exports = {
             }
         }
     },
+
+    // Añade plugins adicionales
     plugins: [
-        nextui(),            // Integración con NextUI
-        require("tailwindcss-animate")  // Plugin adicional
+        nextui(),                    // Integración con NextUI
+        require("tailwindcss-animate"), // Plugin de animaciones
     ]
 };
