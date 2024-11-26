@@ -6,6 +6,7 @@ import { FileUpload, FileUploadSelectEvent } from 'primereact/fileupload';
 import { ProgressBar } from 'primereact/progressbar';
 import { Dialog } from 'primereact/dialog';
 import Webcam from 'react-webcam';
+import { FaCamera, FaTrash, FaTimes } from 'react-icons/fa'; // Importar iconos de Font Awesome
 
 type ImageCaptureUploadProps = {
     onImageSelect: (imageBase64: string) => void; // Function to send image data
@@ -95,9 +96,9 @@ const ImageCaptureUpload: React.FC<ImageCaptureUploadProps> = ({
     const cameraDialogFooter = (
         <div className="flex justify-center gap-4">
             <Button
-                icon={captureIcon}
+                icon={<FaCamera />}
                 onClick={capturePhoto}
-                className="p-button-rounded p-button-success shadow-md"
+                className="p-button-rounded p-button-success shadow-md flex items-center justify-center"
                 style={{
                     backgroundColor: '#4CAF50',
                     color: 'white',
@@ -110,9 +111,9 @@ const ImageCaptureUpload: React.FC<ImageCaptureUploadProps> = ({
                 type="button"
             />
             <Button
-                icon="pi pi-times"
+                icon={<FaTimes />}
                 onClick={() => setCameraDialogOpen(false)}
-                className="p-button-rounded p-button-secondary shadow-md"
+                className="p-button-rounded p-button-secondary shadow-md flex items-center justify-center"
                 style={{
                     backgroundColor: 'transparent',
                     color: 'gray',
@@ -141,8 +142,8 @@ const ImageCaptureUpload: React.FC<ImageCaptureUploadProps> = ({
                     accept="image/*"
                     maxFileSize={10000000}
                     onSelect={onFileSelect}
-                    chooseOptions={{ icon: 'pi pi-upload', className: 'p-button-rounded p-button-info', label: 'Subir' }}
-                    cancelOptions={{ icon: 'pi pi-times', className: 'p-button-rounded p-button-danger', style: discardButtonStyle }}
+                    chooseOptions={{ icon: <FaCamera />, className: 'p-button-rounded p-button-info', label: 'Subir' }}
+                    cancelOptions={{ icon: <FaTrash />, className: 'p-button-rounded p-button-danger', style: discardButtonStyle }}
                     className="w-full"
                     mode="basic"
                 />
@@ -151,8 +152,8 @@ const ImageCaptureUpload: React.FC<ImageCaptureUploadProps> = ({
 
             <div className="flex items-center justify-center w-full space-x-4">
                 <Button
-                    icon={captureIcon}
-                    className="p-button-rounded p-button-secondary"
+                    icon={<FaCamera />}
+                    className="p-button-rounded p-button-secondary flex items-center justify-center"
                     onClick={() => setCameraDialogOpen(true)}
                     style={{ ...captureButtonStyle, padding: '0.75rem', fontSize: '1.25rem' }}
                     tooltip="Capturar con cámara"
@@ -164,9 +165,9 @@ const ImageCaptureUpload: React.FC<ImageCaptureUploadProps> = ({
                 <div className="relative border border-gray-300 rounded-lg p-4 shadow-md mb-4 w-full flex flex-col items-center">
                     <img src={capturedPhoto} alt="Preview" className="rounded-lg w-48 h-48 object-cover mb-2 shadow-sm" />
                     <Button
-                        icon={discardIcon}
+                        icon={<FaTrash />}
                         label="Eliminar"
-                        className="p-button-danger p-button-rounded mt-2"
+                        className="p-button-danger p-button-rounded mt-2 flex items-center justify-center"
                         onClick={discardPhoto}
                         type="button"
                     />
@@ -175,7 +176,7 @@ const ImageCaptureUpload: React.FC<ImageCaptureUploadProps> = ({
 
             <ProgressBar value={(totalSize / 10000) * 10} showValue={false} className="w-full mt-2" />
 
-            {/* Camera Dialog */}
+            {/* Dialog de Cámara */}
             <Dialog
                 header="Captura de Foto"
                 visible={isCameraDialogOpen}

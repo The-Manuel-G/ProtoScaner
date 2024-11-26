@@ -16,7 +16,7 @@ import { Pagination } from "@nextui-org/react";
 
 // Definición de roles con colores basados en jerarquía
 const roles = [
-    { id: 1, name: 'Directiva', color: 'bg-purple-500' },
+    { id: 1, name: 'Visualizador', color: 'bg-purple-500' },
     { id: 2, name: 'Soportes', color: 'bg-yellow-500' },
     { id: 3, name: 'Técnicos', color: 'bg-green-500' },
     { id: 4, name: 'Diseñadores', color: 'bg-blue-500' },
@@ -194,7 +194,7 @@ export function UserDashboard(): JSX.Element {
                 }
                 onHide={() => setIsDeleteDialogVisible(false)}
             >
-                <p>¿Está seguro de que desea eliminar el usuario <b>{selectedUser?.nombreUsuario}</b>?</p>
+                <p>¿Esta seguro de que desea eliminar el usuario <b>{selectedUser?.nombreUsuario}</b>?</p>
             </Dialog>
         </div>
     );

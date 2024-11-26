@@ -3,20 +3,17 @@
 @tailwind utilities;
 @import "https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&display=swap";
 
+/* Reset y fuentes globales */
 * {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	font-family: "Poppins",sans-serif;
+	font-family: "Poppins", sans-serif;
 }
 
-
-/* Estilos globales */
-:root {
-	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-}
+/* Definición de variables CSS para temas claro y oscuro */
 @layer base {
-  :root {
+	:root {
 		--background: 0 0% 100%;
 		--foreground: 0 0% 3.9%;
 		--card: 0 0% 100%;
@@ -42,8 +39,10 @@
 		--chart-4: 43 74% 66%;
 		--chart-5: 27 87% 67%;
 		--radius: 0.5rem;
+		font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; /* Unifica las fuentes */
 	}
-  .dark {
+
+	.dark {
 		--background: 0 0% 3.9%;
 		--foreground: 0 0% 98%;
 		--card: 0 0% 3.9%;
@@ -69,28 +68,38 @@
 		--chart-4: 280 65% 60%;
 		--chart-5: 340 75% 55%;
 	}
-}
-@layer base {
-  * {
-    @apply border-border;
+
+	/* Aplicación de clases específicas para formularios y elementos */
+	.form-element {
+		@apply border-border;
 	}
-  body {
-    @apply bg-background text-foreground;
+
+	body {
+		@apply bg-background text-foreground;
 	}
 }
 
-
+/* Estilos globales adicionales */
 body {
 	margin: 0;
 	display: flex;
-	flex-direction: column; /* Asegúrate de que los elementos se apilen verticalmente */
+	flex-direction: column; /* Asegura que los elementos se apilen verticalmente */
 	min-width: 320px;
 	min-height: 100vh;
-	
-
-
-	font-family: 'Roboto', sans-serif; /* Asegúrate de que la fuente tenga soporte para caracteres acentuados */
-
+	font-family: 'Roboto', sans-serif; /* Fuente secundaria si es necesario */
 }
 
+.grid-item:hover::before {
+	border-color: rgba(255, 255, 255, 0.8);
+	animation: rotateBorder 5s linear infinite; /* Añade un borde giratorio al pasar el cursor */
+}
 
+@keyframes rotateBorder {
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
+	}
+}

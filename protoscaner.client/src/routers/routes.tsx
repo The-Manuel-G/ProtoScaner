@@ -16,7 +16,9 @@ import PruebasSokerPaciente from '../Pages/Paciente/PruebasSokerPaciente';
 import EntregaPaciente from '../Pages/Paciente/EntregaPaciente';
 import MantenimientoPaciente from '../Pages/Paciente/MantenimientoPaciente';
 import TomaMedidasForm from '../Pages/Paciente/TomaMedidasForm';
+import EditPaciente from '../Pages/Paciente/EditPaciente';
 import EntregaForm from "../Pages/Paciente/EntregaForm";
+
 export function MyRoutes() {
     return (
         <Routes>
@@ -36,7 +38,7 @@ export function MyRoutes() {
             <Route path="/EntregaByPaciente/:id" element={<EntregaPaciente />} />
             <Route path="/login" element={<Login />} />
             <Route path="/Formulario-medidas/:id" element={<TomaMedidasForm />} />
-            
+            <Route path="/EditPaciente/:id" element={<EditPaciente />} /> {/* Cambiado a '/edit/:id' */}
         </Routes>
     );
 }
