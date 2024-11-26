@@ -101,7 +101,7 @@ const PacienteProfile: React.FC = () => {
                         <div>
                             <CopySnippet label="Provincia" value={getLabel(provincias, paciente.idProvincia)} />
                             <p className="text-gray-700"><strong>Sector:</strong> {paciente.sector}</p>
-                            <p className="text-gray-700"><strong>Incidencia:</strong> {paciente.incidencia ? 'Sí' : 'No'}</p>
+                            <p className="text-gray-700"><strong>Incidencia:</strong> {paciente.incidencia ? 'Si' : 'No'}</p>
                             <CopySnippet label="Comentario" value={paciente.comentario} />
                         </div>
                     </div>
