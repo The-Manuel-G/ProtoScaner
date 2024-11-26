@@ -26,6 +26,11 @@ module.exports = {
             },
             // Define colores personalizados basados en variables CSS
             colors: {
+                    'blue-50': '#ebf8ff',
+                    'blue-200': '#bee3f8',
+                    'green-50': '#f0fff4',
+                    'green-200': '#c6f6d5',
+             
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
                 card: {

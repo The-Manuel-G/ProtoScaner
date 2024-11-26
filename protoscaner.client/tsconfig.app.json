@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": [ "ES2020", "DOM", "DOM.Iterable" ],
+    "target": "ES2022",
+    "lib": [ "ES2023" ],
     "module": "ESNext",
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
 
-    /* Base URL and Path Alias */
+    /* Base URL y Alias de Rutas */
     "baseUrl": ".",
     "paths": {
       "@/*": [ "./src/*" ]
@@ -19,7 +22,6 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
-    "jsx": "react-jsx",
 
     /* Linting */
     "strict": true,
@@ -28,5 +30,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": [ "src", "src/components/.tsx" ]
+  "include": [ "vite.config.ts" ] // Solo incluye archivos específicos de Node.js
 }

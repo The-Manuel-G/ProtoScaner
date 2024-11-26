@@ -50,7 +50,7 @@ interface FormData {
     sector?: string;
     insidencia: boolean;
     comentario?: string;
-    fotoPaciente?: string | null; // Base64 string sin prefijo o con prefijo según necesidad
+    fotoPaciente?: string | null; // Base64 string sin prefijo o con prefijo segï¿½n necesidad
 }
 
 const EditPaciente: React.FC = () => {
@@ -84,8 +84,8 @@ const EditPaciente: React.FC = () => {
     const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
     const [isSuccessDialogVisible, setSuccessDialogVisible] = useState(false);
 
-    // Estados para la verificación de la cédula
-    const [cedulaValid, setCedulaValid] = useState<boolean | null>(null); // null: no verificado, true: válido, false: inválido
+    // Estados para la verificaciï¿½n de la cï¿½dula
+    const [cedulaValid, setCedulaValid] = useState<boolean | null>(null); // null: no verificado, true: vï¿½lido, false: invï¿½lido
     const [isVerifyingCedula, setIsVerifyingCedula] = useState<boolean>(false);
 
     useEffect(() => {
@@ -118,7 +118,7 @@ const EditPaciente: React.FC = () => {
                     if (pacienteData.historialPacienteIngresos && pacienteData.historialPacienteIngresos.length > 0) {
                         setHistorial(pacienteData.historialPacienteIngresos[0]); // Asumiendo que solo hay un historial por paciente
                     }
-                    // Si no hay historial, `historial` permanece con valores vacíos
+                    // Si no hay historial, `historial` permanece con valores vacï¿½os
                 } catch (error) {
                     console.error("Error al obtener el paciente:", error);
                     toast.error('Error al obtener los datos del paciente');
@@ -137,7 +137,7 @@ const EditPaciente: React.FC = () => {
             [name]: type === 'checkbox' ? checked : value
         }));
 
-        // Si el campo que cambia es la cédula, resetear la validación
+        // Si el campo que cambia es la cï¿½dula, resetear la validaciï¿½n
         if (name === 'cedula') {
             setCedulaValid(null);
         }
@@ -169,11 +169,11 @@ const EditPaciente: React.FC = () => {
         }
     };
 
-    // Función para verificar la cédula
+    // Funciï¿½n para verificar la cï¿½dula
     const verifyCedula = async () => {
         const cedula = formData.cedula.trim();
         if (cedula.length === 0) {
-            toast.error('Por favor, ingresa una cédula para verificar.');
+            toast.error('Por favor, ingresa una cï¿½dula para verificar.');
             return;
         }
 
@@ -193,10 +193,10 @@ const EditPaciente: React.FC = () => {
             const data = await response.json();
             if (data.valid) {
                 setCedulaValid(true);
-                toast.success('La cedula es válida.');
+                toast.success('La cedula es vï¿½lida.');
             } else {
                 setCedulaValid(false);
-                toast.error('La cedula es inválida.');
+                toast.error('La cedula es invï¿½lida.');
             }
         } catch (error) {
             console.error("Error al verificar la cedula:", error);
@@ -211,7 +211,7 @@ const EditPaciente: React.FC = () => {
         e.preventDefault();
         if (!paciente) return;
 
-        // Validación previa
+        // Validaciï¿½n previa
         const newErrors: { [key: string]: boolean } = {};
         if (!formData.nombreCompleto.trim()) newErrors.nombreCompleto = true;
         if (!formData.cedula.trim()) newErrors.cedula = true;
@@ -219,7 +219,7 @@ const EditPaciente: React.FC = () => {
         if (!formData.fechaNacimiento.trim()) newErrors.fechaNacimiento = true;
         if (!formData.direccion.trim()) newErrors.direccion = true;
 
-        // Validación del historial
+        // Validaciï¿½n del historial
         if (historial.tipoAmputacion === null || historial.tipoAmputacion === undefined) newErrors.tipoAmputacion = true;
         if (historial.ladoAmputacion === null || historial.ladoAmputacion === undefined) newErrors.ladoAmputacion = true;
         if (historial.causa === null || historial.causa === undefined) newErrors.causa = true;
@@ -237,7 +237,7 @@ const EditPaciente: React.FC = () => {
             fotoBase64 = formData.fotoPaciente; // Ya es base64 string sin prefijo
         }
 
-        console.log("Foto a enviar (base64):", fotoBase64); // Log para verificar la foto que se enviará
+        console.log("Foto a enviar (base64):", fotoBase64); // Log para verificar la foto que se enviarï¿½
 
         const updatedPaciente: Paciente = {
             ...paciente,
@@ -260,10 +260,10 @@ const EditPaciente: React.FC = () => {
         try {
             await updatePaciente(paciente.idPaciente, updatedPaciente, {
                 ...historial,
-                idHistorial: historial.idHistorial === 0 ? undefined : historial.idHistorial, // Si es 0, se creará un nuevo historial
+                idHistorial: historial.idHistorial === 0 ? undefined : historial.idHistorial, // Si es 0, se crearï¿½ un nuevo historial
             });
             toast.success('Paciente actualizado con exito.');
-            setSuccessDialogVisible(true); // Abrir el modal de éxito
+            setSuccessDialogVisible(true); // Abrir el modal de ï¿½xito
             navigate(`/paciente/${paciente.idPaciente}`);
         } catch (error) {
             console.error("Error al actualizar el paciente:", error);
@@ -275,7 +275,7 @@ const EditPaciente: React.FC = () => {
         if (id) {
             navigate(`/paciente/${id}`);
         } else {
-            navigate('/'); // Ruta por defecto en caso de que id no esté disponible
+            navigate('/'); // Ruta por defecto en caso de que id no estï¿½ disponible
         }
     };
 
@@ -305,11 +305,11 @@ const EditPaciente: React.FC = () => {
                         {errors.nombreCompleto && <small className="text-red-500">Este campo es obligatorio.</small>}
                     </div>
 
-                    {/* Cédula */}
+                    {/* Cï¿½dula */}
                     <div>
                         <label className="block mb-2 text-gray-700 flex items-center">
                             <FaIdBadge className="mr-2 text-blue-500" />
-                            <strong>Cédula *</strong>
+                            <strong>Cï¿½dula *</strong>
                         </label>
                         <div className="flex">
                             <InputText
@@ -355,7 +355,7 @@ const EditPaciente: React.FC = () => {
                         {errors.cedula && <small className="text-red-500">Este campo es obligatorio.</small>}
                     </div>
 
-                    {/* Género */}
+                    {/* Gï¿½nero */}
                     <div>
                         <label className="block mb-2 text-gray-700 flex items-center">
                             <FaVenusMars className="mr-2 text-blue-500" />
@@ -406,7 +406,7 @@ const EditPaciente: React.FC = () => {
                         {errors.idProvincia && <small className="text-red-500">Este campo es obligatorio.</small>}
                     </div>
 
-                    {/* Dirección */}
+                    {/* Direcciï¿½n */}
                     <div>
                         <label className="block mb-2 text-gray-700 flex items-center">
                             <FaHome className="mr-2 text-blue-500" />
@@ -422,7 +422,7 @@ const EditPaciente: React.FC = () => {
                         {errors.direccion && <small className="text-red-500">Este campo es obligatorio.</small>}
                     </div>
 
-                    {/* Teléfono */}
+                    {/* Telï¿½fono */}
                     <div>
                         <label className="block mb-2 text-gray-700 flex items-center">
                             <FaPhone className="mr-2 text-blue-500" />
@@ -439,7 +439,7 @@ const EditPaciente: React.FC = () => {
                         {errors.telefono && <small className="text-red-500">Este campo es obligatorio.</small>}
                     </div>
 
-                    {/* Teléfono Celular */}
+                    {/* Telï¿½fono Celular */}
                     <div>
                         <label className="block mb-2 text-gray-700 flex items-center">
                             <FaMobileAlt className="mr-2 text-blue-500" />
@@ -537,7 +537,7 @@ const EditPaciente: React.FC = () => {
                         Editar Historial de Ingresos
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {/* Tipo de Amputación */}
+                        {/* Tipo de Amputaciï¿½n */}
                         <div>
                             <label className="block mb-2 text-gray-700 flex items-center">
                                 <FaClipboardList className="mr-2 text-blue-500" />
@@ -548,13 +548,13 @@ const EditPaciente: React.FC = () => {
                                 value={historial.tipoAmputacion}
                                 options={tiposAmputacion}
                                 onChange={(e) => setHistorial(prev => ({ ...prev, tipoAmputacion: e.value as number }))}
-                                placeholder="Seleccione Tipo de Amputación"
+                                placeholder="Seleccione Tipo de Amputaciï¿½n"
                                 className={`w-full p-2 border ${errors.tipoAmputacion ? 'border-red-500' : 'border-gray-300'} rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
                             />
                             {errors.tipoAmputacion && <small className="text-red-500">Este campo es obligatorio.</small>}
                         </div>
 
-                        {/* Lado de Amputación */}
+                        {/* Lado de Amputaciï¿½n */}
                         <div>
                             <label className="block mb-2 text-gray-700 flex items-center">
                                 <FaArrowsAltH className="mr-2 text-blue-500" />
@@ -565,13 +565,13 @@ const EditPaciente: React.FC = () => {
                                 value={historial.ladoAmputacion}
                                 options={ladosAmputacion}
                                 onChange={(e) => setHistorial(prev => ({ ...prev, ladoAmputacion: e.value as number }))}
-                                placeholder="Seleccione Lado de Amputación"
+                                placeholder="Seleccione Lado de Amputaciï¿½n"
                                 className={`w-full p-2 border ${errors.ladoAmputacion ? 'border-red-500' : 'border-gray-300'} rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
                             />
                             {errors.ladoAmputacion && <small className="text-red-500">Este campo es obligatorio.</small>}
                         </div>
 
-                        {/* Fecha de Amputación */}
+                        {/* Fecha de Amputaciï¿½n */}
                         <div>
                             <label className="block mb-2 text-gray-700 flex items-center">
                                 <FaCalendarAlt className="mr-2 text-blue-500" />
@@ -599,7 +599,7 @@ const EditPaciente: React.FC = () => {
                                 value={historial.causa}
                                 options={causasAmputacion}
                                 onChange={(e) => setHistorial(prev => ({ ...prev, causa: e.value as number }))}
-                                placeholder="Seleccione Causa de Amputación"
+                                placeholder="Seleccione Causa de Amputaciï¿½n"
                                 className={`w-full p-2 border ${errors.causa ? 'border-red-500' : 'border-gray-300'} rounded focus:outline-none focus:ring-2 focus:ring-blue-500 transition`}
                             />
                             {errors.causa && <small className="text-red-500">Este campo es obligatorio.</small>}
@@ -659,7 +659,7 @@ const EditPaciente: React.FC = () => {
 
                 {/* Botones de Guardar y Descartar */}
                 <div className="flex flex-col sm:flex-row justify-end mt-8 space-y-4 sm:space-y-0 sm:space-x-4">
-                    {/* Botón Guardar Cambios */}
+                    {/* Botï¿½n Guardar Cambios */}
                     <Button
                         type="submit"
                         className="flex items-center justify-center w-full sm:w-auto p-button-success bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition-transform duration-200 transform hover:scale-105 shadow-md"
@@ -667,7 +667,7 @@ const EditPaciente: React.FC = () => {
                         <FaSave className="mr-2" />
                         Guardar Cambios
                     </Button>
-                    {/* Botón Descartar */}
+                    {/* Botï¿½n Descartar */}
                     <Button
                         type="button"
                         className="flex items-center justify-center w-full sm:w-auto p-button-secondary bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition-transform duration-200 transform hover:scale-105 shadow-md"
@@ -679,9 +679,9 @@ const EditPaciente: React.FC = () => {
                 </div>
             </form>
 
-            {/* Modal de Éxito */}
+            {/* Modal de ï¿½xito */}
             <Dialog
-                header="Éxito"
+                header="ï¿½xito"
                 visible={isSuccessDialogVisible}
                 style={{ width: '90%', maxWidth: '400px' }}
                 onHide={() => setSuccessDialogVisible(false)}

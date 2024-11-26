@@ -4,6 +4,10 @@ import apiClient from '../api/client';
 import { Paciente } from '../types/Paciente';
 import { HistorialPacienteIngreso } from '../types/HistorialPacienteIngreso';
 
+
+
+
+
 // Function to get all patients
 export const getPacientes = async (): Promise<Paciente[]> => {
     try {
@@ -106,6 +110,46 @@ export const deletePaciente = async (id: number): Promise<void> => {
         await apiClient.delete(`/pacientes/${id}`);
     } catch (error) {
         console.error(`Error al eliminar el paciente con ID ${id}:`, error);
+        throw error;
+    }
+};
+
+
+
+// Funciones para avanzar y retroceder estatus de paciente
+export const avanzarEstatusPaciente = async (id: number): Promise<void> => {
+    try {
+        await apiClient.put(`/pacientes/${id}/avanzarEstatusPaciente`);
+    } catch (error) {
+        console.error(`Error al avanzar el estatus de paciente con ID ${id}:`, error);
+        throw error;
+    }
+};
+
+export const retrocederEstatusPaciente = async (id: number): Promise<void> => {
+    try {
+        await apiClient.put(`/pacientes/${id}/retrocederEstatusPaciente`);
+    } catch (error) {
+        console.error(`Error al retroceder el estatus de paciente con ID ${id}:`, error);
+        throw error;
+    }
+};
+
+// Funciones para avanzar y retroceder estatus de prótesis
+export const avanzarEstatusProtesis = async (id: number): Promise<void> => {
+    try {
+        await apiClient.put(`/pacientes/${id}/avanzarEstatusProtesis`);
+    } catch (error) {
+        console.error(`Error al avanzar el estatus de prótesis con ID ${id}:`, error);
+        throw error;
+    }
+};
+
+export const retrocederEstatusProtesis = async (id: number): Promise<void> => {
+    try {
+        await apiClient.put(`/pacientes/${id}/retrocederEstatusProtesis`);
+    } catch (error) {
+        console.error(`Error al retroceder el estatus de prótesis con ID ${id}:`, error);
         throw error;
     }
 };

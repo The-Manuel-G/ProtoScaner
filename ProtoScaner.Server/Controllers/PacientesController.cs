@@ -306,5 +306,152 @@ namespace ProtoScaner.Server.Controllers
         {
             return _context.Pacientes.Any(e => e.IdPaciente == id);
         }
+
+
+
+
+        // Avanzar estatus de paciente
+        [HttpPut("{id}/avanzarEstatusPaciente")]
+        public async Task<IActionResult> AvanzarEstatusPaciente(int id)
+        {
+            var paciente = await _context.Pacientes.FindAsync(id);
+            if (paciente == null)
+            {
+                return NotFound("Paciente no encontrado.");
+            }
+
+            if (!paciente.IdEstatusPaciente.HasValue)
+            {
+                return BadRequest("El paciente no tiene un estatus asignado.");
+            }
+
+            // Verificar si ya está en el estatus final
+            if (paciente.IdEstatusPaciente >= 5)
+            {
+                return BadRequest("El estatus de paciente ya está en el estado final.");
+            }
+
+            paciente.IdEstatusPaciente += 1;
+
+            // Si el estatus de paciente se actualiza a 'Completado' (4) y prótesis está en 'Entregado' (5), hacer algo si es necesario
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Estatus de paciente avanzado.");
+        }
+
+        // Retroceder estatus de paciente
+        [HttpPut("{id}/retrocederEstatusPaciente")]
+        public async Task<IActionResult> RetrocederEstatusPaciente(int id)
+        {
+            var paciente = await _context.Pacientes.FindAsync(id);
+            if (paciente == null)
+            {
+                return NotFound("Paciente no encontrado.");
+            }
+
+            if (!paciente.IdEstatusPaciente.HasValue)
+            {
+                return BadRequest("El paciente no tiene un estatus asignado.");
+            }
+
+            // Verificar si ya está en el estatus inicial
+            if (paciente.IdEstatusPaciente <= 1)
+            {
+                return BadRequest("El estatus de paciente ya está en el estado inicial.");
+            }
+
+            paciente.IdEstatusPaciente -= 1;
+
+            // Si el estatus de paciente se retrocede a 'Prueba' (2), se puede considerar revertir el estatus de prótesis
+            if (paciente.IdEstatusPaciente < 2)
+            {
+                paciente.IdEstatusProtesis = null; // Opcional: eliminar estatus de prótesis
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Estatus de paciente retrocedido.");
+        }
+
+        // Avanzar estatus de prótesis
+        [HttpPut("{id}/avanzarEstatusProtesis")]
+        public async Task<IActionResult> AvanzarEstatusProtesis(int id)
+        {
+            var paciente = await _context.Pacientes
+                                         .Include(p => p.PruebaSockets)
+                                         .FirstOrDefaultAsync(p => p.IdPaciente == id);
+
+            if (paciente == null)
+            {
+                return NotFound("Paciente no encontrado.");
+            }
+
+            // Verificar si el paciente ha pasado la prueba de socket
+            if (!paciente.PruebaSockets.Any())
+            {
+                return BadRequest("El paciente no ha pasado la prueba de socket.");
+            }
+
+            if (!paciente.IdEstatusProtesis.HasValue)
+            {
+                return BadRequest("El paciente no tiene un estatus de prótesis asignado.");
+            }
+
+            // Verificar si ya está en el estatus final
+            if (paciente.IdEstatusProtesis >= 5)
+            {
+                return BadRequest("El estatus de prótesis ya está en el estado final.");
+            }
+
+            paciente.IdEstatusProtesis += 1;
+
+            // Si el estatus de prótesis se actualiza a 'Entregado' (5), actualizar el estatus de paciente a 'Completado' (4) automáticamente
+            if (paciente.IdEstatusProtesis == 5)
+            {
+                if (paciente.IdEstatusPaciente < 4)
+                {
+                    paciente.IdEstatusPaciente = 4; // 'Completado'
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Estatus de prótesis avanzado.");
+        }
+
+        // Retroceder estatus de prótesis
+        [HttpPut("{id}/retrocederEstatusProtesis")]
+        public async Task<IActionResult> RetrocederEstatusProtesis(int id)
+        {
+            var paciente = await _context.Pacientes.FindAsync(id);
+            if (paciente == null)
+            {
+                return NotFound("Paciente no encontrado.");
+            }
+
+            if (!paciente.IdEstatusProtesis.HasValue)
+            {
+                return BadRequest("El paciente no tiene un estatus de prótesis asignado.");
+            }
+
+            // Verificar si ya está en el estatus inicial
+            if (paciente.IdEstatusProtesis <= 1)
+            {
+                return BadRequest("El estatus de prótesis ya está en el estado inicial.");
+            }
+
+            paciente.IdEstatusProtesis -= 1;
+
+            // Si el estatus de prótesis se retrocede por debajo de 'Entregado' (5), mantener el estatus de paciente en 'Completado' (4) o revertir si es necesario
+            if (paciente.IdEstatusProtesis < 5 && paciente.IdEstatusPaciente == 4)
+            {
+                paciente.IdEstatusPaciente = 3; // 'Completado' a 'Pendiente definitivo cita' o según la lógica requerida
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Estatus de prótesis retrocedido.");
+        }
     }
 }
