@@ -13,7 +13,7 @@ public partial class MedidasCircunferenciaPrueba
 
     public decimal? ValorMmSinPresion { get; set; }
 
-    public decimal ValorMmConPresion { get; set; }
+    public decimal? ValorMmConPresion { get; set; }
 
     public virtual MedidaTransfemoralPrueba? IdValorNavigation { get; set; }
 }

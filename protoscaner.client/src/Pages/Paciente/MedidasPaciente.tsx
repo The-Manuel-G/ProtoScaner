@@ -11,8 +11,7 @@ import { getPacienteById } from '../../services/PacienteService';
 import { getMedidasTransfemoral } from '../../services/MedidaTransfemoralService';
 import { getMedidasTranstibial } from '../../services/MedidaTranstibialService';
 import { getTomasMedidasEscaneo } from '../../services/TomaMedidasEscaneoService';
-import MedidasTranstibialForm from '../../components/pacienteForm/MedidasTranstibialForm';
-import MedidasTransfemoralForm from '../../components/pacienteForm/MedidasTransfemoralForm';
+import TomaMedidasForm from '../../Pages/Paciente/TomaMedidasForm';
 import { tiposAmputacion } from '../../constants'; // Importar solo tiposAmputacion
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +22,7 @@ const MedidasPaciente: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [paciente, setPaciente] = useState<Paciente | null>(null);
     const [tipoAmputacion, setTipoAmputacion] = useState<number | null>(null);
-    const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useState<boolean>(false);
     const [transtibialMeasurements, setTranstibialMeasurements] = useState<MedidaTranstibial[]>([]);
     const [transfemoralMeasurements, setTransfemoralMeasurements] = useState<MedidaTransfemoral[]>([]);
     const [escaneos, setEscaneos] = useState<TomaMedidasEscaneo[]>([]);
@@ -116,13 +115,10 @@ const MedidasPaciente: React.FC = () => {
             )}
 
             {showForm ? (
-                tipoAmputacion === TRANTIBIAL_VALUE ? (
-                    <MedidasTranstibialForm />
-                ) : tipoAmputacion === TRANSFEMORAL_VALUE ? (
-                    <MedidasTransfemoralForm />
-                ) : (
-                    <p className="text-gray-500">Tipo de amputación no válido.</p>
-                )
+                <TomaMedidasForm
+                    idPaciente={paciente?.idPaciente || 0}
+                    idAmputacion={tipoAmputacion || 0} // Pasar idAmputacion como prop
+                />
             ) : (
                 <div className="space-y-4">
                     <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2">
@@ -138,21 +134,29 @@ const MedidasPaciente: React.FC = () => {
                                 <p><strong>Resultado del Escaneo:</strong> {escaneo.resultadoScaneo}</p>
                                 <p>
                                     <strong>Documento de Resultado:</strong>
-                                    <a
-                                        href={`data:application/pdf;base64,${escaneo.resultadoDoc}`}
-                                        download="Resultado.pdf"
-                                        className="text-blue-600 flex items-center gap-2"
-                                    >
-                                        <FaDownload /> Descargar
-                                    </a>
+                                    {escaneo.resultadoDoc ? (
+                                        <a
+                                            href={`data:application/pdf;base64,${escaneo.resultadoDoc}`}
+                                            download="Resultado.pdf"
+                                            className="text-blue-600 flex items-center gap-2"
+                                        >
+                                            <FaDownload /> Descargar
+                                        </a>
+                                    ) : (
+                                        <span className="text-gray-500 ml-2">No disponible</span>
+                                    )}
                                 </p>
                                 <p>
                                     <strong>Foto del Muñón:</strong>
-                                    <img
-                                        src={`data:image/jpeg;base64,${escaneo.fotosMunon}`}
-                                        alt="Foto del Muñón"
-                                        className="w-20 h-20 object-cover mt-2 rounded border"
-                                    />
+                                    {escaneo.fotosMunon ? (
+                                        <img
+                                            src={`data:image/jpeg;base64,${escaneo.fotosMunon}`}
+                                            alt="Foto del Muñón"
+                                            className="w-20 h-20 object-cover mt-2 rounded border"
+                                        />
+                                    ) : (
+                                        <span className="text-gray-500 ml-2">No disponible</span>
+                                    )}
                                 </p>
                             </Card>
                         ))
@@ -190,18 +194,22 @@ const MedidasPaciente: React.FC = () => {
                                 <p><strong>Diseñador de Socket:</strong> {medida.disenadorSocket}</p>
                                 <p>
                                     <strong>Foto del Muñón:</strong>
-                                    <img
-                                        src={`data:image/jpeg;base64,${medida.fotoMunon}`}
-                                        alt="Foto del Muñón"
-                                        className="w-20 h-20 object-cover mt-2 rounded border"
-                                    />
+                                    {medida.fotoMunon ? (
+                                        <img
+                                            src={`data:image/jpeg;base64,${medida.fotoMunon}`}
+                                            alt="Foto del Muñón"
+                                            className="w-20 h-20 object-cover mt-2 rounded border"
+                                        />
+                                    ) : (
+                                        <span className="text-gray-500 ml-2">No disponible</span>
+                                    )}
                                 </p>
                                 <h4 className="font-semibold mt-4">Medidas Circunferenciales</h4>
                                 {medida.circunferencias && medida.circunferencias.length > 0 ? (
                                     medida.circunferencias.map((circ) => (
                                         <div key={circ.idMedida} className="p-2 border-b border-gray-300">
-                                            <p><strong>Circunferencia {circ.numeroCircunferencia}:</strong> {circ.valorMmSinPresion} mm</p>
-                                            <p><strong>Circunferencia {circ.numeroCircunferencia}:</strong> {circ.valorMmConPresion} mm</p>
+                                            <p><strong>Circunferencia {circ.numeroCircunferencia} sin presión:</strong> {circ.valorMmSinPresion} mm</p>
+                                            <p><strong>Circunferencia {circ.numeroCircunferencia} con presión:</strong> {circ.valorMmConPresion} mm</p>
                                         </div>
                                     ))
                                 ) : (

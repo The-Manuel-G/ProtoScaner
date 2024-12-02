@@ -5,11 +5,20 @@ namespace ProtoScaner.Server.Models;
 
 public partial class Paciente
 {
+
+    public Paciente()
+    {
+        Liners = new HashSet<Liner>();
+        Tallas = new HashSet<Talla>();
+        // Inicializar otras colecciones si es necesario
+    }
     public int IdPaciente { get; set; }
 
     public string? NombreCompleto { get; set; }
 
     public string? Cedula { get; set; }
+
+    public string? CodigoPaciente { get; set; }
 
     public int? Genero { get; set; }
 
@@ -35,9 +44,20 @@ public partial class Paciente
 
     public byte[]? FotoPaciente { get; set; }
 
+    public DateOnly FechaIngreso { get; set; }
+
+    public virtual ICollection<Liner> Liners { get; set; }
+    public virtual ICollection<Talla> Tallas { get; set; }
+
+    public virtual ICollection<Cita> Cita { get; set; } = new List<Cita>();
+
+    public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
+
     public virtual ICollection<Entrega> Entregas { get; set; } = new List<Entrega>();
 
     public virtual Genero? GeneroNavigation { get; set; }
+
+    public virtual ICollection<HistorialEstatusPaciente> HistorialEstatusPacientes { get; set; } = new List<HistorialEstatusPaciente>();
 
     public virtual ICollection<HistorialPacienteIngreso> HistorialPacienteIngresos { get; set; } = new List<HistorialPacienteIngreso>();
 
@@ -58,6 +78,8 @@ public partial class Paciente
     public virtual ICollection<MedidaTransfemoral> MedidaTransfemorals { get; set; } = new List<MedidaTransfemoral>();
 
     public virtual ICollection<MedidaTranstibial> MedidaTranstibials { get; set; } = new List<MedidaTranstibial>();
+
+    public virtual ICollection<PacienteDescartado> PacienteDescartados { get; set; } = new List<PacienteDescartado>();
 
     public virtual ICollection<Protesi> Protesis { get; set; } = new List<Protesi>();
 

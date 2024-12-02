@@ -15,5 +15,3 @@ public partial class ProtesisComponente
 
     public virtual Protesi Protesis { get; set; } = null!;
 }
-
-

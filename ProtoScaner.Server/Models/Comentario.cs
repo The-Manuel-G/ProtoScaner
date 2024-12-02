@@ -1,46 +1,37 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
 
-namespace ProtoScaner.Server.Models
+namespace ProtoScaner.Server.Models;
+
+public partial class Comentario
 {
-    public class Comentario
-    {
-        [Key]
-        public int IdComentario { get; set; }
+    public int IdComentario { get; set; }
 
-        [Required]
-        public int IdUsuario { get; set; }
+    public int IdUsuario { get; set; }
 
-        public int? IdPaciente { get; set; }
-        public int? IdTomaMedida { get; set; }
-        public int? IdPruebaSocket { get; set; }
-        public int? IdMantenimiento { get; set; }
-        public int? IdProtesis { get; set; }
+    public int? IdPaciente { get; set; }
 
-        [Required]
-        public string ComentarioTexto { get; set; }
+    public int? IdTomaMedida { get; set; }
 
-        public DateTime FechaComentario { get; set; } = DateTime.Now;
+    public int? IdPruebaSocket { get; set; }
 
-        // Propiedades de navegación
-        [ForeignKey("IdUsuario")]
-        public virtual Usuario Usuario { get; set; }
+    public int? IdMantenimiento { get; set; }
 
-        [ForeignKey("IdPaciente")]
-        public virtual Paciente Paciente { get; set; }
+    public int? IdProtesis { get; set; }
 
-        [ForeignKey("IdTomaMedida")]
-        public virtual TomaMedidasEscaneo TomaMedida { get; set; }
+    public string Comentario1 { get; set; } = null!;
 
-        [ForeignKey("IdPruebaSocket")]
-        public virtual PruebaSocket PruebaSocket { get; set; }
+    public DateTime? FechaComentario { get; set; }
 
-        [ForeignKey("IdMantenimiento")]
-        public virtual Mantenimiento Mantenimiento { get; set; }
+    public virtual Mantenimiento? IdMantenimientoNavigation { get; set; }
 
-        [ForeignKey("IdProtesis")]
-        public virtual Protesi Protesis { get; set; }
-    }
+    public virtual Paciente? IdPacienteNavigation { get; set; }
 
+    public virtual Protesi? IdProtesisNavigation { get; set; }
+
+    public virtual PruebaSocket? IdPruebaSocketNavigation { get; set; }
+
+    public virtual TomaMedidasEscaneo? IdTomaMedidaNavigation { get; set; }
+
+    public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 }

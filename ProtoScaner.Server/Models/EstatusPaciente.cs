@@ -9,5 +9,9 @@ public partial class EstatusPaciente
 
     public string? Descripcion { get; set; }
 
+    public virtual ICollection<HistorialEstatusPaciente> HistorialEstatusPacienteIdEstatusAnteriorNavigations { get; set; } = new List<HistorialEstatusPaciente>();
+
+    public virtual ICollection<HistorialEstatusPaciente> HistorialEstatusPacienteIdEstatusNuevoNavigations { get; set; } = new List<HistorialEstatusPaciente>();
+
     public virtual ICollection<Paciente> Pacientes { get; set; } = new List<Paciente>();
 }

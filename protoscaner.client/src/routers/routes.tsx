@@ -1,7 +1,7 @@
 // src/routes/MyRoutes.tsx
 
 import { Routes, Route } from "react-router-dom";
-import { Dashboard } from "../Pages/Dashboard";
+import Dashboard from "../Pages/Dashboard"; // Importación corregida
 import EntregaPage from '../Pages/Paciente/Potesis/EntregaPage';
 import { Reportepage } from '../Pages/Paciente/ReportePage';
 import { UserDashboard } from '../Pages/Users/UserDashboard';
@@ -38,7 +38,7 @@ export function MyRoutes() {
             <Route path="/EntregaByPaciente/:id" element={<EntregaPaciente />} />
             <Route path="/login" element={<Login />} />
             <Route path="/Formulario-medidas/:id" element={<TomaMedidasForm />} />
-            <Route path="/EditPaciente/:id" element={<EditPaciente />} /> {/* Cambiado a '/edit/:id' */}
+            <Route path="/EditPaciente/:id" element={<EditPaciente />} />
         </Routes>
     );
 }

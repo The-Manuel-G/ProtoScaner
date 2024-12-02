@@ -29,8 +29,6 @@ public partial class MedidaTransfemoralPrueba
 
     public int? IdLiner { get; set; }
 
-    public virtual LinerTransfemoral? IdLinerNavigation { get; set; }
-
     public virtual Paciente? IdPacienteNavigation { get; set; }
 
     public virtual PruebaSocket? IdPruebaNavigation { get; set; }

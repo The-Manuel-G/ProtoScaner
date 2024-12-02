@@ -1,164 +1,211 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
+import { useForm, FormProvider, SubmitHandler, Controller } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { getPacienteById } from '../../services/PacienteService';
-import { createTomaMedidasEscaneo } from '../../services/TomaMedidasEscaneoService';
-import MedidasTranstibialForm from '../../components/pacienteForm/MedidasTranstibialForm';
-import MedidasTransfemoralForm from '../../components/pacienteForm/MedidasTransfemoralForm';
+import { Select } from '@/components/ui/select';
+import { FaPlusCircle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-// Constants for amputation types
-const AMPUTATION_TYPES = {
-    TRANSTIBIAL: { value: 1, label: 'Transtibial' },
-    TRANSFEMORAL: { value: 2, label: 'Transfemoral' },
-};
+import { tipoLiners, tallas } from '../../constants'; // Asegúrate de importar correctamente las constantes
+import { TomaMedidasEscaneo } from '../../types/TomaMedidasEscaneo';
+import { createTomaMedidasEscaneo } from '../../services/TomaMedidasEscaneoService';
 
 interface FormInputs {
     idPaciente: number;
     idAmputacion: number;
-    idLiner: number; // Added required field
+    idLiner: number;
+    tallaLiner: number;
     fechaEscaneo: string;
-    fotosMunon: string | null;
-    comentario: string;
+    fotosMunon: string | null; // Base64 string
+    comentario?: string;
     resultadoScaneo: string;
-    resultadoDoc: string | null;
+    resultadoDoc: string | null; // Base64 string (PDF)
 }
 
-const TomaMedidasForm: React.FC<{ idPaciente: number }> = ({ idPaciente }) => {
-    const methods = useForm<FormInputs>();
-    const { register, handleSubmit, setValue } = methods;
-    const [step, setStep] = useState(1);
-    const [tipoAmputacion, setTipoAmputacion] = useState<number | null>(null);
+interface TomaMedidasFormProps {
+    idPaciente: number;
+    idAmputacion: number; // Recibir idAmputacion como prop
+}
+
+const TomaMedidasForm: React.FC<TomaMedidasFormProps> = ({ idPaciente, idAmputacion }) => {
+    const methods = useForm<FormInputs>({
+        defaultValues: {
+            idPaciente: idPaciente,
+            idAmputacion: idAmputacion,
+            idLiner: 0,
+            tallaLiner: 0,
+            fechaEscaneo: '',
+            fotosMunon: null,
+            comentario: '',
+            resultadoScaneo: '',
+            resultadoDoc: null,
+        }
+    });
+    const { register, handleSubmit, setValue, watch, control } = methods;
+    const [step, setStep] = useState<number>(1);
+    const [tipoAmputacion, setTipoAmputacion] = useState<number | null>(idAmputacion);
 
     useEffect(() => {
-        const fetchPaciente = async () => {
-            if (!idPaciente) return;
+        setTipoAmputacion(idAmputacion);
+    }, [idAmputacion]);
 
-            try {
-                const pacienteData = await getPacienteById(idPaciente);
-                setValue('idPaciente', pacienteData.idPaciente);
+    const onSubmit: SubmitHandler<FormInputs> = async (data) => {
+        try {
+            // Preparar el payload
+            const payload: TomaMedidasEscaneo = {
+                idEscaneo: 0, // Será asignado por el backend
+                idPaciente: data.idPaciente,
+                idAmputacion: data.idAmputacion,
+                idLiner: data.idLiner,
+                tallaLiner: data.tallaLiner,
+                fechaEscaneo: data.fechaEscaneo,
+                fotosMunon: data.fotosMunon,
+                comentario: data.comentario,
+                resultadoScaneo: data.resultadoScaneo,
+                resultadoDoc: data.resultadoDoc ? data.resultadoDoc.split(',')[1] : null, // Asegurarse de que el Base64 esté limpio
+            };
 
-                const latestHistorial = pacienteData.historialPacienteIngresos?.[0];
-                if (latestHistorial?.tipoAmputacion !== undefined) {
-                    setTipoAmputacion(latestHistorial.tipoAmputacion);
-                    toast.success('Datos del paciente cargados correctamente');
-                } else {
-                    toast.error('Tipo de amputación no encontrado en el historial.');
-                }
-            } catch (error: any) {
-                console.error('Error fetching patient data:', error.message);
-                alert(error.message || 'Error fetching patient data. Please try again.');
-            }
-        };
-
-        fetchPaciente();
-    }, [idPaciente, setValue]);
+            await createTomaMedidasEscaneo(payload);
+            toast.success('Toma de medidas creada exitosamente.');
+            methods.reset({
+                idPaciente: idPaciente,
+                idAmputacion: idAmputacion,
+                idLiner: 0,
+                tallaLiner: 0,
+                fechaEscaneo: '',
+                fotosMunon: null,
+                comentario: '',
+                resultadoScaneo: '',
+                resultadoDoc: null,
+            });
+            setStep(1);
+        } catch (error: any) {
+            console.error('Error al crear la toma de medidas:', error);
+            toast.error('Error al crear la toma de medidas.');
+        }
+    };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: keyof FormInputs) => {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = () => setValue(field, reader.result as string);
+            reader.onload = () => {
+                const base64 = reader.result?.toString().split(',')[1] || null;
+                setValue(field, base64);
+            };
             reader.readAsDataURL(file);
         }
     };
 
-    const onSubmit: SubmitHandler<FormInputs> = async (data) => {
-        try {
-            await createTomaMedidasEscaneo(data);
-            alert('Toma de medidas creada exitosamente.');
-        } catch (error) {
-            console.error('Error creating Toma de Medidas:', error);
-            alert('Error al crear toma de medidas.');
-        }
-    };
+    const linerOptions = tipoLiners;
+    const tallaOptions = tallas;
 
     return (
         <FormProvider {...methods}>
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-md shadow-md max-w-lg mx-auto">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-md shadow-md max-w-4xl mx-auto">
                 {step === 1 && (
-                    <div className="space-y-4">
-                        <Input type="hidden" {...register('idPaciente')} />
+                    <div className="space-y-6">
+                        {/* Tipo de Amputación (oculto) */}
+                        <input
+                            type="hidden"
+                            {...register('idAmputacion')}
+                        />
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Tipo de Amputación</label>
-                            <div className="w-full mt-1">
-                                <Select
-                                    {...register('idAmputacion')}
-                                    value={tipoAmputacion?.toString() || ''}
-                                    disabled
-                                    className="w-full"
-                                >
-                                    <option value={AMPUTATION_TYPES.TRANSTIBIAL.value}>{AMPUTATION_TYPES.TRANSTIBIAL.label}</option>
-                                    <option value={AMPUTATION_TYPES.TRANSFEMORAL.value}>{AMPUTATION_TYPES.TRANSFEMORAL.label}</option>
-                                </Select>
-                            </div>
+                        {/* Tipo de Liner */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Tipo de Liner</label>
+                            <Controller
+                                control={control}
+                                name="idLiner"
+                                rules={{ required: true }}
+                                render={({ field }) => (
+                                    <Select
+                                        {...field}
+                                        className="w-full sm:w-2/3"
+                                        placeholder="Selecciona el tipo de liner"
+                                    >
+                                        <option value="">Selecciona</option>
+                                        {linerOptions.map((liner) => (
+                                            <option key={liner.value} value={liner.value}>
+                                                {liner.label}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                )}
+                            />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Fecha de Escaneo</label>
-                            <Input type="date" {...register('fechaEscaneo', { required: true })} className="w-full mt-1" />
+                        {/* Talla del Liner */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Talla del Liner</label>
+                            <Controller
+                                control={control}
+                                name="tallaLiner"
+                                rules={{ required: true }}
+                                render={({ field }) => (
+                                    <Select
+                                        {...field}
+                                        className="w-full sm:w-2/3"
+                                        placeholder="Selecciona la talla del liner"
+                                    >
+                                        <option value="">Selecciona</option>
+                                        {tallaOptions.map((talla) => (
+                                            <option key={talla.value} value={talla.value}>
+                                                {talla.label}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                )}
+                            />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Foto del Muñón</label>
-                            <Input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'fotosMunon')} className="w-full mt-1" />
+                        {/* Fecha de Escaneo */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Fecha de Escaneo</label>
+                            <Input
+                                type="date"
+                                {...register('fechaEscaneo', { required: true })}
+                                className="w-full sm:w-2/3"
+                            />
                         </div>
 
-                        <Button type="button" onClick={() => setStep(2)} className="w-full bg-blue-500 text-white py-2 rounded-md mt-4">
-                            Next
-                        </Button>
-                    </div>
-                )}
+                        {/* Foto del Muñón */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Foto del Muñón</label>
+                            <Input
+                                type="file"
+                                onChange={(e) => handleFileChange(e, 'fotosMunon')}
+                                className="w-full sm:w-2/3"
+                            />
+                        </div>
 
-                {step === 2 && (
-                    <div className="space-y-4">
-                        {tipoAmputacion === AMPUTATION_TYPES.TRANSTIBIAL.value && (
-                            <MedidasTranstibialForm />
-                        )}
-                        {tipoAmputacion === AMPUTATION_TYPES.TRANSFEMORAL.value && (
-                            <MedidasTransfemoralForm />
-                        )}
+                        {/* Documento Resultado */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Documento Resultado</label>
+                            <Input
+                                type="file"
+                                onChange={(e) => handleFileChange(e, 'resultadoDoc')}
+                                className="w-full sm:w-2/3"
+                            />
+                        </div>
 
-                        <div className="flex justify-between mt-4">
-                            <Button type="button" onClick={() => setStep(1)} className="bg-gray-500 text-white py-2 rounded-md">
-                                Back
+                        {/* Comentarios */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Comentario</label>
+                            <Textarea
+                                {...register('comentario')}
+                                className="w-full sm:w-2/3"
+                            />
+                        </div>
+
+                        <div className="flex justify-between gap-4">
+                            <Button type="button" onClick={() => setStep(2)} className="bg-blue-600 hover:bg-blue-700 text-white">
+                                Siguiente <FaArrowRight />
                             </Button>
-                            <Button type="button" onClick={() => setStep(3)} className="bg-blue-500 text-white py-2 rounded-md">
-                                Next
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Comentario</label>
-                            <Textarea {...register('comentario')} placeholder="Escribe un comentario..." className="w-full mt-1" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Resultado del Escaneo</label>
-                            <Textarea {...register('resultadoScaneo')} placeholder="Describe el resultado del escaneo..." className="w-full mt-1" />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Documento de Resultado</label>
-                            <Input type="file" accept="application/pdf" onChange={(e) => handleFileChange(e, 'resultadoDoc')} className="w-full mt-1" />
-                        </div>
-
-                        <div className="flex justify-between mt-4">
-                            <Button type="button" onClick={() => setStep(2)} className="bg-gray-500 text-white py-2 rounded-md">
-                                Back
-                            </Button>
-                            <Button type="submit" className="bg-green-500 text-white py-2 rounded-md">
-                                Guardar Toma de Medidas
+                            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
+                                Guardar <FaPlusCircle />
                             </Button>
                         </div>
                     </div>

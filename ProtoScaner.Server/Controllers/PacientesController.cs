@@ -41,8 +41,8 @@ namespace ProtoScaner.Server.Controllers
                 IdProvincia = paciente.IdProvincia,
                 Sector = paciente.Sector,
                 Insidencia = paciente.Insidencia,
-                IdEstatusPaciente = paciente.IdEstatusPaciente,
-                IdEstatusProtesis = paciente.IdEstatusProtesis,
+                IdEstatusPaciente = paciente.IdEstatusPaciente ?? 1, // Establecer a 1 si es nulo
+                IdEstatusProtesis = paciente.IdEstatusProtesis,      // Dejar tal cual
                 Comentario = paciente.Comentario,
                 FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null,
                 HistorialPacienteIngresos = paciente.HistorialPacienteIngresos.Select(h => new HistorialPacienteIngresoDTO
@@ -87,8 +87,8 @@ namespace ProtoScaner.Server.Controllers
                 IdProvincia = paciente.IdProvincia,
                 Sector = paciente.Sector,
                 Insidencia = paciente.Insidencia,
-                IdEstatusPaciente = paciente.IdEstatusPaciente,
-                IdEstatusProtesis = paciente.IdEstatusProtesis,
+                IdEstatusPaciente = paciente.IdEstatusPaciente ?? 1, // Establecer a 1 si es nulo
+                IdEstatusProtesis = paciente.IdEstatusProtesis,      // Dejar tal cual
                 Comentario = paciente.Comentario,
                 FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null,
                 HistorialPacienteIngresos = paciente.HistorialPacienteIngresos.Select(h => new HistorialPacienteIngresoDTO
@@ -113,6 +113,13 @@ namespace ProtoScaner.Server.Controllers
         {
             var pacienteDto = request.Paciente;
 
+            // Establecer IdEstatusPaciente a 1 si es nulo
+            if (!pacienteDto.IdEstatusPaciente.HasValue)
+            {
+                pacienteDto.IdEstatusPaciente = 1;
+            }
+            // No establecer IdEstatusProtesis, dejarlo tal cual
+
             var paciente = new Paciente
             {
                 NombreCompleto = pacienteDto.NombreCompleto,
@@ -128,11 +135,11 @@ namespace ProtoScaner.Server.Controllers
                 Sector = pacienteDto.Sector,
                 Insidencia = pacienteDto.Insidencia,
                 IdEstatusPaciente = pacienteDto.IdEstatusPaciente,
-                IdEstatusProtesis = pacienteDto.IdEstatusProtesis,
+                IdEstatusProtesis = pacienteDto.IdEstatusProtesis, // Puede ser nulo
                 Comentario = pacienteDto.Comentario
             };
 
-            // Manejar la foto del paciente con manejo de excepciones
+            // Manejar la foto del paciente
             if (!string.IsNullOrEmpty(pacienteDto.FotoPaciente))
             {
                 try
@@ -165,8 +172,10 @@ namespace ProtoScaner.Server.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Actualizar la representación de FotoPaciente en el DTO para incluir la imagen en base64
+            // Actualizar la representación de FotoPaciente en el DTO
             pacienteDto.FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null;
+            // Actualizar el IdPaciente en el DTO
+            pacienteDto.IdPaciente = paciente.IdPaciente;
 
             return CreatedAtAction(nameof(GetPacienteById), new { id = paciente.IdPaciente }, pacienteDto);
         }
@@ -230,7 +239,7 @@ namespace ProtoScaner.Server.Controllers
             paciente.IdEstatusProtesis = request.Paciente.IdEstatusProtesis;
             paciente.Comentario = request.Paciente.Comentario;
 
-            // Manejar la foto del paciente con manejo de excepciones
+            // Manejar la foto del paciente
             if (!string.IsNullOrEmpty(request.Paciente.FotoPaciente))
             {
                 try
@@ -307,9 +316,6 @@ namespace ProtoScaner.Server.Controllers
             return _context.Pacientes.Any(e => e.IdPaciente == id);
         }
 
-
-
-
         // Avanzar estatus de paciente
         [HttpPut("{id}/avanzarEstatusPaciente")]
         public async Task<IActionResult> AvanzarEstatusPaciente(int id)
@@ -322,18 +328,42 @@ namespace ProtoScaner.Server.Controllers
 
             if (!paciente.IdEstatusPaciente.HasValue)
             {
-                return BadRequest("El paciente no tiene un estatus asignado.");
+                paciente.IdEstatusPaciente = 1; // Inicializar a 1 si es nulo
             }
-
-            // Verificar si ya está en el estatus final
-            if (paciente.IdEstatusPaciente >= 5)
+            else if (paciente.IdEstatusPaciente >= 6)
             {
                 return BadRequest("El estatus de paciente ya está en el estado final.");
             }
+            else
+            {
+                paciente.IdEstatusPaciente += 1;
 
-            paciente.IdEstatusPaciente += 1;
-
-            // Si el estatus de paciente se actualiza a 'Completado' (4) y prótesis está en 'Entregado' (5), hacer algo si es necesario
+                // Lógica específica según los estatus
+                if (paciente.IdEstatusPaciente == 2)
+                {
+                    // Cuando el paciente está en 'Pendiente de Prueba', la prótesis debería estar en 'Impreso 1'
+                    if (paciente.IdEstatusProtesis < 2)
+                    {
+                        paciente.IdEstatusProtesis = 2; // 'Impreso 1'
+                    }
+                }
+                else if (paciente.IdEstatusPaciente == 4)
+                {
+                    // Cuando el paciente está en 'Pendiente Definitivo Cita', la prótesis debería estar en 'Impreso 2'
+                    if (paciente.IdEstatusProtesis < 4)
+                    {
+                        paciente.IdEstatusProtesis = 4; // 'Impreso 2'
+                    }
+                }
+                else if (paciente.IdEstatusPaciente == 6)
+                {
+                    // Si el paciente se marca como 'Completado', la prótesis debe estar en 'Entregado'
+                    if (paciente.IdEstatusProtesis < 5)
+                    {
+                        paciente.IdEstatusProtesis = 5; // 'Entregado'
+                    }
+                }
+            }
 
             await _context.SaveChangesAsync();
 
@@ -350,23 +380,34 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound("Paciente no encontrado.");
             }
 
-            if (!paciente.IdEstatusPaciente.HasValue)
+            if (!paciente.IdEstatusPaciente.HasValue || paciente.IdEstatusPaciente <= 1)
             {
-                return BadRequest("El paciente no tiene un estatus asignado.");
-            }
-
-            // Verificar si ya está en el estatus inicial
-            if (paciente.IdEstatusPaciente <= 1)
-            {
-                return BadRequest("El estatus de paciente ya está en el estado inicial.");
+                return BadRequest("El estatus de paciente ya está en el estado inicial o no ha sido asignado.");
             }
 
             paciente.IdEstatusPaciente -= 1;
 
-            // Si el estatus de paciente se retrocede a 'Prueba' (2), se puede considerar revertir el estatus de prótesis
-            if (paciente.IdEstatusPaciente < 2)
+            // Lógica específica según los estatus
+            if (paciente.IdEstatusPaciente == 3)
             {
-                paciente.IdEstatusProtesis = null; // Opcional: eliminar estatus de prótesis
+                // Si el paciente retrocede a 'Prueba', la prótesis debe estar en 'Pendiente Diseño 2'
+                if (paciente.IdEstatusProtesis > 3)
+                {
+                    paciente.IdEstatusProtesis = 3; // 'Pendiente Diseño 2'
+                }
+            }
+            else if (paciente.IdEstatusPaciente == 2)
+            {
+                // Si el paciente retrocede a 'Pendiente de Prueba', la prótesis debe estar en 'Impreso 1'
+                if (paciente.IdEstatusProtesis > 2)
+                {
+                    paciente.IdEstatusProtesis = 2; // 'Impreso 1'
+                }
+            }
+            else if (paciente.IdEstatusPaciente < 2)
+            {
+                // Si retrocede por debajo de 'Pendiente de Prueba', establecer estatus de prótesis a 'Pendiente Diseño 1'
+                paciente.IdEstatusProtesis = 1; // 'Pendiente Diseño 1'
             }
 
             await _context.SaveChangesAsync();
@@ -378,40 +419,65 @@ namespace ProtoScaner.Server.Controllers
         [HttpPut("{id}/avanzarEstatusProtesis")]
         public async Task<IActionResult> AvanzarEstatusProtesis(int id)
         {
-            var paciente = await _context.Pacientes
-                                         .Include(p => p.PruebaSockets)
-                                         .FirstOrDefaultAsync(p => p.IdPaciente == id);
+            var paciente = await _context.Pacientes.FindAsync(id);
 
             if (paciente == null)
             {
                 return NotFound("Paciente no encontrado.");
             }
 
-            // Verificar si el paciente ha pasado la prueba de socket
-            if (!paciente.PruebaSockets.Any())
-            {
-                return BadRequest("El paciente no ha pasado la prueba de socket.");
-            }
-
             if (!paciente.IdEstatusProtesis.HasValue)
             {
-                return BadRequest("El paciente no tiene un estatus de prótesis asignado.");
+                paciente.IdEstatusProtesis = 1; // Inicializar a 1 si es nulo
             }
-
-            // Verificar si ya está en el estatus final
-            if (paciente.IdEstatusProtesis >= 5)
+            else if (paciente.IdEstatusProtesis >= 6)
             {
                 return BadRequest("El estatus de prótesis ya está en el estado final.");
             }
-
-            paciente.IdEstatusProtesis += 1;
-
-            // Si el estatus de prótesis se actualiza a 'Entregado' (5), actualizar el estatus de paciente a 'Completado' (4) automáticamente
-            if (paciente.IdEstatusProtesis == 5)
+            else
             {
-                if (paciente.IdEstatusPaciente < 4)
+                paciente.IdEstatusProtesis += 1;
+
+                // Lógica específica según los estatus
+                if (paciente.IdEstatusProtesis == 2)
                 {
-                    paciente.IdEstatusPaciente = 4; // 'Completado'
+                    // Al avanzar a 'Impreso 1', actualizar estatus de paciente a 'Pendiente de Prueba'
+                    if (paciente.IdEstatusPaciente < 2)
+                    {
+                        paciente.IdEstatusPaciente = 2; // 'Pendiente de Prueba'
+                    }
+                }
+                else if (paciente.IdEstatusProtesis == 3)
+                {
+                    // Al avanzar a 'Pendiente Diseño 2', actualizar estatus de paciente a 'Prueba'
+                    if (paciente.IdEstatusPaciente < 3)
+                    {
+                        paciente.IdEstatusPaciente = 3; // 'Prueba'
+                    }
+                }
+                else if (paciente.IdEstatusProtesis == 4)
+                {
+                    // Al avanzar a 'Impreso 2', actualizar estatus de paciente a 'Pendiente Definitivo Cita'
+                    if (paciente.IdEstatusPaciente < 4)
+                    {
+                        paciente.IdEstatusPaciente = 4; // 'Pendiente Definitivo Cita'
+                    }
+                }
+                else if (paciente.IdEstatusProtesis == 5)
+                {
+                    // Al avanzar a 'Entregado', si el paciente no está en 'Completado', actualizarlo
+                    if (paciente.IdEstatusPaciente < 6)
+                    {
+                        paciente.IdEstatusPaciente = 6; // 'Completado'
+                    }
+                }
+                else if (paciente.IdEstatusProtesis == 6)
+                {
+                    // 'Descartado' solo se puede alcanzar manualmente si el paciente está en 'Completado'
+                    if (paciente.IdEstatusPaciente != 6)
+                    {
+                        return BadRequest("No se puede descartar la prótesis si el paciente no está en 'Completado'.");
+                    }
                 }
             }
 
@@ -430,28 +496,48 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound("Paciente no encontrado.");
             }
 
-            if (!paciente.IdEstatusProtesis.HasValue)
+            if (!paciente.IdEstatusProtesis.HasValue || paciente.IdEstatusProtesis <= 1)
             {
-                return BadRequest("El paciente no tiene un estatus de prótesis asignado.");
-            }
-
-            // Verificar si ya está en el estatus inicial
-            if (paciente.IdEstatusProtesis <= 1)
-            {
-                return BadRequest("El estatus de prótesis ya está en el estado inicial.");
+                return BadRequest("El estatus de prótesis ya está en el estado inicial o no ha sido asignado.");
             }
 
             paciente.IdEstatusProtesis -= 1;
 
-            // Si el estatus de prótesis se retrocede por debajo de 'Entregado' (5), mantener el estatus de paciente en 'Completado' (4) o revertir si es necesario
-            if (paciente.IdEstatusProtesis < 5 && paciente.IdEstatusPaciente == 4)
+            // Lógica específica según los estatus
+            if (paciente.IdEstatusProtesis == 4)
             {
-                paciente.IdEstatusPaciente = 3; // 'Completado' a 'Pendiente definitivo cita' o según la lógica requerida
+                // Si retrocede a 'Impreso 2', el paciente debe estar en 'Pendiente Definitivo Cita'
+                if (paciente.IdEstatusPaciente > 4)
+                {
+                    paciente.IdEstatusPaciente = 4; // 'Pendiente Definitivo Cita'
+                }
+            }
+            else if (paciente.IdEstatusProtesis == 3)
+            {
+                // Si retrocede a 'Pendiente Diseño 2', el paciente debe estar en 'Prueba'
+                if (paciente.IdEstatusPaciente > 3)
+                {
+                    paciente.IdEstatusPaciente = 3; // 'Prueba'
+                }
+            }
+            else if (paciente.IdEstatusProtesis == 2)
+            {
+                // Si retrocede a 'Impreso 1', el paciente debe estar en 'Pendiente de Prueba'
+                if (paciente.IdEstatusPaciente > 2)
+                {
+                    paciente.IdEstatusPaciente = 2; // 'Pendiente de Prueba'
+                }
+            }
+            else if (paciente.IdEstatusProtesis < 5 && paciente.IdEstatusPaciente == 6)
+            {
+                // Si la prótesis no está en 'Entregado' y el paciente estaba en 'Completado', retroceder el paciente
+                paciente.IdEstatusPaciente = 5; // 'Pendiente Definitivo'
             }
 
             await _context.SaveChangesAsync();
 
             return Ok("Estatus de prótesis retrocedido.");
         }
+
     }
 }

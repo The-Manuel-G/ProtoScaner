@@ -37,6 +37,8 @@ public partial class PruebaSocket
 
     public DateOnly? FechaPractica { get; set; }
 
+    public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
+
     public virtual ICollection<Entrega> Entregas { get; set; } = new List<Entrega>();
 
     public virtual Componente? IdComponenteNavigation { get; set; }

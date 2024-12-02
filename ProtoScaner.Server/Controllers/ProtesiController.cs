@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
 using ProtoScaner.Server.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,160 +19,324 @@ namespace ProtoScaner.Server.Controllers
         {
             _context = context;
         }
-
         // GET: api/Protesis
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProtesiDto>>> GetProtesis()
         {
-            var protesis = await _context.Protesis
-                .AsNoTracking()
-                .Include(p => p.CodigoPacienteNavigation)
-                    .ThenInclude(p => p.HistorialPacienteIngresos)
-                .Select(p => new ProtesiDto
-                {
-                    IdProtesis = p.IdProtesis,
-                    CodigoPaciente = p.CodigoPaciente,
-                    LinerTipo = p.LinerTipo,
-                    LinerTamano = p.LinerTamano,
-                    Protesista = p.Protesista,
-                    FechaEntrega = p.FechaEntrega,
-                    Material = p.Material,
-                    Paciente = p.CodigoPacienteNavigation == null ? null : new PacienteDTO
-                    {
-                        IdPaciente = p.CodigoPacienteNavigation.IdPaciente,
-                        NombreCompleto = p.CodigoPacienteNavigation.NombreCompleto,
-                        Cedula = p.CodigoPacienteNavigation.Cedula,
-                        Genero = p.CodigoPacienteNavigation.Genero,
-                        FechaNacimiento = p.CodigoPacienteNavigation.FechaNacimiento.ToString(),
-                        Direccion = p.CodigoPacienteNavigation.Direccion,
-                        Telefono = p.CodigoPacienteNavigation.Telefono,
-                        TelefonoCelular = p.CodigoPacienteNavigation.TelefonoCelular,
-                        IdProvincia = p.CodigoPacienteNavigation.IdProvincia,
-                        Sector = p.CodigoPacienteNavigation.Sector,
-                        Insidencia = p.CodigoPacienteNavigation.Insidencia,
-                        IdEstatusPaciente = p.CodigoPacienteNavigation.IdEstatusPaciente,
-                        IdEstatusProtesis = p.CodigoPacienteNavigation.IdEstatusProtesis,
-                        Comentario = p.CodigoPacienteNavigation.Comentario,
-                        HistorialPacienteIngresos = p.CodigoPacienteNavigation.HistorialPacienteIngresos
-                            .Select(h => new HistorialPacienteIngresoDTO
-                            {
-                                IdHistorial = h.IdHistorial,
-                                IdPaciente = h.IdPaciente,
-                                TipoAmputacion = h.TipoAmputacion,
-                                LadoAmputacion = h.LadoAmputacion,
-                                FechaAmputacion = h.FechaAmputacion,
-                                Causa = h.Causa,
-                                Terapia = h.Terapia,
-                                TiempoTerapia = h.TiempoTerapia,
-                                IdMedida = h.IdMedida,
-                                Comentario = h.Comentario
-                            }).ToList()
-                    }
-                })
+            var protesisList = await _context.Protesis
+                .Include(p => p.IdPacienteNavigation)
+                    .ThenInclude(pa => pa.HistorialPacienteIngresos)
+                .Include(p => p.LinerTipoNavigation)
+                .Include(p => p.LinerTamanoNavigation)
                 .ToListAsync();
 
-            return Ok(protesis);
+            var protesisDTO = protesisList.Select(p => MapToProtesiDto(p)).ToList();
+
+            return Ok(protesisDTO);
         }
+
+        // GET: api/Protesis/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProtesiDto>> GetProtesis(int id)
+        {
+            var protesis = await _context.Protesis
+                .Include(p => p.IdPacienteNavigation)
+                    .ThenInclude(pa => pa.HistorialPacienteIngresos)
+                .Include(p => p.LinerTipoNavigation)
+                .Include(p => p.LinerTamanoNavigation)
+                .FirstOrDefaultAsync(p => p.IdProtesis == id);
+
+            if (protesis == null)
+            {
+                return NotFound();
+            }
+
+            var protesisDTO = MapToProtesiDto(protesis);
+            return Ok(protesisDTO);
+        }
+
+        // POST: api/Protesis
+        [HttpPost]
+        public async Task<ActionResult<ProtesiDto>> CreateProtesis(ProtesiDto protesisDTO)
+        {
+            if (protesisDTO.IdPaciente == null)
+            {
+                return BadRequest("El IdPaciente es requerido.");
+            }
+
+            var paciente = await _context.Pacientes.FindAsync(protesisDTO.IdPaciente);
+            if (paciente == null)
+            {
+                return NotFound($"Paciente con Id {protesisDTO.IdPaciente} no encontrado.");
+            }
+
+            var protesis = new Protesi
+            {
+                IdPaciente = protesisDTO.IdPaciente,
+                LinerTipo = protesisDTO.LinerTipo,
+                LinerTamano = protesisDTO.LinerTamano,
+                Protesista = protesisDTO.Protesista,
+                Material = protesisDTO.Material,
+                FechaEntrega = !string.IsNullOrEmpty(protesisDTO.FechaEntrega)
+                    ? DateOnly.Parse(protesisDTO.FechaEntrega)
+                    : (DateOnly?)null
+            };
+
+            _context.Protesis.Add(protesis);
+            await _context.SaveChangesAsync();
+
+            if (protesisDTO.SocketPaciente != null)
+            {
+                if (protesisDTO.SocketPaciente.IdPaciente != protesisDTO.IdPaciente)
+                {
+                    return BadRequest("El IdPaciente en SocketPaciente debe coincidir con el IdPaciente de la prótesis.");
+                }
+
+                var socketPaciente = new SocketPaciente
+                {
+                    IdPaciente = protesisDTO.SocketPaciente.IdPaciente,
+                    Descripcion = protesisDTO.SocketPaciente.Descripcion,
+                    Tamaño = protesisDTO.SocketPaciente.Tamaño,
+                    FechaCreacion = protesisDTO.SocketPaciente.FechaCreacion
+                };
+
+                _context.SocketPacientes.Add(socketPaciente);
+                await _context.SaveChangesAsync();
+            }
+
+            var createdProtesisDTO = await GetProtesis(protesis.IdProtesis);
+
+            return CreatedAtAction(nameof(GetProtesis), new { id = protesis.IdProtesis }, createdProtesisDTO.Value);
+        }
+
+        // PUT: api/Protesis/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProtesis(int id, ProtesiDto protesisDTO)
+        {
+            if (id != protesisDTO.IdProtesis)
+            {
+                return BadRequest("El ID en la URL no coincide con el ID en el cuerpo de la solicitud.");
+            }
+
+            var protesis = await _context.Protesis.FindAsync(id);
+            if (protesis == null)
+            {
+                return NotFound($"Prótesis con ID {id} no encontrada.");
+            }
+
+            protesis.IdPaciente = protesisDTO.IdPaciente;
+            protesis.LinerTipo = protesisDTO.LinerTipo;
+            protesis.LinerTamano = protesisDTO.LinerTamano;
+            protesis.Protesista = protesisDTO.Protesista;
+            protesis.Material = protesisDTO.Material;
+            protesis.FechaEntrega = !string.IsNullOrEmpty(protesisDTO.FechaEntrega)
+                ? DateOnly.Parse(protesisDTO.FechaEntrega)
+                : (DateOnly?)null;
+
+            _context.Entry(protesis).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProtesisExists(id))
+                {
+                    return NotFound($"Prótesis con ID {id} ya no existe.");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
 
         // POST: api/Protesis/AsignarComponenteProtesis
         [HttpPost("AsignarComponenteProtesis")]
-        public async Task<IActionResult> AsignarComponenteProtesis(int protesisId, int componentId, int cantidad)
+        public async Task<IActionResult> AsignarComponenteProtesis([FromBody] ProtesisComponenteDTO dto)
         {
-            var inventario = await _context.InventarioComponentes
-                .Include(i => i.Componente)
-                .FirstOrDefaultAsync(i => i.ComponentID == componentId);
-
-            if (inventario == null || inventario.StockActual < cantidad)
-                return BadRequest("Stock insuficiente para asignar a la prótesis.");
-
-            var protesisComponente = new ProtesisComponente
+            // Validar que ComponentID y Cantidad no sean null
+            if (!dto.ComponentID.HasValue)
             {
-                ProtesisId = protesisId,
-                ComponentId = componentId,
-                Cantidad = cantidad
-            };
-            _context.ProtesisComponentes.Add(protesisComponente);
+                return BadRequest("El ComponentID es requerido.");
+            }
 
-            inventario.StockActual -= cantidad;
-
-            var movimiento = new MovimientoInventario
+            if (!dto.Cantidad.HasValue)
             {
-                ComponentID = componentId,
-                TipoMovimiento = "Salida",
-                Cantidad = cantidad,
-                Descripcion = $"Asignación a prótesis {protesisId}"
-            };
-            _context.MovimientosInventario.Add(movimiento);
+                return BadRequest("La Cantidad es requerida.");
+            }
+
+            if (dto.Cantidad.Value <= 0)
+            {
+                return BadRequest("La cantidad debe ser un número positivo.");
+            }
+
+            // Validar que la prótesis exista
+            var protesis = await _context.Protesis.FindAsync(dto.ProtesisId);
+            if (protesis == null)
+            {
+                return NotFound($"Prótesis con ID {dto.ProtesisId} no encontrada.");
+            }
+
+            // Validar que el componente exista
+            var componente = await _context.Componentes.FindAsync(dto.ComponentID.Value);
+            if (componente == null)
+            {
+                return NotFound($"Componente con ID {dto.ComponentID} no encontrado.");
+            }
+
+            // Verificar si el componente ya está asignado a la prótesis
+            var protesisComponente = await _context.ProtesisComponentes
+                .FirstOrDefaultAsync(pc => pc.ProtesisId == dto.ProtesisId && pc.ComponentId == dto.ComponentID.Value);
+
+            if (protesisComponente != null)
+            {
+                // Actualizar la cantidad si ya existe
+                protesisComponente.Cantidad += dto.Cantidad.Value;
+            }
+            else
+            {
+                // Asignar un nuevo componente
+                protesisComponente = new ProtesisComponente
+                {
+                    ProtesisId = dto.ProtesisId,
+                    ComponentId = dto.ComponentID.Value,
+                    Cantidad = dto.Cantidad.Value
+                };
+                _context.ProtesisComponentes.Add(protesisComponente);
+            }
 
             await _context.SaveChangesAsync();
 
-            var componenteDTO = new ComponenteDTO
-            {
-                ComponentId = componentId,
-                ComponentTipoId = inventario.Componente.ComponentTipoId,
-                Codigo = inventario.Componente.Codigo,
-                Description = inventario.Componente.Description
-            };
-
-            return Ok(new { mensaje = "Componente asignado a la prótesis y stock actualizado.", inventario, componenteDTO });
+            return Ok("Componente asignado exitosamente a la prótesis.");
         }
 
         // POST: api/Protesis/AsignarMultiplesComponentesAProtesis
         [HttpPost("AsignarMultiplesComponentesAProtesis")]
-        public async Task<IActionResult> AsignarMultiplesComponentesAProtesis(int protesisId, List<ProtesisComponenteDTO> componentes)
+        public async Task<IActionResult> AsignarMultiplesComponentesAProtesis(int protesisID, [FromBody] List<ProtesisComponenteDTO> componentesDTO)
         {
-            var errores = new List<string>();
-
-            foreach (var componenteDto in componentes)
+            if (componentesDTO == null || componentesDTO.Count == 0)
             {
-                var inventario = await _context.InventarioComponentes
-                    .Include(i => i.Componente)
-                    .FirstOrDefaultAsync(i => i.ComponentID == componenteDto.ComponentID); // Usa ComponentID
-
-                if (inventario == null)
-                {
-                    errores.Add($"Componente con ID {componenteDto.ComponentID} no encontrado en el inventario."); // Usa ComponentID
-                    continue;
-                }
-
-                if (inventario.StockActual < (componenteDto.Cantidad ?? 0))
-                {
-                    errores.Add($"Stock insuficiente para el componente con ID {componenteDto.ComponentID}. Stock actual: {inventario.StockActual}, requerido: {componenteDto.Cantidad ?? 0}."); // Usa ComponentID
-                }
+                return BadRequest("La lista de componentes no puede estar vacía.");
             }
 
-            if (errores.Any())
-                return BadRequest(new { mensaje = "Errores en la asignación de componentes", errores });
-
-            foreach (var componenteDto in componentes)
+            // Validar que la prótesis exista
+            var protesis = await _context.Protesis.FindAsync(protesisID);
+            if (protesis == null)
             {
-                var protesisComponente = new ProtesisComponente
-                {
-                    ProtesisId = protesisId,
-                    ComponentId = componenteDto.ComponentID,  // Usa ComponentID aquí
-                    Cantidad = componenteDto.Cantidad ?? 0
-                };
-                _context.ProtesisComponentes.Add(protesisComponente);
+                return NotFound($"Prótesis con ID {protesisID} no encontrada.");
+            }
 
-                var inventario = await _context.InventarioComponentes.FirstOrDefaultAsync(i => i.ComponentID == componenteDto.ComponentID); // Usa ComponentID aquí también
-                inventario.StockActual -= componenteDto.Cantidad ?? 0;
-
-                var movimiento = new MovimientoInventario
+            foreach (var dto in componentesDTO)
+            {
+                // Validar que ComponentID y Cantidad no sean null
+                if (!dto.ComponentID.HasValue)
                 {
-                    ComponentID = componenteDto.ComponentID,  // Usa ComponentID aquí también
-                    TipoMovimiento = "Salida",
-                    Cantidad = componenteDto.Cantidad ?? 0,
-                    Descripcion = $"Asignación a prótesis {protesisId}"
-                };
-                _context.MovimientosInventario.Add(movimiento);
+                    return BadRequest("El ComponentID es requerido para cada componente.");
+                }
+
+                if (!dto.Cantidad.HasValue)
+                {
+                    return BadRequest("La Cantidad es requerida para cada componente.");
+                }
+
+                if (dto.Cantidad.Value <= 0)
+                {
+                    return BadRequest("La cantidad de cada componente debe ser un número positivo.");
+                }
+
+                // Validar que cada componente exista
+                var componente = await _context.Componentes.FindAsync(dto.ComponentID.Value);
+                if (componente == null)
+                {
+                    return NotFound($"Componente con ID {dto.ComponentID} no encontrado.");
+                }
+
+                // Verificar si el componente ya está asignado a la prótesis
+                var protesisComponente = await _context.ProtesisComponentes
+                    .FirstOrDefaultAsync(pc => pc.ProtesisId == protesisID && pc.ComponentId == dto.ComponentID.Value);
+
+                if (protesisComponente != null)
+                {
+                    // Actualizar la cantidad si ya existe
+                    protesisComponente.Cantidad += dto.Cantidad.Value;
+                }
+                else
+                {
+                    // Asignar un nuevo componente
+                    protesisComponente = new ProtesisComponente
+                    {
+                        ProtesisId = protesisID,
+                        ComponentId = dto.ComponentID.Value,
+                        Cantidad = dto.Cantidad.Value
+                    };
+                    _context.ProtesisComponentes.Add(protesisComponente);
+                }
             }
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Componentes asignados a la prótesis y stock actualizado." });
+            return Ok("Múltiples componentes asignados exitosamente a la prótesis.");
+        }
+
+        // Método de mapeo manual de Protesi a ProtesiDto
+        private ProtesiDto MapToProtesiDto(Protesi protesis)
+        {
+            return new ProtesiDto
+            {
+                IdProtesis = protesis.IdProtesis,
+                IdPaciente = protesis.IdPaciente,
+                LinerTipo = protesis.LinerTipo,
+                LinerTamano = protesis.LinerTamano,
+                Protesista = protesis.Protesista,
+                FechaEntrega = protesis.FechaEntrega?.ToString("yyyy-MM-dd"),
+                Material = protesis.Material,
+                Paciente = protesis.IdPacienteNavigation != null ? new PacienteDTO
+                {
+                    IdPaciente = protesis.IdPacienteNavigation.IdPaciente,
+                    NombreCompleto = protesis.IdPacienteNavigation.NombreCompleto,
+                    FechaNacimiento = protesis.IdPacienteNavigation.FechaNacimiento?.ToString("yyyy-MM-dd"),
+                    HistorialPacienteIngresos = protesis.IdPacienteNavigation.HistorialPacienteIngresos?.Select(hpi => new HistorialPacienteIngresoDTO
+                    {
+                        IdHistorial = hpi.IdHistorial,
+                        IdPaciente = hpi.IdPaciente,
+                        TipoAmputacion = hpi.TipoAmputacion.HasValue // Validación para asignar el valor como nullable int
+                            ? new TipoAmputacionDTO
+                            {
+                                IdTipoAmputacion = hpi.TipoAmputacion.Value // Conversión explícita
+                            }.IdTipoAmputacion
+                            : (int?)null, // Si no tiene valor, asigna null
+                        LadoAmputacion = hpi.LadoAmputacion
+                    }).ToList()
+                } : null,
+                Liner = protesis.LinerTipoNavigation != null && protesis.LinerTamanoNavigation != null ? new LinerDTO
+                {
+                    TipoLiner = new TipoLinerDTO
+                    {
+                        IdTipoLiner = protesis.LinerTipoNavigation.IdTipoLiner,
+                        TipoNombre = protesis.LinerTipoNavigation.TipoNombre
+                    },
+                    Talla = new TallaDto
+                    {
+                        IdTalla = protesis.LinerTamanoNavigation.IdTalla,
+                        TallaNombre = protesis.LinerTamanoNavigation.TallaNombre,
+                        TipoAmputacionId = protesis.LinerTamanoNavigation.TipoAmputacionId // Sin necesidad de convertir explícitamente ya que coincide el tipo
+                    }
+                } : null,
+                SocketPaciente = null // No se incluye en los GET
+            };
         }
 
 
-
+        // Método para verificar si una prótesis existe
+        private bool ProtesisExists(int id)
+        {
+            return _context.Protesis.Any(e => e.IdProtesis == id);
+        }
     }
 }
+

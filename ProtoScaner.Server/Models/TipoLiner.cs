@@ -9,9 +9,7 @@ public partial class TipoLiner
 
     public string TipoNombre { get; set; } = null!;
 
-    public virtual ICollection<LinerTransfemoral> LinerTransfemorals { get; set; } = new List<LinerTransfemoral>();
-
-    public virtual ICollection<LinerTranstibial> LinerTranstibials { get; set; } = new List<LinerTranstibial>();
+    public virtual ICollection<Liner> Liners { get; set; } = new List<Liner>();
 
     public virtual ICollection<Protesi> Protesis { get; set; } = new List<Protesi>();
 }
