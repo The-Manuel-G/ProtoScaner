@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProtoScaner.Server.DTOs;
+using System;
 using System.Collections.Generic;
 
 
