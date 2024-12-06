@@ -17,19 +17,13 @@ const EditProsthesisPanel = ({ onClose, onSubmit, prosthesis }: any) => {
         fechaEntrega: null,
     });
 
-    const linerTipoOptions = [
-        { name: 'Tipo 1', value: 1 },
-        { name: 'Tipo 2', value: 2 },
-        { name: 'Tipo 3', value: 3 },
-    ];
 
     const linerTamanoOptions = [
         { name: 'Pequeño', value: 1 },
         { name: 'Mediano', value: 2 },
         { name: 'Grande', value: 3 },
     ];
-   
-     
+
     useEffect(() => {
         if (prosthesis) {
             setFormData({
@@ -53,7 +47,7 @@ const EditProsthesisPanel = ({ onClose, onSubmit, prosthesis }: any) => {
     };
 
     const handleDropdownChange = (e: any) => {
-        const { name, value } = e;
+        const { name, value } = e.target ? e.target : e; // Ajuste para compatibilidad con `Dropdown`.
         setFormData((prev) => ({
             ...prev,
             [name]: value,
@@ -62,7 +56,7 @@ const EditProsthesisPanel = ({ onClose, onSubmit, prosthesis }: any) => {
 
     const handleSubmit = () => {
         if (!formData.protesista || !formData.material || formData.linerTipo === null || formData.linerTamano === null) {
-            alert("Please fill in all required fields.");
+            alert("Por favor, complete todos los campos obligatorios.");
             return;
         }
 
@@ -84,14 +78,14 @@ const EditProsthesisPanel = ({ onClose, onSubmit, prosthesis }: any) => {
     return (
         <div className="edit-panel">
             <div className="edit-panel-content">
-                <h3>Edit Prosthesis</h3>
+                <h3>Editar Protesis</h3>
 
                 <div className="form-group">
                     <InputText
                         name="protesista"
                         value={formData.protesista}
                         onChange={handleChange}
-                        placeholder="Prosthetist"
+                        placeholder="Protesista"
                     />
                 </div>
 
@@ -103,43 +97,56 @@ const EditProsthesisPanel = ({ onClose, onSubmit, prosthesis }: any) => {
                         placeholder="Material"
                     />
                 </div>
-
-                <div className="form-group">
-                    <FloatLabel className="w-full md:w-14rem">
-                        <Dropdown
-                            inputId="dd-linerTipo"
-                            name="linerTipo"
-                            value={formData.linerTipo}
-                            options={linerTipoOptions}
-                            onChange={handleDropdownChange}
-                            optionLabel="name"
-                            placeholder="Liner Type"
-                        />
-                        <label htmlFor="dd-linerTipo">Select Liner Type</label>
-                    </FloatLabel>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Tipo de Liner</label>
+                    <select
+                        name="linerTipo"
+                        value={formData.linerTipo}
+                        onChange={handleChange}
+                        className={`mt-1 block w-full rounded-md border ${!formData.linerTipo ? 'border-red-500' : 'border-gray-300'
+                            } bg-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    >
+                        <option value="">Seleccione el tipo de liner</option>
+                        <option value="1">Cushion</option>
+                        <option value="2">Pin</option>
+                        {/* Agrega más opciones dinámicamente según tus datos */}
+                    </select>
+                    {!formData.linerTipo && <p className="mt-1 text-sm text-red-500">Este campo es obligatorio</p>}
                 </div>
 
-                <div className="form-group">
-                    <FloatLabel className="w-full md:w-14rem">
-                        <Dropdown
-                            inputId="dd-linerTamano"
-                            name="linerTamano"
-                            value={formData.linerTamano}
-                            options={linerTamanoOptions}
-                            onChange={handleDropdownChange}
-                            optionLabel="label"
-                            placeholder="Liner Size"
-                        />
-                        <label htmlFor="dd-linerTamano">Select Liner Size</label>
-                    </FloatLabel>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Tama&ntilde;o del Liner</label>
+                    <select
+                        name="linerTamano"
+                        value={formData.linerTamano}
+                        onChange={handleChange}
+                        className={`mt-1 block w-full rounded-md border ${!formData.linerTamano ? 'border-red-500' : 'border-gray-300'
+                            } bg-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    >
+                        <option value="">Seleccione el tama&ntilde;o del liner</option>
+                        <option value="1">Small</option>
+                        <option value="2">Medium</option>
+                        <option value="3">Medium Plus</option>
+                        <option value="4">Large</option>
+                        <option value="5">X Large+</option>
+                        <option value="6">28</option>
+                        <option value="7">32</option>
+                        <option value="8">38</option>
+                        <option value="9">44</option>
+
+                  
+                    </select>
+
+                    {!formData.linerTamano && <p className="mt-1 text-sm text-red-500">Este campo es obligatorio</p>}
                 </div>
+
 
                 <div className="form-group">
                     <InputText
                         name="idPaciente"
                         value={formData.idPaciente || ''}
                         onChange={handleChange}
-                        placeholder="Patient ID"
+                        placeholder="ID del Paciente"
                     />
                 </div>
 
@@ -148,13 +155,13 @@ const EditProsthesisPanel = ({ onClose, onSubmit, prosthesis }: any) => {
                         name="fechaEntrega"
                         value={formData.fechaEntrega}
                         onChange={(e: any) => handleChange({ target: { name: 'fechaEntrega', value: e.value } })}
-                        placeholder="Delivery Date"
+                        placeholder="Fecha de Entrega"
                     />
                 </div>
 
                 <div className="form-buttons">
-                    <Button label="Save" onClick={handleSubmit} />
-                    <Button label="Cancel" onClick={onClose} className="cancel-button" />
+                    <Button label="Guardar" onClick={handleSubmit} />
+                    <Button label="Cancelar" onClick={onClose} className="cancel-button" />
                 </div>
             </div>
         </div>
