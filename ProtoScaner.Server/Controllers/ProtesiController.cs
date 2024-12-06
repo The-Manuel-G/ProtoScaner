@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProtoScaner.Server.Models;
 using ProtoScaner.Server.DTOs;
@@ -87,7 +87,7 @@ namespace ProtoScaner.Server.Controllers
                         {
                             IdTalla = p.LinerTamanoNavigation.IdTalla,
                             TallaNombre = p.LinerTamanoNavigation.TallaNombre,
-                            TipoAmputacionId = p.LinerTamanoNavigation.TipoAmputacionId , // Maneja int nullable
+                            TipoAmputacionId = p.LinerTamanoNavigation.TipoAmputacionId, // Maneja int nullable
                             PacienteId = p.IdPaciente ?? 0, // Maneja int nullable
                             // Eliminado TipoAmputacion para evitar acceder al nombre
                         },
@@ -168,7 +168,7 @@ namespace ProtoScaner.Server.Controllers
                         {
                             IdTalla = p.LinerTamanoNavigation.IdTalla,
                             TallaNombre = p.LinerTamanoNavigation.TallaNombre,
-                            TipoAmputacionId = p.LinerTamanoNavigation.TipoAmputacionId , // Maneja int nullable
+                            TipoAmputacionId = p.LinerTamanoNavigation.TipoAmputacionId, // Maneja int nullable
                             PacienteId = p.IdPaciente ?? 0, // Maneja int nullable
                             // Eliminado TipoAmputacion para evitar acceder al nombre
                         },
@@ -186,41 +186,15 @@ namespace ProtoScaner.Server.Controllers
             return Ok(protesis);
         }
 
+
         // POST: api/Protesis
         [HttpPost]
-        public async Task<ActionResult<ProtesiDto>> CreateProtesis(ProtesiDto protesisDTO)
+        public async Task<ActionResult<CreateProtesiDto>> CreateProtesis(CreateProtesiDto protesisDTO)
         {
             // Validaciones básicas
-            if (protesisDTO.IdPaciente == null || protesisDTO.IdPaciente == 0)
+            if (protesisDTO.LinerTipo == 0 || protesisDTO.LinerTamano == 0)
             {
-                return BadRequest("El IdPaciente es requerido.");
-            }
-
-            // Verificar si el paciente existe
-            var paciente = await _context.Pacientes.FindAsync(protesisDTO.IdPaciente);
-            if (paciente == null)
-            {
-                return NotFound($"Paciente con Id {protesisDTO.IdPaciente} no encontrado.");
-            }
-
-            // Verificar si el tipo de liner existe (si se proporciona)
-            if (protesisDTO.LinerTipo.HasValue && protesisDTO.LinerTipo.Value != 0)
-            {
-                var tipoLiner = await _context.TipoLiners.FindAsync(protesisDTO.LinerTipo.Value);
-                if (tipoLiner == null)
-                {
-                    return NotFound($"TipoLiner con ID {protesisDTO.LinerTipo.Value} no encontrado.");
-                }
-            }
-
-            // Verificar si la talla del liner existe (si se proporciona)
-            if (protesisDTO.LinerTamano.HasValue && protesisDTO.LinerTamano.Value != 0)
-            {
-                var talla = await _context.Tallas.FindAsync(protesisDTO.LinerTamano.Value);
-                if (talla == null)
-                {
-                    return NotFound($"Talla con ID {protesisDTO.LinerTamano.Value} no encontrada.");
-                }
+                return BadRequest("El LinerTipo y LinerTamano son requeridos.");
             }
 
             // Crear la entidad Protesi
@@ -230,123 +204,23 @@ namespace ProtoScaner.Server.Controllers
                 LinerTipo = protesisDTO.LinerTipo,
                 LinerTamano = protesisDTO.LinerTamano,
                 Protesista = protesisDTO.Protesista,
-                Material = protesisDTO.Material,
                 FechaEntrega = !string.IsNullOrEmpty(protesisDTO.FechaEntrega)
                     ? DateOnly.Parse(protesisDTO.FechaEntrega)
-                    : (DateOnly?)null
+                    : (DateOnly?)null,
+                Material = protesisDTO.Material
             };
 
+            // Guardar en la base de datos
             _context.Protesis.Add(protesis);
             await _context.SaveChangesAsync();
 
-            // Manejo del SocketPaciente si se proporciona
-            if (protesisDTO.SocketPaciente != null)
-            {
-                if (protesisDTO.SocketPaciente.IdPaciente != protesisDTO.IdPaciente)
-                {
-                    return BadRequest("El IdPaciente en SocketPaciente debe coincidir con el IdPaciente de la prótesis.");
-                }
-
-                var socketPaciente = new SocketPaciente
-                {
-                    IdPaciente = protesisDTO.SocketPaciente.IdPaciente,
-                    Descripcion = protesisDTO.SocketPaciente.Descripcion,
-                    Tamaño = protesisDTO.SocketPaciente.Tamaño,
-                    FechaCreacion = protesisDTO.SocketPaciente.FechaCreacion
-                };
-
-                _context.SocketPacientes.Add(socketPaciente);
-                await _context.SaveChangesAsync();
-            }
-
-            // Construir el DTO para la respuesta
-            var protesisCreada = await _context.Protesis
-                .AsNoTracking()
-                .Include(p => p.IdPacienteNavigation)
-                    .ThenInclude(pa => pa.HistorialPacienteIngresos)
-                .Include(p => p.LinerTipoNavigation)
-                .Include(p => p.LinerTamanoNavigation)
-                .Where(p => p.IdProtesis == protesis.IdProtesis)
-                .Select(p => new ProtesiDto
-                {
-                    IdProtesis = p.IdProtesis,
-                    IdPaciente = p.IdPaciente ?? 0, // Maneja int nullable
-                    LinerTipo = p.LinerTipo,
-                    LinerTamano = p.LinerTamano,
-                    Protesista = p.Protesista,
-                    FechaEntrega = p.FechaEntrega.HasValue ? p.FechaEntrega.Value.ToString("yyyy-MM-dd") : null,
-                    Material = p.Material,
-                    Paciente = p.IdPacienteNavigation == null ? null : new PacienteDTO
-                    {
-                        IdPaciente = p.IdPacienteNavigation.IdPaciente,
-                        NombreCompleto = p.IdPacienteNavigation.NombreCompleto,
-                        FechaNacimiento = p.IdPacienteNavigation.FechaNacimiento.HasValue
-                            ? p.IdPacienteNavigation.FechaNacimiento.Value.ToString("yyyy-MM-dd")
-                            : null,
-                        Cedula = p.IdPacienteNavigation.Cedula,
-                        Genero = p.IdPacienteNavigation.Genero,
-                        Direccion = p.IdPacienteNavigation.Direccion,
-                        Telefono = p.IdPacienteNavigation.Telefono,
-                        TelefonoCelular = p.IdPacienteNavigation.TelefonoCelular,
-                        IdProvincia = p.IdPacienteNavigation.IdProvincia ?? 0, // Maneja int nullable
-                        Sector = p.IdPacienteNavigation.Sector,
-                        Insidencia = p.IdPacienteNavigation.Insidencia,
-                        IdEstatusPaciente = p.IdPacienteNavigation.IdEstatusPaciente ?? 0, // Maneja int nullable
-                        IdEstatusProtesis = p.IdPacienteNavigation.IdEstatusProtesis ?? 0, // Maneja int nullable
-                        Comentario = p.IdPacienteNavigation.Comentario,
-                        HistorialPacienteIngresos = p.IdPacienteNavigation.HistorialPacienteIngresos
-                            .Select(hpi => new HistorialPacienteIngresoDTO
-                            {
-                                IdHistorial = hpi.IdHistorial,
-                                IdPaciente = hpi.IdPaciente ?? 0, // Maneja int nullable
-                                TipoAmputacion = hpi.TipoAmputacion, // Cambio aquí
-                                LadoAmputacion = hpi.LadoAmputacion,
-                                FechaAmputacion = hpi.FechaAmputacion,
-                                Causa = hpi.Causa,
-                                Terapia = hpi.Terapia,
-                                TiempoTerapia = hpi.TiempoTerapia,
-                                IdMedida = hpi.IdMedida ?? 0, // Maneja int nullable
-                                Comentario = hpi.Comentario
-                            }).ToList()
-                    },
-                    Liner = p.LinerTipoNavigation == null || p.LinerTamanoNavigation == null ? null : new LinerDTO
-                    {
-                        IdLiner = p.LinerTipoNavigation.IdTipoLiner, // Asumiendo que 'IdLiner' corresponde a 'TipoLinerId'
-                        TipoLinerId = p.LinerTipo ?? 0, // Maneja int nullable
-                        TallaId = p.LinerTamano ?? 0, // Maneja int nullable
-                        PacienteId = p.IdPaciente ?? 0, // Maneja int nullable
-                        TipoLiner = new TipoLinerDTO
-                        {
-                            IdTipoLiner = p.LinerTipoNavigation.IdTipoLiner,
-                            TipoNombre = p.LinerTipoNavigation.TipoNombre
-                        },
-                        Talla = new TallaDto
-                        {
-                            IdTalla = p.LinerTamanoNavigation.IdTalla,
-                            TallaNombre = p.LinerTamanoNavigation.TallaNombre,
-                            TipoAmputacionId = p.LinerTamanoNavigation.TipoAmputacionId , // Maneja int nullable
-                            PacienteId = p.IdPaciente ?? 0, // Maneja int nullable
-                            // Eliminado TipoAmputacion para evitar acceder al nombre
-                        },
-                        Paciente = null // Puedes mapearlo si es necesario
-                    },
-                    SocketPaciente = protesisDTO.SocketPaciente != null ? new SocketPacienteDTO
-                    {
-                        // Asigna los valores correspondientes si es necesario
-                        IdPaciente = protesisDTO.SocketPaciente.IdPaciente,
-                        Descripcion = protesisDTO.SocketPaciente.Descripcion,
-                        Tamaño = protesisDTO.SocketPaciente.Tamaño,
-                        FechaCreacion = protesisDTO.SocketPaciente.FechaCreacion
-                    } : null
-                })
-                .FirstOrDefaultAsync();
-
-            return CreatedAtAction(nameof(GetProtesis), new { id = protesisCreada.IdProtesis }, protesisCreada);
+            return CreatedAtAction(nameof(GetProtesis), new { id = protesis.IdProtesis }, protesisDTO);
         }
+
 
         // PUT: api/Protesis/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProtesis(int id, ProtesiDto protesisDTO)
+        public async Task<IActionResult> UpdateProtesis(int id, UpdateProtesisDto protesisDTO)
         {
             if (id != protesisDTO.IdProtesis)
             {
@@ -360,68 +234,22 @@ namespace ProtoScaner.Server.Controllers
             }
 
             // Actualizar los campos necesarios
-            protesisExistente.IdPaciente = protesisDTO.IdPaciente;
+            protesisExistente.IdPaciente = protesisDTO.IdPaciente ?? protesisExistente.IdPaciente; // No actualizar si es null
             protesisExistente.LinerTipo = protesisDTO.LinerTipo;
             protesisExistente.LinerTamano = protesisDTO.LinerTamano;
             protesisExistente.Protesista = protesisDTO.Protesista;
             protesisExistente.Material = protesisDTO.Material;
             protesisExistente.FechaEntrega = !string.IsNullOrEmpty(protesisDTO.FechaEntrega)
                 ? DateOnly.Parse(protesisDTO.FechaEntrega)
-                : (DateOnly?)null;
-
-            // Verificar si el paciente existe (si se actualiza)
-            if (protesisDTO.IdPaciente.HasValue && protesisDTO.IdPaciente.Value != 0)
-            {
-                var paciente = await _context.Pacientes.FindAsync(protesisDTO.IdPaciente.Value);
-                if (paciente == null)
-                {
-                    return NotFound($"Paciente con Id {protesisDTO.IdPaciente.Value} no encontrado.");
-                }
-                protesisExistente.IdPacienteNavigation = paciente;
-            }
-
-            // Verificar si el tipo de liner existe (si se actualiza)
-            if (protesisDTO.LinerTipo.HasValue && protesisDTO.LinerTipo.Value != 0)
-            {
-                var tipoLiner = await _context.TipoLiners.FindAsync(protesisDTO.LinerTipo.Value);
-                if (tipoLiner == null)
-                {
-                    return NotFound($"TipoLiner con ID {protesisDTO.LinerTipo.Value} no encontrado.");
-                }
-                protesisExistente.LinerTipoNavigation = tipoLiner;
-            }
-
-            // Verificar si la talla del liner existe (si se actualiza)
-            if (protesisDTO.LinerTamano.HasValue && protesisDTO.LinerTamano.Value != 0)
-            {
-                var talla = await _context.Tallas.FindAsync(protesisDTO.LinerTamano.Value);
-                if (talla == null)
-                {
-                    return NotFound($"Talla con ID {protesisDTO.LinerTamano.Value} no encontrada.");
-                }
-                protesisExistente.LinerTamanoNavigation = talla;
-            }
+                : protesisExistente.FechaEntrega; // No actualizar si es null
 
             _context.Entry(protesisExistente).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProtesisExists(id))
-                {
-                    return NotFound($"Prótesis con ID {id} ya no existe.");
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
 
         // DELETE: api/Protesis/{id}
         [HttpDelete("{id}")]
@@ -439,7 +267,7 @@ namespace ProtoScaner.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/Protesis/AsignarComponenteProtesis
+       /* // POST: api/Protesis/AsignarComponenteProtesis
         [HttpPost("AsignarComponenteProtesis")]
         public async Task<IActionResult> AsignarComponenteProtesis([FromBody] ProtesisComponenteDTO dto)
         {
@@ -499,7 +327,7 @@ namespace ProtoScaner.Server.Controllers
             return Ok("Componente asignado exitosamente a la prótesis.");
         }
 
-        // POST: api/Protesis/AsignarMultiplesComponentesAProtesis
+       /* // POST: api/Protesis/AsignarMultiplesComponentesAProtesis
         [HttpPost("AsignarMultiplesComponentesAProtesis")]
         public async Task<IActionResult> AsignarMultiplesComponentesAProtesis(int protesisID, [FromBody] List<ProtesisComponenteDTO> componentesDTO)
         {
@@ -571,6 +399,6 @@ namespace ProtoScaner.Server.Controllers
         private bool ProtesisExists(int id)
         {
             return _context.Protesis.Any(e => e.IdProtesis == id);
-        }
+        }*/
     }
 }
