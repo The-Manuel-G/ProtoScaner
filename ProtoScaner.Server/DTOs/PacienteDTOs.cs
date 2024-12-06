@@ -7,8 +7,9 @@ namespace ProtoScaner.Server.DTOs
         public int IdPaciente { get; set; }
         public string? NombreCompleto { get; set; }
         public string? Cedula { get; set; }
+        public string? CodigoPaciente { get; set; } // Nueva propiedad
         public int? Genero { get; set; }
-        public string  FechaNacimiento { get; set; }  // Usamos DateOnly para manejar la fecha sin hora
+        public string FechaNacimiento { get; set; }  // Usamos DateOnly para manejar la fecha sin hora
         public string? Direccion { get; set; }
         public string? Telefono { get; set; }
         public string? TelefonoCelular { get; set; }
@@ -19,6 +20,7 @@ namespace ProtoScaner.Server.DTOs
         public int? IdEstatusProtesis { get; set; }
         public string? Comentario { get; set; }
         public string? FotoPaciente { get; set; }  // Imagen en formato Base64
+        public string FechaIngreso { get; set; } // Nueva propiedad
 
         public List<HistorialPacienteIngresoDTO>? HistorialPacienteIngresos { get; set; }
     }

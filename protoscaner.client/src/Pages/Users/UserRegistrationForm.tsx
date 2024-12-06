@@ -19,8 +19,8 @@ import CameraModal from '../../components/CameraModal';
 const roles = [
     { label: 'Diseñador', value: 1 },
     { label: 'Protesista', value: 2 },
-    { label: 'Visualizador', value: 3 },
-    { label: 'Mantenimiento', value: 4 },
+    { label: 'Visualizdor', value: 3 },
+    { label: 'TI', value: 4 },
 ];
 
 export function UserRegistrationForm() {

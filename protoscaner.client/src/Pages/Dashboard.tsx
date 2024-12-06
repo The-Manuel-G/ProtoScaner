@@ -9,14 +9,15 @@ import { Button } from 'primereact/button';
 import { ToastContainer, toast } from 'react-toastify';
 import { Paciente } from '../types/Paciente';
 import { getPacientes } from '../services/PacienteService';
+import { getTotalPacientes, getMantenimientosActivos } from '../services/ReporteService';
 import { Pagination } from '@nextui-org/react';
 import { ThemeContext } from '../App';
-import { FaPlus, FaEye } from 'react-icons/fa';
-import ContentGrid from '../components/ContentGrid';
+import { FaPlus, FaEye, FaUpload, FaInfoCircle } from 'react-icons/fa'; // Importamos FaInfoCircle
+import ReusableCard from '../components/ReusableCard'; // Importa el componente ReusableCard correctamente
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { generos, estatusPaciente, estatusProtesis, tiposAmputacion } from '../constants';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from 'primereact/skeleton'; // Asegúrate de usar solo una importación de Skeleton
 import { Tag } from 'primereact/tag';
 
 interface DashboardProps {
@@ -35,6 +36,12 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    // Estados para Total de Pacientes y Mantenimientos Activos
+    const [totalPacientes, setTotalPacientes] = useState<number>(0);
+    const [mantenimientosActivos, setMantenimientosActivos] = useState<number>(0);
+    const [isLoadingCards, setIsLoadingCards] = useState<boolean>(true);
+
     const themeContext = useContext(ThemeContext);
     const navigate = useNavigate();
 
@@ -68,18 +75,28 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
     };
 
     useEffect(() => {
-        const fetchPacientes = async () => {
+        const fetchData = async () => {
             try {
-                const data = await getPacientes();
-                setPacientes(data);
-                setTotalPages(Math.ceil(data.length / itemsPerPage));
+                // Obtener pacientes
+                const pacientesData = await getPacientes();
+                setPacientes(pacientesData);
+                setTotalPages(Math.ceil(pacientesData.length / itemsPerPage));
+
+                // Obtener Total de Pacientes
+                const totalPacientesData = await getTotalPacientes();
+                setTotalPacientes(totalPacientesData.totalPacientes);
+
+                // Obtener Mantenimientos Activos
+                const mantenimientosData = await getMantenimientosActivos();
+                setMantenimientosActivos(mantenimientosData.totalMantenimientosActivos);
             } catch (error) {
-                toast.error('Error al cargar los pacientes.');
+                toast.error('Error al cargar los datos.');
             } finally {
                 setIsLoading(false);
+                setIsLoadingCards(false);
             }
         };
-        fetchPacientes();
+        fetchData();
     }, []);
 
     // Templates para las columnas del DataTable
@@ -217,7 +234,27 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
             <ToastContainer position="top-right" autoClose={5000} />
             <div className={`${sidebarOpen ? 'ml-72' : 'ml-20'} transition-all duration-500 ease-in-out w-full max-w-6xl`}>
                 {/* <h2 className="text-4xl font-semibold mb-6">Gestión de Pacientes</h2> */}
-                <ContentGrid />
+
+                {/* Reemplazar ContentGrid con ReusableCard */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <ReusableCard
+                        title="Total de Pacientes"
+                        value={totalPacientes}
+                        icon={<FaInfoCircle className="text-2xl text-gray-500" />}
+                        isLoading={isLoadingCards}
+                        color="blue"
+                        extraInfo="Número total de pacientes registrados"
+                    />
+                    <ReusableCard
+                        title="Mantenimientos Activos"
+                        value={mantenimientosActivos}
+                        icon={<FaInfoCircle className="text-2xl text-gray-500" />}
+                        isLoading={isLoadingCards}
+                        color="green"
+                        extraInfo="Cantidad de mantenimientos actualmente activos"
+                    />
+                </div>
+
                 <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
                     <div className="flex flex-wrap gap-4">
                         <MultiSelect
@@ -227,7 +264,7 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
                             placeholder="Filtrar por Género"
                             optionLabel="label"
                             optionValue="value"
-                            className="w-48"
+                            className="w-48 shadow-lg bg-gray-100 rounded-full p-2 text-gray-900 transition-shadow duration-300 hover:shadow-xl"
                         />
                         <MultiSelect
                             value={selectedEstatusPaciente}
@@ -236,7 +273,7 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
                             placeholder="Filtrar por Estatus Paciente"
                             optionLabel="label"
                             optionValue="value"
-                            className="w-64"
+                            className="w-64 shadow-lg bg-gray-100 rounded-full p-2 text-gray-900 transition-shadow duration-300 hover:shadow-xl"
                         />
                         <MultiSelect
                             value={selectedEstatusProtesis}
@@ -245,7 +282,7 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
                             placeholder="Filtrar por Estatus Prótesis"
                             optionLabel="label"
                             optionValue="value"
-                            className="w-64"
+                            className="w-64 shadow-lg bg-gray-100 rounded-full p-2 text-gray-900 transition-shadow duration-300 hover:shadow-xl"
                         />
                         <MultiSelect
                             value={selectedTipoAmputacion}
@@ -254,7 +291,7 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
                             placeholder="Filtrar por Tipo de Amputación"
                             optionLabel="label"
                             optionValue="value"
-                            className="w-64"
+                            className="w-64 shadow-lg bg-gray-100 rounded-full p-2 text-gray-900 transition-shadow duration-300 hover:shadow-xl"
                         />
                     </div>
                     <div className="flex items-center gap-4">
@@ -264,6 +301,13 @@ const Dashboard = ({ sidebarOpen }: DashboardProps): JSX.Element => {
                             className="bg-green-600 hover:bg-green-500 text-white shadow-lg rounded-full px-4 py-2 text-lg transition duration-300 ease-in-out flex items-center"
                         >
                             Agregar Paciente
+                        </Button>
+                        <Button
+                            icon={<FaUpload />}
+                            onClick={() => navigate('/paciente-cargaMasiva')}
+                            className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg rounded-full px-4 py-2 text-lg transition duration-300 ease-in-out flex items-center"
+                        >
+                            Carga Masiva
                         </Button>
                         <InputText
                             value={globalFilter}

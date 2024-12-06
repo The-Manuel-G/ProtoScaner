@@ -4,7 +4,15 @@ export const generos = [
     { label: 'Masculino', value: 1 },
     { label: 'Femenino', value: 2 }
 ];
+export const tiposAmputacion = [
+    { label: 'Transtibial', value: 1 },
+    { label: 'Transfemoral', value: 2 }
+];
 
+export const ladosAmputacion = [
+    { label: 'Izquierdo', value: 1 },
+    { label: 'Derecho', value: 2 }
+];
 export const provincias = [
     { label: 'Azua', value: 1 },
     { label: 'Bahoruco', value: 2 },
@@ -40,15 +48,7 @@ export const provincias = [
     { label: 'Valverde', value: 32 }
 ];
 
-export const tiposAmputacion = [
-    { label: 'Transtibial', value: 1 },
-    { label: 'Transfemoral', value: 2 }
-];
 
-export const ladosAmputacion = [
-    { label: 'Izquierdo', value: 1 },
-    { label: 'Derecho', value: 2 }
-];
 
 export const causasAmputacion = [
     { label: 'Cong\u00E9nita', value: 1 },
@@ -120,15 +120,20 @@ export const tipoLiners = [
     { label: 'Pin', value: 2 }
 ];
 
+export const TALLAS = {
+    TRANSTIBIAL: [
+        { id: 1, name: "Small" },
+        { id: 2, name: "Medium" },
+        { id: 3, name: "Medium Plus" },
+        { id: 4, name: "Large" },
+        { id: 5, name: "X Large" },
+    ],
+    TRANSFEMORAL: [
+        { id: 6, name: "28" },
+        { id: 7, name: "32" },
+        { id: 8, name: "38" },
+        { id: 9, name: "44" },
+    ],
+} as const;
 
-export const tallas = [
-    { label: 'Small', value: 1 },
-    { label: 'Medium', value: 2 },
-    { label: 'Medium Plus', value: 3 },
-    { label: 'Large', value: 4 },
-    { label: 'X Large', value: 5 },
-    { label: '28', value: 6 },
-    { label: '32', value: 7 },
-    { label: '38', value: 8 },
-    { label: '44', value: 9 }
-];
+export type Talla = typeof TALLAS[keyof typeof TALLAS][number];

@@ -16,12 +16,11 @@ import { Pagination } from "@nextui-org/react";
 
 // Definición de roles con colores basados en jerarquía
 const roles = [
-    { id: 1, name: 'Visualizador', color: 'bg-purple-500' },
-    { id: 2, name: 'Soportes', color: 'bg-yellow-500' },
-    { id: 3, name: 'Técnicos', color: 'bg-green-500' },
-    { id: 4, name: 'Diseñadores', color: 'bg-blue-500' },
-];
-
+    { id: 1, name: 'Diseñador', color: 'bg-purple-500' },
+    { id: 2, name: 'Protesista', color: 'bg-yellow-500' },
+    { id: 3, name: 'Visualizdor', color: 'bg-green-500' },
+    { id: 4, name: 'TI', color: 'bg-blue-500' },
+]; 
 // Función para obtener el nombre y color del rol según su ID
 const getRoleInfo = (roleId: number) => {
     const role = roles.find((r) => r.id === roleId);

@@ -10,7 +10,7 @@ public partial class Paciente
     {
         Liners = new HashSet<Liner>();
         Tallas = new HashSet<Talla>();
-        // Inicializar otras colecciones si es necesario
+        
     }
     public int IdPaciente { get; set; }
 
