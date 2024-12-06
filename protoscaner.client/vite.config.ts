@@ -14,7 +14,8 @@ export default defineConfig({
             'primereact/resources/primereact.min.css',
             'primereact/resources/themes/saga-blue/theme.css',
             'primeicons/primeicons.css',
-            'react-toastify/dist/ReactToastify.css'
+            'react-toastify/dist/ReactToastify.css',
+            'primereact/chart'
         ]
     },
     server: {

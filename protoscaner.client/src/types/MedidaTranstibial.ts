@@ -1,28 +1,29 @@
 // src/types/MedidaTranstibial.ts
+
 export interface MedidaTranstibial {
-    idMedida: number;
-    idPaciente?: number;
-    idEscaneo?: number;
-    fechaEscaneo?: string; // o Date si prefieres trabajar con fechas directamente
-    protesista?: string;
-    idLiner?: number;
-    insidencia?: boolean;
-    longitudTotalMunon?: number;
-    circunferencia3cm?: number;
-    circunferencia6cm?: number;
-    circunferencia9cm?: number;
-    circunferencia12cm?: number;
-    circunferencia15cm?: number;
-    circunferencia21cm?: number;
-    circunferencia24cm?: number;
-    circunferencia27cm?: number;
-    circunferencia30cm?: number;
-    mlSobreRodilla?: number;
-    apTension?: number;
-    mlSupracondilar?: number;
-    mlTendon?: number;
-    notas?: string;
-    longitudOsea?: string;
-    longitudPies?: string;
-    alturaTacon?: string;
+    IdMedida: number;
+    IdPaciente: number;
+    IdEscaneo: number;
+    FechaEscaneo: string;
+    Protesista: string;
+    IdLiner: number;
+    Insidencia: string;
+    LongitudTotalMunon: number;
+    Circunferencia3cm: number;
+    Circunferencia6cm: number;
+    Circunferencia9cm: number;
+    Circunferencia12cm: number;
+    Circunferencia15cm: number;
+    Circunferencia21cm: number;
+    Circunferencia24cm: number;
+    Circunferencia27cm: number;
+    Circunferencia30cm: number;
+    MlSobreRodilla: number;
+    ApTension: number;
+    MlSupracondilar: number;
+    MlTendon: number;
+    Notas: string;
+    LongitudOsea: number;
+    LongitudPies: number;
+    AlturaTacon: number;
 }

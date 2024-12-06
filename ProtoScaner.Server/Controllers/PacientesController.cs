@@ -33,6 +33,7 @@ namespace ProtoScaner.Server.Controllers
                 IdPaciente = paciente.IdPaciente,
                 NombreCompleto = paciente.NombreCompleto,
                 Cedula = paciente.Cedula,
+                CodigoPaciente = paciente.CodigoPaciente,
                 Genero = paciente.Genero,
                 FechaNacimiento = paciente.FechaNacimiento?.ToString("yyyy-MM-dd"),
                 Direccion = paciente.Direccion,
@@ -45,6 +46,7 @@ namespace ProtoScaner.Server.Controllers
                 IdEstatusProtesis = paciente.IdEstatusProtesis,      // Dejar tal cual
                 Comentario = paciente.Comentario,
                 FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null,
+                FechaIngreso = paciente.FechaIngreso.ToString("yyyy-MM-dd"), // Nueva propiedad
                 HistorialPacienteIngresos = paciente.HistorialPacienteIngresos.Select(h => new HistorialPacienteIngresoDTO
                 {
                     IdHistorial = h.IdHistorial,
@@ -79,6 +81,7 @@ namespace ProtoScaner.Server.Controllers
                 IdPaciente = paciente.IdPaciente,
                 NombreCompleto = paciente.NombreCompleto,
                 Cedula = paciente.Cedula,
+                CodigoPaciente = paciente.CodigoPaciente,
                 Genero = paciente.Genero,
                 FechaNacimiento = paciente.FechaNacimiento?.ToString("yyyy-MM-dd"),
                 Direccion = paciente.Direccion,
@@ -91,6 +94,7 @@ namespace ProtoScaner.Server.Controllers
                 IdEstatusProtesis = paciente.IdEstatusProtesis,      // Dejar tal cual
                 Comentario = paciente.Comentario,
                 FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null,
+                FechaIngreso = paciente.FechaIngreso.ToString("yyyy-MM-dd"), // Nueva propiedad
                 HistorialPacienteIngresos = paciente.HistorialPacienteIngresos.Select(h => new HistorialPacienteIngresoDTO
                 {
                     IdHistorial = h.IdHistorial,
@@ -106,6 +110,136 @@ namespace ProtoScaner.Server.Controllers
 
             return Ok(pacienteDto);
         }
+
+        // Otros métodos existentes...
+
+        // GET: api/Pacientes/codigo/{codigoPaciente}
+        [HttpGet("codigo/{codigoPaciente}")]
+        public async Task<ActionResult<PacienteDTO>> GetPacienteByCodigo(string codigoPaciente)
+        {
+            var paciente = await _context.Pacientes
+                .Include(p => p.HistorialPacienteIngresos)
+                .FirstOrDefaultAsync(p => p.CodigoPaciente == codigoPaciente);
+
+            if (paciente == null)
+            {
+                return NotFound("Paciente no encontrado.");
+            }
+
+            var pacienteDto = new PacienteDTO
+            {
+                IdPaciente = paciente.IdPaciente,
+                NombreCompleto = paciente.NombreCompleto,
+                Cedula = paciente.Cedula,
+                CodigoPaciente = paciente.CodigoPaciente,
+                Genero = paciente.Genero,
+                FechaNacimiento = paciente.FechaNacimiento?.ToString("yyyy-MM-dd"),
+                Direccion = paciente.Direccion,
+                Telefono = paciente.Telefono,
+                TelefonoCelular = paciente.TelefonoCelular,
+                IdProvincia = paciente.IdProvincia,
+                Sector = paciente.Sector,
+                Insidencia = paciente.Insidencia,
+                IdEstatusPaciente = paciente.IdEstatusPaciente ?? 1,
+                IdEstatusProtesis = paciente.IdEstatusProtesis,
+                Comentario = paciente.Comentario,
+                FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null,
+                FechaIngreso = paciente.FechaIngreso.ToString("yyyy-MM-dd"),
+                HistorialPacienteIngresos = paciente.HistorialPacienteIngresos.Select(h => new HistorialPacienteIngresoDTO
+                {
+                    IdHistorial = h.IdHistorial,
+                    TipoAmputacion = h.TipoAmputacion,
+                    LadoAmputacion = h.LadoAmputacion,
+                    FechaAmputacion = h.FechaAmputacion,
+                    Causa = h.Causa,
+                    Terapia = h.Terapia,
+                    TiempoTerapia = h.TiempoTerapia,
+                    Comentario = h.Comentario
+                }).ToList()
+            };
+
+            return Ok(pacienteDto);
+        }
+
+       
+
+        // POST: api/Pacientes/bulk
+        [HttpPost("bulk")]
+        public async Task<ActionResult> CreatePacientes([FromBody] List<RegisterPacienteRequest> requests)
+        {
+            if (requests == null || !requests.Any())
+            {
+                return BadRequest("La lista de pacientes está vacía.");
+            }
+
+            foreach (var request in requests)
+            {
+                var pacienteDto = request.Paciente;
+
+                // Establecer IdEstatusPaciente a 1 si es nulo
+                if (!pacienteDto.IdEstatusPaciente.HasValue)
+                {
+                    pacienteDto.IdEstatusPaciente = 1;
+                }
+
+                var paciente = new Paciente
+                {
+                    NombreCompleto = pacienteDto.NombreCompleto,
+                    Cedula = pacienteDto.Cedula,
+                    Genero = pacienteDto.Genero,
+                    FechaNacimiento = !string.IsNullOrEmpty(pacienteDto.FechaNacimiento)
+                        ? DateOnly.Parse(pacienteDto.FechaNacimiento)
+                        : null,
+                    Direccion = pacienteDto.Direccion,
+                    Telefono = pacienteDto.Telefono,
+                    TelefonoCelular = pacienteDto.TelefonoCelular,
+                    IdProvincia = pacienteDto.IdProvincia,
+                    Sector = pacienteDto.Sector,
+                    Insidencia = pacienteDto.Insidencia,
+                    IdEstatusPaciente = pacienteDto.IdEstatusPaciente,
+                    IdEstatusProtesis = pacienteDto.IdEstatusProtesis,
+                    Comentario = pacienteDto.Comentario,
+                    FechaIngreso = DateOnly.FromDateTime(DateTime.Now),
+                    CodigoPaciente = pacienteDto.CodigoPaciente ?? "PAC" + DateTime.Now.ToString("yyyyMMddHHmmssfff")
+                };
+
+                // Manejar la foto del paciente
+                if (!string.IsNullOrEmpty(pacienteDto.FotoPaciente))
+                {
+                    try
+                    {
+                        paciente.FotoPaciente = Convert.FromBase64String(pacienteDto.FotoPaciente);
+                    }
+                    catch (FormatException)
+                    {
+                        return BadRequest("El formato de la imagen proporcionada no es válido. Asegúrate de que esté en formato base64 correcto.");
+                    }
+                }
+
+                _context.Pacientes.Add(paciente);
+                await _context.SaveChangesAsync();
+
+                if (request.Historial != null)
+                {
+                    var historial = new HistorialPacienteIngreso
+                    {
+                        IdPaciente = paciente.IdPaciente,
+                        TipoAmputacion = request.Historial.TipoAmputacion,
+                        LadoAmputacion = request.Historial.LadoAmputacion,
+                        FechaAmputacion = request.Historial.FechaAmputacion,
+                        Causa = request.Historial.Causa,
+                        Terapia = request.Historial.Terapia,
+                        TiempoTerapia = request.Historial.TiempoTerapia,
+                        Comentario = request.Historial.Comentario
+                    };
+                    _context.HistorialPacienteIngresos.Add(historial);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return Ok("Pacientes registrados exitosamente.");
+        }
+
 
         // POST: api/Pacientes
         [HttpPost]
@@ -136,7 +270,9 @@ namespace ProtoScaner.Server.Controllers
                 Insidencia = pacienteDto.Insidencia,
                 IdEstatusPaciente = pacienteDto.IdEstatusPaciente,
                 IdEstatusProtesis = pacienteDto.IdEstatusProtesis, // Puede ser nulo
-                Comentario = pacienteDto.Comentario
+                Comentario = pacienteDto.Comentario,
+                FechaIngreso = DateOnly.FromDateTime(DateTime.Now), // Asignar fecha de ingreso
+                CodigoPaciente = "PAC" + DateTime.Now.ToString("yyyyMMddHHmmssfff") // Generar código único
             };
 
             // Manejar la foto del paciente
@@ -172,10 +308,11 @@ namespace ProtoScaner.Server.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Actualizar la representación de FotoPaciente en el DTO
-            pacienteDto.FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null;
-            // Actualizar el IdPaciente en el DTO
+            // Actualizar propiedades en el DTO
             pacienteDto.IdPaciente = paciente.IdPaciente;
+            pacienteDto.CodigoPaciente = paciente.CodigoPaciente;
+            pacienteDto.FechaIngreso = paciente.FechaIngreso.ToString("yyyy-MM-dd");
+            pacienteDto.FotoPaciente = paciente.FotoPaciente != null ? Convert.ToBase64String(paciente.FotoPaciente) : null;
 
             return CreatedAtAction(nameof(GetPacienteById), new { id = paciente.IdPaciente }, pacienteDto);
         }
@@ -222,7 +359,7 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound("Paciente no encontrado.");
             }
 
-            // Actualizar propiedades del paciente
+            // Actualizar propiedades del paciente (excepto CodigoPaciente y FechaIngreso)
             paciente.NombreCompleto = request.Paciente.NombreCompleto;
             paciente.Cedula = request.Paciente.Cedula;
             paciente.Genero = request.Paciente.Genero;
@@ -238,6 +375,8 @@ namespace ProtoScaner.Server.Controllers
             paciente.IdEstatusPaciente = request.Paciente.IdEstatusPaciente;
             paciente.IdEstatusProtesis = request.Paciente.IdEstatusProtesis;
             paciente.Comentario = request.Paciente.Comentario;
+
+            // No actualizar CodigoPaciente y FechaIngreso
 
             // Manejar la foto del paciente
             if (!string.IsNullOrEmpty(request.Paciente.FotoPaciente))
@@ -538,6 +677,5 @@ namespace ProtoScaner.Server.Controllers
 
             return Ok("Estatus de prótesis retrocedido.");
         }
-
     }
 }

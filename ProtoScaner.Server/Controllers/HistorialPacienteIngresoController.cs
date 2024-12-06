@@ -132,6 +132,37 @@ namespace ProtoScaner.Server.Controllers
             await dbContext.SaveChangesAsync();
             return NoContent();
         }
+
+
+        // GET: api/historialpacienteingreso/paciente/{pacienteId}
+        [HttpGet("paciente/{pacienteId}")]
+        public async Task<ActionResult<IEnumerable<HistorialPacienteIngresoDTO>>> GetHistorialByPacienteId(int pacienteId)
+        {
+            var historiales = await dbContext.HistorialPacienteIngresos
+                .Where(h => h.IdPaciente == pacienteId)
+                .Select(hpi => new HistorialPacienteIngresoDTO
+                {
+                    IdHistorial = hpi.IdHistorial,
+                    IdPaciente = hpi.IdPaciente,
+                    TipoAmputacion = hpi.TipoAmputacion,
+                    LadoAmputacion = hpi.LadoAmputacion,
+                    FechaAmputacion = hpi.FechaAmputacion,
+                    Causa = hpi.Causa,
+                    Terapia = hpi.Terapia,
+                    TiempoTerapia = hpi.TiempoTerapia,
+                    IdMedida = hpi.IdMedida,
+                    Comentario = hpi.Comentario
+                })
+                .ToListAsync();
+
+            if (historiales == null || historiales.Count == 0)
+            {
+                return NotFound("No se encontró historial para el paciente especificado.");
+            }
+
+            return Ok(historiales);
+        }
+
     }
 }
 

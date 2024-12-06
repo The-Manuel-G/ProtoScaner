@@ -63,6 +63,7 @@ app.UseStaticFiles();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+
 // Comentando autenticación y autorización para evitar interferencias
 // app.UseAuthentication(); // Comentar autenticación temporalmente
 // app.UseAuthorization();

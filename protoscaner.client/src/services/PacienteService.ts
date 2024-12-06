@@ -4,10 +4,6 @@ import apiClient from '../api/client';
 import { Paciente } from '../types/Paciente';
 import { HistorialPacienteIngreso } from '../types/HistorialPacienteIngreso';
 
-
-
-
-
 // Function to get all patients
 export const getPacientes = async (): Promise<Paciente[]> => {
     try {
@@ -26,6 +22,17 @@ export const getPacienteById = async (id: number): Promise<Paciente> => {
         return response.data;
     } catch (error) {
         console.error(`Error al obtener el paciente con ID ${id}:`, error);
+        throw error;
+    }
+};
+
+// **Nuevo método**: Function to get a patient by CódigoPaciente
+export const getPacienteByCodigo = async (codigoPaciente: string): Promise<Paciente> => {
+    try {
+        const response = await apiClient.get(`/pacientes/codigo/${codigoPaciente}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error al obtener el paciente con código ${codigoPaciente}:`, error);
         throw error;
     }
 };
@@ -51,7 +58,7 @@ const ensureBase64 = async (image: string | Blob): Promise<string | null> => {
 };
 
 // Create patient ensuring fotoPaciente is in base64
-export const createPaciente = async (data: { Paciente: Omit<Paciente, 'idPaciente'>, Historial: Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'> }): Promise<Paciente> => {
+export const createPaciente = async (data: { Paciente: Omit<Paciente, 'idPaciente'>, Historial?: Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'> }): Promise<Paciente> => {
     try {
         const { Paciente, Historial } = data;
 
@@ -78,6 +85,35 @@ export const createPaciente = async (data: { Paciente: Omit<Paciente, 'idPacient
     }
 };
 
+// **Nuevo método**: Create multiple patients (bulk)
+export const createPacientes = async (data: { Paciente: Omit<Paciente, 'idPaciente'>, Historial?: Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'> }[]): Promise<void> => {
+    try {
+        // Procesar cada paciente para asegurar que la foto esté en base64
+        const processedData = await Promise.all(data.map(async (entry) => {
+            const { Paciente, Historial } = entry;
+            const fotoBase64 = Paciente.fotoPaciente
+                ? await ensureBase64(Paciente.fotoPaciente)
+                : null;
+
+            const pacientePayload = {
+                ...Paciente,
+                fotoPaciente: fotoBase64
+            };
+
+            return { Paciente: pacientePayload, Historial };
+        }));
+
+        console.log('Creando múltiples pacientes:', processedData);
+
+        // Enviar la solicitud al backend
+        await apiClient.post('/pacientes/bulk', processedData);
+
+    } catch (error: any) {
+        console.error('Error al crear los pacientes:', error.response?.data || error);
+        throw error;
+    }
+};
+
 // Update patient ensuring fotoPaciente is in base64
 export const updatePaciente = async (
     id: number,
@@ -94,7 +130,7 @@ export const updatePaciente = async (
             fotoPaciente: fotoBase64
         };
 
-        console.log(`Actualizando paciente con ID ${id}:`, { Paciente: pacientePayload, Historial: historial }); // Log para depuración
+        console.log(`Actualizando paciente con ID ${id}:`, { Paciente: pacientePayload, Historial: historial });
 
         // Asegurarse de usar las mismas claves que en createPaciente
         await apiClient.put(`/pacientes/${id}`, { Paciente: pacientePayload, Historial: historial });
@@ -113,8 +149,6 @@ export const deletePaciente = async (id: number): Promise<void> => {
         throw error;
     }
 };
-
-
 
 // Funciones para avanzar y retroceder estatus de paciente
 export const avanzarEstatusPaciente = async (id: number): Promise<void> => {

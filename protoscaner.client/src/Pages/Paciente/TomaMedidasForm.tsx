@@ -1,218 +1,201 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, FormProvider, SubmitHandler, Controller } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
-import { FaPlusCircle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { tipoLiners, tallas } from '../../constants'; // Asegúrate de importar correctamente las constantes
-import { TomaMedidasEscaneo } from '../../types/TomaMedidasEscaneo';
+import React, { useEffect, useState } from 'react';
+import { createLiner } from '../../services/LinerService';
+import { LinerDTO } from '../../types/Liner';
+import { getHistorialPacienteIngresoByPacienteId } from '../../services/HistorialPacienteIngresoService';
+import { HistorialPacienteIngresoDTO } from '../../types/HistorialPacienteIngreso';
+import MedidaTranstibialForm from '../../components/pacienteForm/MedidasTranstibialForm';
+import MedidaTransfemoralForm from '../../components/pacienteForm/MedidasTransfemoralForm';
 import { createTomaMedidasEscaneo } from '../../services/TomaMedidasEscaneoService';
+import { TomaMedidasEscaneo } from '../../types/TomaMedidasEscaneo';
+import { tipoLiners, TALLAS } from '../../constants';
+import { toast } from 'react-toastify';
 
-interface FormInputs {
-    idPaciente: number;
-    idAmputacion: number;
-    idLiner: number;
-    tallaLiner: number;
-    fechaEscaneo: string;
-    fotosMunon: string | null; // Base64 string
-    comentario?: string;
-    resultadoScaneo: string;
-    resultadoDoc: string | null; // Base64 string (PDF)
+interface Props {
+    pacienteId: number;
 }
 
-interface TomaMedidasFormProps {
-    idPaciente: number;
-    idAmputacion: number; // Recibir idAmputacion como prop
-}
-
-const TomaMedidasForm: React.FC<TomaMedidasFormProps> = ({ idPaciente, idAmputacion }) => {
-    const methods = useForm<FormInputs>({
-        defaultValues: {
-            idPaciente: idPaciente,
-            idAmputacion: idAmputacion,
-            idLiner: 0,
-            tallaLiner: 0,
-            fechaEscaneo: '',
-            fotosMunon: null,
-            comentario: '',
-            resultadoScaneo: '',
-            resultadoDoc: null,
-        }
-    });
-    const { register, handleSubmit, setValue, watch, control } = methods;
-    const [step, setStep] = useState<number>(1);
-    const [tipoAmputacion, setTipoAmputacion] = useState<number | null>(idAmputacion);
+const TomaMedidasEscaneoForm: React.FC<Props> = ({ pacienteId }) => {
+    const [selectedTallaId, setSelectedTallaId] = useState<number | ''>('');
+    const [selectedTipoLinerId, setSelectedTipoLinerId] = useState<number | ''>('');
+    const [historial, setHistorial] = useState<HistorialPacienteIngresoDTO | null>(null);
+    const [tipoAmputacion, setTipoAmputacion] = useState<number | null>(null);
+    const [submissionStatus, setSubmissionStatus] = useState<string>('');
+    const [linerId, setLinerId] = useState<number | null>(null);
 
     useEffect(() => {
-        setTipoAmputacion(idAmputacion);
-    }, [idAmputacion]);
+        if (!pacienteId || pacienteId === 0) {
+            console.error('El pacienteId es inválido:', pacienteId);
+            toast.error('ID de paciente inválido. No se puede obtener el historial.');
+            return;
+        }
 
-    const onSubmit: SubmitHandler<FormInputs> = async (data) => {
+        const fetchHistorial = async () => {
+            try {
+                const data = await getHistorialPacienteIngresoByPacienteId(pacienteId);
+                console.log('Datos obtenidos del historial:', data);
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const ultimoHistorial = data[data.length - 1];
+                    setHistorial(ultimoHistorial);
+                    setTipoAmputacion(ultimoHistorial.TipoAmputacion);
+                } else {
+                    throw new Error('No se encontró historial para el paciente.');
+                }
+            } catch (error) {
+                console.error('Error al obtener el historial del paciente:', error);
+                toast.error('Error al obtener el historial del paciente.');
+                setHistorial(null);
+                setTipoAmputacion(null);
+            }
+        };
+
+        fetchHistorial();
+    }, [pacienteId]);
+
+    const handleTipoLinerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const tipoLinerId = parseInt(e.target.value);
+        setSelectedTipoLinerId(tipoLinerId);
+    };
+
+    const handleTallaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const tallaId = parseInt(e.target.value);
+        setSelectedTallaId(tallaId);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (
+            selectedTipoLinerId === '' ||
+            selectedTallaId === '' ||
+            !historial ||
+            !tipoAmputacion
+        ) {
+            setSubmissionStatus('Por favor, completa todos los campos.');
+            return;
+        }
+
         try {
-            // Preparar el payload
+            const newLiner: Omit<LinerDTO, 'IdLiner'> = {
+                TipoLinerId: selectedTipoLinerId as number,
+                TallaId: selectedTallaId as number,
+                PacienteId: pacienteId,
+            };
+
+            const createdLiner = await createLiner(newLiner);
+
+            setLinerId(createdLiner.IdLiner);
+
             const payload: TomaMedidasEscaneo = {
-                idEscaneo: 0, // Será asignado por el backend
-                idPaciente: data.idPaciente,
-                idAmputacion: data.idAmputacion,
-                idLiner: data.idLiner,
-                tallaLiner: data.tallaLiner,
-                fechaEscaneo: data.fechaEscaneo,
-                fotosMunon: data.fotosMunon,
-                comentario: data.comentario,
-                resultadoScaneo: data.resultadoScaneo,
-                resultadoDoc: data.resultadoDoc ? data.resultadoDoc.split(',')[1] : null, // Asegurarse de que el Base64 esté limpio
+                IdPaciente: historial.IdPaciente!,
+                IdAmputacion: historial.TipoAmputacion!,
+                IdLiner: createdLiner.IdLiner,
+                FechaEscaneo: new Date().toISOString(),
+                Comentario: 'Medidas tomadas',
+                ResultadoScaneo: 'Pendiente',
             };
 
             await createTomaMedidasEscaneo(payload);
-            toast.success('Toma de medidas creada exitosamente.');
-            methods.reset({
-                idPaciente: idPaciente,
-                idAmputacion: idAmputacion,
-                idLiner: 0,
-                tallaLiner: 0,
-                fechaEscaneo: '',
-                fotosMunon: null,
-                comentario: '',
-                resultadoScaneo: '',
-                resultadoDoc: null,
-            });
-            setStep(1);
-        } catch (error: any) {
-            console.error('Error al crear la toma de medidas:', error);
-            toast.error('Error al crear la toma de medidas.');
+            setSubmissionStatus('Medidas escaneadas exitosamente.');
+        } catch (error) {
+            console.error('Error al crear el Liner y TomaMedidasEscaneo:', error);
+            setSubmissionStatus('Error al escanear las medidas.');
         }
     };
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: keyof FormInputs) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const base64 = reader.result?.toString().split(',')[1] || null;
-                setValue(field, base64);
-            };
-            reader.readAsDataURL(file);
+    const getTipoAmputacionDescripcion = (tipoAmputacionId: number) => {
+        switch (tipoAmputacionId) {
+            case 1:
+                return 'Transtibial';
+            case 2:
+                return 'Transfemoral';
+            default:
+                return 'Desconocido';
         }
     };
 
-    const linerOptions = tipoLiners;
-    const tallaOptions = tallas;
+    if (!historial) {
+        return (
+            <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
+                <h2 className="text-2xl font-semibold mb-4">Toma de Medidas y Escaneo</h2>
+                <p className="text-red-500">No se pudo obtener el historial del paciente. Por favor, verifica que el paciente existe y tiene historial registrado.</p>
+            </div>
+        );
+    }
 
     return (
-        <FormProvider {...methods}>
-            <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-md shadow-md max-w-4xl mx-auto">
-                {step === 1 && (
-                    <div className="space-y-6">
-                        {/* Tipo de Amputación (oculto) */}
-                        <input
-                            type="hidden"
-                            {...register('idAmputacion')}
-                        />
+        <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
+            <h2 className="text-2xl font-semibold mb-4">Toma de Medidas y Escaneo</h2>
+            <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                    <h3 className="text-lg font-medium">Información del Paciente</h3>
+                    <p><strong>Paciente ID:</strong> {historial.IdPaciente}</p>
+                    <p><strong>Tipo de Amputación:</strong> {getTipoAmputacionDescripcion(historial.TipoAmputacion!)}</p>
+                </div>
 
-                        {/* Tipo de Liner */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Tipo de Liner</label>
-                            <Controller
-                                control={control}
-                                name="idLiner"
-                                rules={{ required: true }}
-                                render={({ field }) => (
-                                    <Select
-                                        {...field}
-                                        className="w-full sm:w-2/3"
-                                        placeholder="Selecciona el tipo de liner"
-                                    >
-                                        <option value="">Selecciona</option>
-                                        {linerOptions.map((liner) => (
-                                            <option key={liner.value} value={liner.value}>
-                                                {liner.label}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                )}
-                            />
-                        </div>
+                {/* Selección de Tipo de Liner */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Tipo de Liner</label>
+                    <select
+                        value={selectedTipoLinerId}
+                        onChange={handleTipoLinerChange}
+                        className="w-full border border-gray-300 p-2 rounded-md"
+                        required
+                    >
+                        <option value="">Selecciona un tipo de liner</option>
+                        {tipoLiners.map(tipo => (
+                            <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+                        ))}
+                    </select>
+                </div>
 
-                        {/* Talla del Liner */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Talla del Liner</label>
-                            <Controller
-                                control={control}
-                                name="tallaLiner"
-                                rules={{ required: true }}
-                                render={({ field }) => (
-                                    <Select
-                                        {...field}
-                                        className="w-full sm:w-2/3"
-                                        placeholder="Selecciona la talla del liner"
-                                    >
-                                        <option value="">Selecciona</option>
-                                        {tallaOptions.map((talla) => (
-                                            <option key={talla.value} value={talla.value}>
-                                                {talla.label}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                )}
-                            />
-                        </div>
+                {/* Selección de Talla */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Talla</label>
+                    <select
+                        value={selectedTallaId}
+                        onChange={handleTallaChange}
+                        className="w-full border border-gray-300 p-2 rounded-md"
+                        required
+                    >
+                        <option value="">Selecciona una talla</option>
+                        {tipoAmputacion === 1 && TALLAS.TRANSTIBIAL.map(talla => (
+                            <option key={talla.id} value={talla.id}>{talla.name}</option>
+                        ))}
+                        {tipoAmputacion === 2 && TALLAS.TRANSFEMORAL.map(talla => (
+                            <option key={talla.id} value={talla.id}>{talla.name}</option>
+                        ))}
+                    </select>
+                </div>
 
-                        {/* Fecha de Escaneo */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Fecha de Escaneo</label>
-                            <Input
-                                type="date"
-                                {...register('fechaEscaneo', { required: true })}
-                                className="w-full sm:w-2/3"
-                            />
-                        </div>
+                <button
+                    type="submit"
+                    className="mt-4 bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
+                >
+                    Guardar Toma de Medidas y Escaneo
+                </button>
 
-                        {/* Foto del Muñón */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Foto del Muñón</label>
-                            <Input
-                                type="file"
-                                onChange={(e) => handleFileChange(e, 'fotosMunon')}
-                                className="w-full sm:w-2/3"
-                            />
-                        </div>
-
-                        {/* Documento Resultado */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Documento Resultado</label>
-                            <Input
-                                type="file"
-                                onChange={(e) => handleFileChange(e, 'resultadoDoc')}
-                                className="w-full sm:w-2/3"
-                            />
-                        </div>
-
-                        {/* Comentarios */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Comentario</label>
-                            <Textarea
-                                {...register('comentario')}
-                                className="w-full sm:w-2/3"
-                            />
-                        </div>
-
-                        <div className="flex justify-between gap-4">
-                            <Button type="button" onClick={() => setStep(2)} className="bg-blue-600 hover:bg-blue-700 text-white">
-                                Siguiente <FaArrowRight />
-                            </Button>
-                            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white">
-                                Guardar <FaPlusCircle />
-                            </Button>
-                        </div>
+                {submissionStatus && (
+                    <div className="mt-2 text-sm text-gray-700">
+                        {submissionStatus}
                     </div>
                 )}
             </form>
-        </FormProvider>
+
+            {/* Mostrar formulario correspondiente según el tipo de amputación */}
+            {tipoAmputacion === 1 && linerId && (
+                <MedidaTranstibialForm
+                    pacienteId={pacienteId}
+                    linerId={linerId}
+                />
+            )}
+            {tipoAmputacion === 2 && linerId && (
+                <MedidaTransfemoralForm
+                    pacienteId={pacienteId}
+                    linerId={linerId}
+                />
+            )}
+        </div>
     );
 };
 
-export default TomaMedidasForm;
+export default TomaMedidasEscaneoForm;

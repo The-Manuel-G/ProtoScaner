@@ -40,4 +40,5 @@ public partial class Protesi
     public virtual ICollection<ProtesisComponente> ProtesisComponentes { get; set; } = new List<ProtesisComponente>();
 
     public virtual ICollection<Usuario> IdUsuarios { get; set; } = new List<Usuario>();
+  
 }

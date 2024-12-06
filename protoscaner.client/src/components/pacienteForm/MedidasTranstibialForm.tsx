@@ -1,176 +1,317 @@
-// src/components/pacienteForm/MedidasTranstibialForm.tsx
+// src/components/MedidaTranstibialForm.tsx
 
-import React from 'react';
-import { useFormContext } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { FaInfo, FaPlusCircle } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import React, { useState } from 'react';
+import { createMedidaTranstibial } from '../../services/MedidaTranstibialService';
+import { MedidaTranstibialDTO } from '../../types/MedidaTranstibial';
 
-interface FormInputs {
-    longitudTotalMunon?: number;
-    circunferencia3cm?: number;
-    circunferencia6cm?: number;
-    circunferencia9cm?: number;
-    circunferencia12cm?: number;
-    circunferencia15cm?: number;
-    circunferencia21cm?: number;
-    circunferencia24cm?: number;
-    circunferencia27cm?: number;
-    circunferencia30cm?: number;
-    mlSobreRodilla?: number;
-    apTension?: number;
-    mlSupracondilar?: number;
-    mlTendon?: number;
-    notas?: string;
-    longitudOsea?: string;
-    longitudPies?: string;
-    alturaTacon?: string;
+interface Props {
+    pacienteId: number;
+    linerId: number;
 }
 
-const MedidasTranstibialForm: React.FC = () => {
-    const { register } = useFormContext<FormInputs>();
+const MedidaTranstibialForm: React.FC<Props> = ({ pacienteId, linerId }) => {
+    const [form, setForm] = useState<Partial<MedidaTranstibialDTO>>({
+        IdPaciente: pacienteId,
+        IdLiner: linerId,
+        IdEscaneo: 0,
+        FechaEscaneo: '',
+        Protesista: '',
+        Insidencia: '',
+        LongitudTotalMunon: 0,
+        Circunferencia3cm: 0,
+        Circunferencia6cm: 0,
+        Circunferencia9cm: 0,
+        Circunferencia12cm: 0,
+        Circunferencia15cm: 0,
+        Circunferencia21cm: 0,
+        Circunferencia24cm: 0,
+        Circunferencia27cm: 0,
+        Circunferencia30cm: 0,
+        MlSobreRodilla: 0,
+        ApTension: 0,
+        MlSupracondilar: 0,
+        MlTendon: 0,
+        Notas: '',
+        LongitudOsea: 0,
+        LongitudPies: 0,
+        AlturaTacon: 0,
+    });
 
-    const handleBlur = (field: string, message: string) => {
-        toast.success(`${field} guardada correctamente.`);
+    const [submissionStatus, setSubmissionStatus] = useState<string>('');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            if (form.IdPaciente && form.IdEscaneo && form.IdLiner) {
+                await createMedidaTranstibial({
+                    IdPaciente: form.IdPaciente,
+                    IdEscaneo: form.IdEscaneo,
+                    FechaEscaneo: form.FechaEscaneo!,
+                    Protesista: form.Protesista!,
+                    IdLiner: form.IdLiner,
+                    Insidencia: form.Insidencia!,
+                    LongitudTotalMunon: parseFloat(form.LongitudTotalMunon!.toString()),
+                    Circunferencia3cm: parseFloat(form.Circunferencia3cm!.toString()),
+                    Circunferencia6cm: parseFloat(form.Circunferencia6cm!.toString()),
+                    Circunferencia9cm: parseFloat(form.Circunferencia9cm!.toString()),
+                    Circunferencia12cm: parseFloat(form.Circunferencia12cm!.toString()),
+                    Circunferencia15cm: parseFloat(form.Circunferencia15cm!.toString()),
+                    Circunferencia21cm: parseFloat(form.Circunferencia21cm!.toString()),
+                    Circunferencia24cm: parseFloat(form.Circunferencia24cm!.toString()),
+                    Circunferencia27cm: parseFloat(form.Circunferencia27cm!.toString()),
+                    Circunferencia30cm: parseFloat(form.Circunferencia30cm!.toString()),
+                    MlSobreRodilla: parseFloat(form.MlSobreRodilla!.toString()),
+                    ApTension: parseFloat(form.ApTension!.toString()),
+                    MlSupracondilar: parseFloat(form.MlSupracondilar!.toString()),
+                    MlTendon: parseFloat(form.MlTendon!.toString()),
+                    Notas: form.Notas!,
+                    LongitudOsea: parseFloat(form.LongitudOsea!.toString()),
+                    LongitudPies: parseFloat(form.LongitudPies!.toString()),
+                    AlturaTacon: parseFloat(form.AlturaTacon!.toString()),
+                });
+                setSubmissionStatus('Medidas transtibiales creadas exitosamente.');
+                // Puedes resetear el formulario aquí si lo deseas
+            } else {
+                setSubmissionStatus('Por favor, completa todos los campos requeridos.');
+            }
+        } catch (error) {
+            console.error('Error al crear MedidaTranstibial:', error);
+            setSubmissionStatus('Error al crear MedidaTranstibial.');
+        }
     };
 
     return (
-        <div className="space-y-6">
-            {/* Longitud Total del Muñón */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">
-                    Longitud Total del Muñón (cm)
-                    <FaInfo title="Distancia total de la base a la punta del muñón" className="inline ml-1 text-gray-500" />
-                </label>
-                <Input
-                    type="number"
-                    {...register('longitudTotalMunon')}
-                    className="w-full sm:w-2/3"
-                    placeholder="Ingresa la longitud total del muñón"
-                    onBlur={() => handleBlur('Longitud Total del Muñón', 'Longitud guardada')}
-                />
-            </div>
-
-            {/* Circunferencias */}
-            <div className="space-y-4">
-                <h4 className="text-md font-semibold text-gray-700">Medidas de Circunferencia (cm)</h4>
-                {['3', '6', '9', '12', '15', '21', '24', '27', '30'].map((value) => (
-                    <div key={value} className="flex flex-col sm:flex-row sm:items-center gap-4">
-                        <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">
-                            Circunferencia a {value} cm
-                        </label>
-                        <Input
+        <div className="mt-6 p-4 border rounded-md">
+            <h3 className="text-xl font-semibold mb-4">Medida Transtibial</h3>
+            <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-2 gap-4">
+                    {/* ID Paciente */}
+                    <div>
+                        <label className="block text-gray-700">ID Paciente</label>
+                        <input
                             type="number"
-                            {...register(`circunferencia${value}cm` as const)}
-                            className="w-full sm:w-2/3"
-                            placeholder={`Ingresa la circunferencia a ${value} cm`}
-                            onBlur={() => handleBlur(`Circunferencia a ${value} cm`, `Circunferencia a ${value} cm guardada`)}
+                            name="IdPaciente"
+                            value={form.IdPaciente}
+                            readOnly
+                            className="w-full border border-gray-300 p-2 rounded-md bg-gray-100"
                         />
                     </div>
-                ))}
-            </div>
 
-            {/* Otras Medidas */}
-            <div className="space-y-4">
-                <h4 className="text-md font-semibold text-gray-700">Otras Medidas</h4>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">ML sobre Rodilla (cm)</label>
-                    <Input
-                        type="number"
-                        {...register('mlSobreRodilla')}
-                        className="w-full sm:w-2/3"
-                        placeholder="Ingresa ML sobre Rodilla"
-                        onBlur={() => handleBlur('ML sobre Rodilla', 'ML sobre Rodilla guardada')}
-                    />
+                    {/* ID Liner */}
+                    <div>
+                        <label className="block text-gray-700">ID Liner</label>
+                        <input
+                            type="number"
+                            name="IdLiner"
+                            value={form.IdLiner}
+                            readOnly
+                            className="w-full border border-gray-300 p-2 rounded-md bg-gray-100"
+                        />
+                    </div>
+
+                    {/* ID Escaneo */}
+                    <div>
+                        <label className="block text-gray-700">ID Escaneo</label>
+                        <input
+                            type="number"
+                            name="IdEscaneo"
+                            value={form.IdEscaneo}
+                            onChange={(e) => setForm({ ...form, IdEscaneo: parseInt(e.target.value) })}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                            required
+                        />
+                    </div>
+
+                    {/* Fecha Escaneo */}
+                    <div>
+                        <label className="block text-gray-700">Fecha Escaneo</label>
+                        <input
+                            type="date"
+                            name="FechaEscaneo"
+                            value={form.FechaEscaneo}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                            required
+                        />
+                    </div>
+
+                    {/* Protesista */}
+                    <div>
+                        <label className="block text-gray-700">Protesista</label>
+                        <input
+                            type="text"
+                            name="Protesista"
+                            value={form.Protesista}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                            required
+                        />
+                    </div>
+
+                    {/* Insidencia */}
+                    <div>
+                        <label className="block text-gray-700">Incidencia</label>
+                        <input
+                            type="text"
+                            name="Insidencia"
+                            value={form.Insidencia}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* Longitud Total Muñón */}
+                    <div>
+                        <label className="block text-gray-700">Longitud Total Muñón</label>
+                        <input
+                            type="number"
+                            name="LongitudTotalMunon"
+                            value={form.LongitudTotalMunon}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* Circunferencias */}
+                    <div className="col-span-2">
+                        <label className="block text-gray-700">Circunferencias</label>
+                        <div className="grid grid-cols-4 gap-4">
+                            {['3cm', '6cm', '9cm', '12cm', '15cm', '21cm', '24cm', '27cm', '30cm'].map((label, index) => {
+                                const fieldName = `Circunferencia${label.replace('cm', '')}cm`;
+                                return (
+                                    <div key={index}>
+                                        <label className="block text-gray-700">{label}</label>
+                                        <input
+                                            type="number"
+                                            name={fieldName}
+                                            value={(form as any)[fieldName]}
+                                            onChange={handleChange}
+                                            className="w-full border border-gray-300 p-2 rounded-md"
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* ML Sobre Rodilla */}
+                    <div>
+                        <label className="block text-gray-700">ML Sobre Rodilla</label>
+                        <input
+                            type="number"
+                            name="MlSobreRodilla"
+                            value={form.MlSobreRodilla}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* AP Tensión */}
+                    <div>
+                        <label className="block text-gray-700">AP Tensión</label>
+                        <input
+                            type="number"
+                            name="ApTension"
+                            value={form.ApTension}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* ML Supracondilar */}
+                    <div>
+                        <label className="block text-gray-700">ML Supracondilar</label>
+                        <input
+                            type="number"
+                            name="MlSupracondilar"
+                            value={form.MlSupracondilar}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* ML Tendón */}
+                    <div>
+                        <label className="block text-gray-700">ML Tendón</label>
+                        <input
+                            type="number"
+                            name="MlTendon"
+                            value={form.MlTendon}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* Notas */}
+                    <div className="col-span-2">
+                        <label className="block text-gray-700">Notas</label>
+                        <textarea
+                            name="Notas"
+                            value={form.Notas}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        ></textarea>
+                    </div>
+
+                    {/* Longitud Ósea */}
+                    <div>
+                        <label className="block text-gray-700">Longitud Ósea</label>
+                        <input
+                            type="number"
+                            name="LongitudOsea"
+                            value={form.LongitudOsea}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* Longitud Pies */}
+                    <div>
+                        <label className="block text-gray-700">Longitud Pies</label>
+                        <input
+                            type="number"
+                            name="LongitudPies"
+                            value={form.LongitudPies}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
+
+                    {/* Altura Tacón */}
+                    <div>
+                        <label className="block text-gray-700">Altura Tacón</label>
+                        <input
+                            type="number"
+                            name="AlturaTacon"
+                            value={form.AlturaTacon}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 p-2 rounded-md"
+                        />
+                    </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">AP Tensión (cm)</label>
-                    <Input
-                        type="number"
-                        {...register('apTension')}
-                        className="w-full sm:w-2/3"
-                        placeholder="Ingresa AP Tensión"
-                        onBlur={() => handleBlur('AP Tensión', 'AP Tensión guardada')}
-                    />
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">ML Supracondilar (cm)</label>
-                    <Input
-                        type="number"
-                        {...register('mlSupracondilar')}
-                        className="w-full sm:w-2/3"
-                        placeholder="Ingresa ML Supracondilar"
-                        onBlur={() => handleBlur('ML Supracondilar', 'ML Supracondilar guardada')}
-                    />
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">ML Tendón (cm)</label>
-                    <Input
-                        type="number"
-                        {...register('mlTendon')}
-                        className="w-full sm:w-2/3"
-                        placeholder="Ingresa ML Tendón"
-                        onBlur={() => handleBlur('ML Tendón', 'ML Tendón guardada')}
-                    />
-                </div>
-            </div>
 
-            {/* Notas */}
-            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Notas</label>
-                <Textarea
-                    {...register('notas')}
-                    placeholder="Escriba aquí las observaciones adicionales..."
-                    className="w-full sm:w-2/3"
-                />
-            </div>
-
-            {/* Longitud Ósea */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Longitud Ósea (cm)</label>
-                <Input
-                    type="number"
-                    {...register('longitudOsea')}
-                    className="w-full sm:w-2/3"
-                    placeholder="Ingresa la longitud ósea"
-                />
-            </div>
-
-            {/* Longitud de los Pies */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Longitud Pies (cm)</label>
-                <Input
-                    type="number"
-                    {...register('longitudPies')}
-                    className="w-full sm:w-2/3"
-                    placeholder="Ingresa la longitud de los pies"
-                />
-            </div>
-
-            {/* Altura del Tacón */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <label className="block text-sm font-medium text-gray-700 w-full sm:w-1/3">Altura del Tacón (cm)</label>
-                <Input
-                    type="number"
-                    {...register('alturaTacon')}
-                    className="w-full sm:w-2/3"
-                    placeholder="Ingresa la altura del tacón"
-                />
-            </div>
-
-            {/* Botón de Guardar */}
-            <div className="flex justify-end">
-                <Button
+                <button
                     type="submit"
-                    className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2"
+                    className="mt-4 bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
                 >
-                    Guardar Medidas Transtibiales <FaPlusCircle />
-                </Button>
-            </div>
+                    Guardar Medida Transtibial
+                </button>
+            </form>
+            {submissionStatus && (
+                <div className="mt-2 text-sm text-gray-700">
+                    {submissionStatus}
+                </div>
+            )}
         </div>
     );
 };
 
-export default MedidasTranstibialForm;
+export default MedidaTranstibialForm;

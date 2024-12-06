@@ -1,13 +1,13 @@
-// src/Pages/Paciente/RegistroPaciente.tsx 
+// src/Pages/Paciente/RegistroPaciente.tsx
 
 import React, { useState, useContext } from 'react';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
-import { InputText } from 'primereact/inputtext'; // Importación corregida
+import { InputText } from 'primereact/inputtext';
 import { ToastContainer, toast } from 'react-toastify';
 import { Steps } from 'primereact/steps';
-import 'primereact/resources/themes/saga-blue/theme.css';  // Asegúrate de tener el tema adecuado
+import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,10 +17,12 @@ import { createPaciente } from '../../services/PacienteService';
 import { motion } from 'framer-motion';
 import { ThemeContext } from '../../App';
 import ImageCaptureUpload from '../../components/ImageCaptureUpload';
+import ConfirmationModal from '../../components/ui/ConfirmationModal';
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '../../components/ui/Dialog';
+import InputWithIcon from '../../components/ui/InputWithIcon';
+
+// Importar constantes
 import { generos, tiposAmputacion, ladosAmputacion, provincias, causasAmputacion } from '../../constants';
-import ConfirmationModal from '../../components/ui/ConfirmationModal'; // Importar el modal de confirmación
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from '../../components/ui/Dialog'; // Importar tus componentes Dialog personalizados
-import InputWithIcon from '../../components/ui/InputWithIcon'; // Importar el input con icono
 
 // Importar iconos de react-icons
 import {
@@ -36,13 +38,14 @@ import {
     FaWheelchair,
     FaCalendarAlt
 } from 'react-icons/fa';
-import { GiLungs } from 'react-icons/gi'; // Otros iconos de Game Icons
+import { GiLungs } from 'react-icons/gi';
 import { AiOutlineMedicineBox } from 'react-icons/ai';
 
 export function RegistroPaciente() {
     const [formData, setFormData] = useState<Omit<Paciente, 'idPaciente'>>({
         nombreCompleto: '',
         cedula: '',
+        codigoPaciente: '', // Nuevo campo
         genero: undefined,
         fechaNacimiento: '2000-01-01',
         direccion: '',
@@ -51,7 +54,8 @@ export function RegistroPaciente() {
         idProvincia: undefined,
         sector: '',
         comentario: '',
-        fotoPaciente: ''
+        fotoPaciente: '',
+        fechaIngreso: '' // Nuevo campo
     });
 
     const [historialData, setHistorialData] = useState<Omit<HistorialPacienteIngreso, 'idHistorial' | 'idPaciente'>>({
@@ -119,7 +123,7 @@ export function RegistroPaciente() {
     };
 
     const steps = [
-        { label: 'Informacion Personal' },
+        { label: 'Información Personal' },
         { label: 'Historial del Paciente' }
     ];
 
@@ -165,13 +169,25 @@ export function RegistroPaciente() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            // Generar código de paciente
+            const currentYear = new Date().getFullYear();
+            const randomNumber = Math.floor(100000 + Math.random() * 900000); // Número aleatorio de 6 dígitos
+            const codigoPaciente = `ITLA-PROT3D${currentYear}-${randomNumber}`;
+
+            // Agregar codigoPaciente y fechaIngreso al formData
+            const updatedFormData = {
+                ...formData,
+                codigoPaciente: codigoPaciente,
+                fechaIngreso: new Date().toISOString().split('T')[0]
+            };
+
             const requestData = {
-                Paciente: formData,
+                Paciente: updatedFormData,
                 Historial: historialData
             };
 
             await createPaciente(requestData);
-            toast.success('Paciente registrado con exito');
+            toast.success('Paciente registrado con éxito');
             resetForm();
             // Opcional: Navegar a otra página después de registrar
             // navigate('/');
@@ -185,6 +201,7 @@ export function RegistroPaciente() {
         setFormData({
             nombreCompleto: '',
             cedula: '',
+            codigoPaciente: '',
             genero: undefined,
             fechaNacimiento: '2000-01-01',
             direccion: '',
@@ -193,7 +210,8 @@ export function RegistroPaciente() {
             idProvincia: undefined,
             sector: '',
             comentario: '',
-            fotoPaciente: ''
+            fotoPaciente: '',
+            fechaIngreso: ''
         });
         setHistorialData({
             tipoAmputacion: undefined,
@@ -214,7 +232,7 @@ export function RegistroPaciente() {
     // Función para validar la cédula
     const validateCedula = async () => {
         if (!formData.cedula.trim()) {
-            toast.error('Por favor, ingrese una cedula valida para validar.');
+            toast.error('Por favor, ingrese una cédula válida para validar.');
             return;
         }
 
@@ -241,8 +259,8 @@ export function RegistroPaciente() {
                 setShowCedulaModal(true);
             }
         } catch (error) {
-            console.error("Error al validar la cedula:", error);
-            toast.error('Error al validar la cedula.');
+            console.error("Error al validar la cédula:", error);
+            toast.error('Error al validar la cédula.');
         } finally {
             setIsCedulaValidating(false);
         }
@@ -273,14 +291,14 @@ export function RegistroPaciente() {
                             <div className="flex flex-col relative">
                                 <label htmlFor="cedula" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaIdBadge className="mr-2 text-xl" />
-                                    Cedula *
+                                    Cédula *
                                 </label>
                                 <InputText
                                     id="cedula"
                                     name="cedula"
                                     value={formData.cedula}
                                     onChange={handleChange}
-                                    placeholder="Ingrese su cedula"
+                                    placeholder="Ingrese su cédula"
                                     className={`w-full p-3 pl-10 text-lg rounded-md border ${errors.cedula ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     required
                                 />
@@ -294,7 +312,7 @@ export function RegistroPaciente() {
                                     className="absolute right-2 top-10 p-button-text p-button-rounded p-button-success"
                                     onClick={validateCedula}
                                     loading={isCedulaValidating}
-                                    tooltip="Validar Cedula"
+                                    tooltip="Validar Cédula"
                                     tooltipOptions={{ position: 'top' }}
                                     type="button"
                                 />
@@ -304,7 +322,7 @@ export function RegistroPaciente() {
                             <div className="flex flex-col">
                                 <label htmlFor="genero" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaVenusMars className="mr-2 text-xl" />
-                                    Genero *
+                                    Género *
                                 </label>
                                 <Dropdown
                                     id="genero"
@@ -313,7 +331,7 @@ export function RegistroPaciente() {
                                     options={generos}
                                     onChange={(e) => handleDropdownChange(e, 'genero')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.genero ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione su genero"
+                                    placeholder="Seleccione su género"
                                     required
                                 />
                                 {errors.genero && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -362,31 +380,31 @@ export function RegistroPaciente() {
                             </div>
                             {/* Dirección */}
                             <InputWithIcon
-                                label="Direccion"
+                                label="Dirección"
                                 name="direccion"
                                 value={formData.direccion}
                                 onChange={handleChange}
-                                placeholder="Ingrese su direccion"
+                                placeholder="Ingrese su dirección"
                                 error={errors.direccion}
                                 icon={FaMapMarkedAlt}
                             />
                             {/* Teléfono */}
                             <InputWithIcon
-                                label="Telefono"
+                                label="Teléfono"
                                 name="telefono"
                                 value={formData.telefono}
                                 onChange={handleChange}
-                                placeholder="Ingrese su telefono fijo"
+                                placeholder="Ingrese su teléfono fijo"
                                 error={errors.telefono}
                                 icon={FaPhone}
                             />
                             {/* Teléfono Celular */}
                             <InputWithIcon
-                                label="Telefono Celular"
+                                label="Teléfono Celular"
                                 name="telefonoCelular"
                                 value={formData.telefonoCelular}
                                 onChange={handleChange}
-                                placeholder="Ingrese su telefono celular"
+                                placeholder="Ingrese su teléfono celular"
                                 error={errors.telefonoCelular}
                                 icon={FaMobileAlt}
                             />
@@ -438,8 +456,8 @@ export function RegistroPaciente() {
                             {/* Tipo de Amputación */}
                             <div className="flex flex-col">
                                 <label htmlFor="tipoAmputacion" className="block text-lg font-medium mb-2 flex items-center">
-                                    <FaWheelchair className="mr-2 text-xl" /> {/* Usando FaWheelchair */}
-                                    Tipo de Amputacion *
+                                    <FaWheelchair className="mr-2 text-xl" />
+                                    Tipo de Amputación *
                                 </label>
                                 <Dropdown
                                     id="tipoAmputacion"
@@ -448,7 +466,7 @@ export function RegistroPaciente() {
                                     options={tiposAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'tipoAmputacion')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.tipoAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione el tipo de amputacion"
+                                    placeholder="Seleccione el tipo de amputación"
                                     required
                                 />
                                 {errors.tipoAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -456,8 +474,8 @@ export function RegistroPaciente() {
                             {/* Lado de Amputación */}
                             <div className="flex flex-col">
                                 <label htmlFor="ladoAmputacion" className="block text-lg font-medium mb-2 flex items-center">
-                                    <FaWheelchair className="mr-2 text-xl" /> {/* Usando FaWheelchair */}
-                                    Lado de Amputacion *
+                                    <FaWheelchair className="mr-2 text-xl" />
+                                    Lado de Amputación *
                                 </label>
                                 <Dropdown
                                     id="ladoAmputacion"
@@ -466,7 +484,7 @@ export function RegistroPaciente() {
                                     options={ladosAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'ladoAmputacion')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.ladoAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione el lado de amputacion"
+                                    placeholder="Seleccione el lado de amputación"
                                     required
                                 />
                                 {errors.ladoAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -475,7 +493,7 @@ export function RegistroPaciente() {
                             <div className="flex flex-col">
                                 <label htmlFor="fechaAmputacion" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaCalendarAlt className="mr-2 text-xl" />
-                                    Fecha de Amputacion * 
+                                    Fecha de Amputación *
                                 </label>
                                 <Calendar
                                     id="fechaAmputacion"
@@ -490,7 +508,7 @@ export function RegistroPaciente() {
                                     }}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.fechaAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     dateFormat="dd/mm/yy"
-                                    placeholder="Seleccione la fecha de amputacion"
+                                    placeholder="Seleccione la fecha de amputación"
                                     required
                                 />
                                 {errors.fechaAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -508,7 +526,7 @@ export function RegistroPaciente() {
                                     options={causasAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'causa')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.causa ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione la causa de la amputacion"
+                                    placeholder="Seleccione la causa de la amputación"
                                     required
                                 />
                                 {errors.causa && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -524,7 +542,7 @@ export function RegistroPaciente() {
                                     name="terapia"
                                     value={historialData.terapia}
                                     options={[
-                                        { label: 'Si', value: true },
+                                        { label: 'Sí', value: true },
                                         { label: 'No', value: false }
                                     ]}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'terapia')}
@@ -593,7 +611,7 @@ export function RegistroPaciente() {
                     </DialogHeader>
                     <DialogDescription>
                         <FaComment className="mr-2 text-xl inline-block" />
-                        Estas seguro de que deseas cancelar el registro? Los datos ingresados no se guardaran.
+                        ¿Estás seguro de que deseas cancelar el registro? Los datos ingresados no se guardarán.
                     </DialogDescription>
                     <DialogFooter>
                         <Button
@@ -618,7 +636,7 @@ export function RegistroPaciente() {
                 description={
                     <div className="flex items-center">
                         <FaIdBadge className="mr-2 text-2xl text-red-500" />
-                        La cedula no esta validada y no se reconoce. ¿Deseas continuar con el registro del paciente?
+                        La cédula no está validada y no se reconoce. ¿Deseas continuar con el registro del paciente?
                     </div>
                 }
                 onConfirm={() => {
@@ -631,7 +649,6 @@ export function RegistroPaciente() {
             />
             <ToastContainer position="top-right" autoClose={5000} />
         </div>
-
     );
 
 }
