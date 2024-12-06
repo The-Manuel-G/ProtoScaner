@@ -1,18 +1,25 @@
 // src/types/Paciente.ts
+
+import { HistorialPacienteIngreso } from './HistorialPacienteIngreso';
+
 export interface Paciente {
     idPaciente: number;
     nombreCompleto?: string;
     cedula?: string;
-    genero?: number;
-    fechaNacimiento?: string; // o Date si prefieres trabajar con fechas directamente
+    codigoPaciente?: string; // Nuevo campo agregado
+    genero?: number; // Acepta null
+    fechaNacimiento?: string;
     direccion?: string;
     telefono?: string;
     telefonoCelular?: string;
-    idProvincia?: number;
+    idProvincia?: number | null; // Acepta null
     sector?: string;
     insidencia?: boolean;
     idEstatusPaciente?: number;
     idEstatusProtesis?: number;
     comentario?: string;
-    fotoPaciente?: Uint8Array; // para manejar imágenes en formato binario
+    fotoPaciente?: string;
+    fechaIngreso?: string; // Nuevo campo agregado
+
+    historialPacienteIngresos?: HistorialPacienteIngreso[];
 }

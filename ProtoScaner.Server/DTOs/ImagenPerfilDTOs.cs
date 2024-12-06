@@ -2,9 +2,9 @@
 {
     public class ImagenPerfilDTO
     {
-        public int IdImagen { get; set; }
+        public int? IdImagen { get; set; }
         public int? IdUsuario { get; set; }
-        public byte[]? Imagen { get; set; }
+        public string? Imagen { get; set; } // Base64 string
         public string? Descripcion { get; set; }
     }
 }

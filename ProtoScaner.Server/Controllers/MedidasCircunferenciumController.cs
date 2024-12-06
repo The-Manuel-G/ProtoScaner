@@ -19,7 +19,6 @@ namespace ProtoScaner.Server.Controllers
             dbContext = _dbContext;
         }
 
-        // GET: api/medidasCircunferencium
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MedidasCircunferenciumDTO>>> GetMedidasCircunferenciums()
         {
@@ -27,16 +26,16 @@ namespace ProtoScaner.Server.Controllers
                 .Select(m => new MedidasCircunferenciumDTO
                 {
                     IdMedida = m.IdMedida,
-                    IdValor = m.IdValor,
-                    NumeroCircunferencia = m.NumeroCircunferencia,
-                    ValorMm = m.ValorMm
+                    IdValor = m.IdValor ?? 0, // Valor predeterminado para null
+                    NumeroCircunferencia = m.NumeroCircunferencia ?? 0, // Valor predeterminado para null
+                    ValorMmSinPresion = m.ValorMmSinPresion,
+                    ValorMmConPresion = m.ValorMmConPresion
                 })
                 .ToListAsync();
 
             return Ok(medidas);
         }
 
-        // GET: api/medidasCircunferencium/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<MedidasCircunferenciumDTO>> GetMedidaCircunferencium(int id)
         {
@@ -49,15 +48,15 @@ namespace ProtoScaner.Server.Controllers
             var medidaDTO = new MedidasCircunferenciumDTO
             {
                 IdMedida = medidaCircunferencium.IdMedida,
-                IdValor = medidaCircunferencium.IdValor,
-                NumeroCircunferencia = medidaCircunferencium.NumeroCircunferencia,
-                ValorMm = medidaCircunferencium.ValorMm
+                IdValor = medidaCircunferencium.IdValor ?? 0, // Valor predeterminado para null
+                NumeroCircunferencia = medidaCircunferencium.NumeroCircunferencia ?? 0, // Valor predeterminado para null
+                ValorMmSinPresion = medidaCircunferencium.ValorMmSinPresion,
+                ValorMmConPresion = medidaCircunferencium.ValorMmConPresion
             };
 
             return Ok(medidaDTO);
         }
 
-        // POST: api/medidasCircunferencium
         [HttpPost]
         public async Task<ActionResult<MedidasCircunferenciumDTO>> CreateMedidaCircunferencium(MedidasCircunferenciumDTO nuevaMedidaDTO)
         {
@@ -65,7 +64,8 @@ namespace ProtoScaner.Server.Controllers
             {
                 IdValor = nuevaMedidaDTO.IdValor,
                 NumeroCircunferencia = nuevaMedidaDTO.NumeroCircunferencia,
-                ValorMm = nuevaMedidaDTO.ValorMm
+                ValorMmSinPresion = nuevaMedidaDTO.ValorMmSinPresion ?? 0, // Manejar valores null
+                ValorMmConPresion = nuevaMedidaDTO.ValorMmConPresion ?? 0  // Manejar valores null
             };
 
             dbContext.MedidasCircunferencia.Add(nuevaMedida);
@@ -86,8 +86,10 @@ namespace ProtoScaner.Server.Controllers
                 return NotFound();
             }
 
+            medidaCircunferencium.IdValor = medidaActualizadaDTO.IdValor;
             medidaCircunferencium.NumeroCircunferencia = medidaActualizadaDTO.NumeroCircunferencia;
-            medidaCircunferencium.ValorMm = medidaActualizadaDTO.ValorMm;
+            medidaCircunferencium.ValorMmSinPresion = medidaActualizadaDTO.ValorMmSinPresion ?? 0;
+            medidaCircunferencium.ValorMmConPresion = medidaActualizadaDTO.ValorMmConPresion ?? 0;
 
             await dbContext.SaveChangesAsync();
             return NoContent();
@@ -109,5 +111,3 @@ namespace ProtoScaner.Server.Controllers
         }
     }
 }
-
-

@@ -1,0 +1,58 @@
+.p-6 {
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+}
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    padding: 1.5rem;
+}
+
+.flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.field {
+    margin-bottom: 1rem;
+}
+
+    .field label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .field input,
+    .field textarea {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+button {
+    margin: 0.5rem 0;
+}
+
+    button.pi-check {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+    }
+
+    button.pi-times {
+        background-color: #f44336;
+        color: white;
+        border: none;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }

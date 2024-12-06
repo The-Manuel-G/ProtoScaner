@@ -53,8 +53,6 @@ public partial class TranstibialPrueba
 
     public string? AlturaTacon { get; set; }
 
-    public virtual LinerTranstibial? IdLinerNavigation { get; set; }
-
     public virtual Paciente? IdPacienteNavigation { get; set; }
 
     public virtual PruebaSocket? IdPruebaNavigation { get; set; }

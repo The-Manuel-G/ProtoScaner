@@ -15,7 +15,11 @@ public partial class Componente
 
     public virtual ComponenteTipo? ComponentTipo { get; set; }
 
+    public virtual InventarioComponente? InventarioComponente { get; set; }
+
     public virtual ICollection<MantenimientoComponente> MantenimientoComponentes { get; set; } = new List<MantenimientoComponente>();
+
+    public virtual ICollection<MovimientosInventario> MovimientosInventarios { get; set; } = new List<MovimientosInventario>();
 
     public virtual ICollection<ProtesisComponente> ProtesisComponentes { get; set; } = new List<ProtesisComponente>();
 

@@ -23,6 +23,8 @@ public partial class TomaMedidasEscaneo
 
     public byte[]? ResultadoDoc { get; set; }
 
+    public virtual ICollection<Comentario> Comentarios { get; set; } = new List<Comentario>();
+
     public virtual TipoAmputacion? IdAmputacionNavigation { get; set; }
 
     public virtual Liner? IdLinerNavigation { get; set; }

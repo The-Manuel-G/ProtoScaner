@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// using statements
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ProtoScaner.Server.Models;
+using ProtoScaner.Server.DTOs;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ProtoScaner.Server.Models;
-using ProtoScaner.Server.DTOs;
 
 namespace ProtoScaner.Server.Controllers
 {
@@ -12,34 +13,35 @@ namespace ProtoScaner.Server.Controllers
     [Route("api/[controller]")]
     public class LinerController : ControllerBase
     {
-        private readonly ProtoScanner3DContext dbContext;
+        private readonly ProtoScanner3DContext _context;
 
-        public LinerController(ProtoScanner3DContext _dbContext)
+        public LinerController(ProtoScanner3DContext context)
         {
-            dbContext = _dbContext;
+            _context = context;
         }
 
         // GET: api/liner
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LinerDTO>>> GetLiners()
         {
-            var liners = await dbContext.Liners
-                .Select(l => new LinerDTO
-                {
-                    IdLiner = l.IdLiner,
-                    TipoLiner = l.TipoLiner,
-                    Talla = l.Talla
-                })
-                .ToListAsync();
+            var liners = await _context.Liners.ToListAsync();
+            var linersDTO = liners.Select(l => new LinerDTO
+            {
+                IdLiner = l.IdLiner,
+                TipoLinerId = l.TipoLinerId,
+                TallaId = l.TallaId,
+                PacienteId = l.PacienteId
+            }).ToList();
 
-            return Ok(liners);
+            return Ok(linersDTO);
         }
 
         // GET: api/liner/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<LinerDTO>> GetLiner(int id)
         {
-            var liner = await dbContext.Liners.FindAsync(id);
+            var liner = await _context.Liners.FindAsync(id);
+
             if (liner == null)
             {
                 return NotFound();
@@ -48,8 +50,9 @@ namespace ProtoScaner.Server.Controllers
             var linerDTO = new LinerDTO
             {
                 IdLiner = liner.IdLiner,
-                TipoLiner = liner.TipoLiner,
-                Talla = liner.Talla
+                TipoLinerId = liner.TipoLinerId,
+                TallaId = liner.TallaId,
+                PacienteId = liner.PacienteId
             };
 
             return Ok(linerDTO);
@@ -57,53 +60,47 @@ namespace ProtoScaner.Server.Controllers
 
         // POST: api/liner
         [HttpPost]
-        public async Task<ActionResult<LinerDTO>> CreateLiner(LinerDTO nuevoLinerDTO)
+        public async Task<ActionResult<LinerDTO>> CreateLiner(LinerDTO linerDTO)
         {
-            var nuevoLiner = new Liner
+            var liner = new Liner
             {
-                TipoLiner = nuevoLinerDTO.TipoLiner,
-                Talla = nuevoLinerDTO.Talla
+                TipoLinerId = linerDTO.TipoLinerId,
+                TallaId = linerDTO.TallaId,
+                PacienteId = linerDTO.PacienteId
             };
 
-            dbContext.Liners.Add(nuevoLiner);
-            await dbContext.SaveChangesAsync();
+            _context.Liners.Add(liner);
+            await _context.SaveChangesAsync();
 
-            nuevoLinerDTO.IdLiner = nuevoLiner.IdLiner;
+            linerDTO.IdLiner = liner.IdLiner;
 
-            return CreatedAtAction(nameof(GetLiner), new { id = nuevoLiner.IdLiner }, nuevoLinerDTO);
+            return CreatedAtAction(nameof(GetLiner), new { id = liner.IdLiner }, linerDTO);
         }
 
         // PUT: api/liner/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateLiner(int id, LinerDTO linerActualizadoDTO)
+        public async Task<IActionResult> UpdateLiner(int id, LinerDTO linerDTO)
         {
-            var liner = await dbContext.Liners.FindAsync(id);
+            if (id != linerDTO.IdLiner)
+            {
+                return BadRequest("El ID del liner no coincide.");
+            }
+
+            var liner = await _context.Liners.FindAsync(id);
+
             if (liner == null)
             {
                 return NotFound();
             }
 
-            liner.TipoLiner = linerActualizadoDTO.TipoLiner;
-            liner.Talla = linerActualizadoDTO.Talla;
+            liner.TipoLinerId = linerDTO.TipoLinerId;
+            liner.TallaId = linerDTO.TallaId;
+            liner.PacienteId = linerDTO.PacienteId;
 
-            await dbContext.SaveChangesAsync();
-            return NoContent();
-        }
+            _context.Entry(liner).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
-        // DELETE: api/liner/{id}
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteLiner(int id)
-        {
-            var liner = await dbContext.Liners.FindAsync(id);
-            if (liner == null)
-            {
-                return NotFound();
-            }
-
-            dbContext.Liners.Remove(liner);
-            await dbContext.SaveChangesAsync();
             return NoContent();
         }
     }
 }
-

@@ -1,0 +1,71 @@
+/* src/components/StatusBoard.css */
+
+.status-card {
+	flex-shrink: 0;
+	border-radius: 1rem;
+	overflow: hidden;
+	width: 6rem;
+	height: 3rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	transition: transform 0.3s ease-in-out;
+}
+
+	.status-card.active {
+		width: 8rem;
+		height: 4rem;
+		box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+	}
+
+	/* Eliminar o comentar las propiedades que interrumpen el cambio de color */
+	.status-card.inactive {
+		/* background-color: #f3f4f6; */ /* bg-gray-100 */
+		/* border: 1px solid #d1d5db; */ /* border-gray-300 */
+		box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
+	}
+
+	.status-card:hover {
+		transform: scale(1.05) rotate(1deg);
+	}
+
+.status-title {
+	position: absolute;
+	top: 0.25rem;
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: #374151; /* text-gray-700 */
+	text-align: center;
+	padding: 0 0.25rem;
+}
+
+.icon-container {
+	margin-top: 0.5rem;
+	cursor: pointer;
+	transition: transform 0.2s ease-in-out;
+}
+
+	.icon-container.dragging {
+		transform: scale(1.1);
+		opacity: 0.8;
+	}
+
+.icon-animation {
+	animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+	0% {
+		transform: translateY(0);
+	}
+
+	50% {
+		transform: translateY(-10px);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
+}

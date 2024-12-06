@@ -11,3 +11,19 @@ export interface HistorialPacienteIngreso {
     idMedida?: number;
     comentario?: string;
 }
+
+
+// src/types/HistorialPacienteIngreso.ts
+
+export interface HistorialPacienteIngresoDTO {
+    IdHistorial: number;
+    IdPaciente: number;
+    TipoAmputacion: number; // 1: Transtibial, 2: Transfemoral
+    LadoAmputacion: string;
+    FechaAmputacion: string; // ISO Date string
+    Causa: string;
+    Terapia: string;
+    TiempoTerapia: number;
+    IdMedida: number;
+    Comentario: string;
+}

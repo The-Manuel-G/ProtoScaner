@@ -27,5 +27,5 @@ public partial class Insidencia
 
     public virtual Protesi? IdProtesisNavigation { get; set; }
 
-    public virtual Mantenimiento? IdUsuarioNavigation { get; set; }
+    public virtual Usuario? IdUsuarioNavigation { get; set; }
 }

@@ -1,105 +1,149 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using ProtoScaner.Server.Models;
 using ProtoScaner.Server.DTOs;
+using ProtoScaner.Server.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ProtoScaner.Server.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TallaController : ControllerBase
+    public class TallasController : ControllerBase
     {
-        private readonly ProtoScanner3DContext dbContext;
+        private readonly ProtoScanner3DContext _context;
 
-        public TallaController(ProtoScanner3DContext _dbContext)
+        public TallasController(ProtoScanner3DContext context)
         {
-            dbContext = _dbContext;
+            _context = context;
         }
 
-        // GET: api/talla
+        // GET: api/Tallas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TallaDTO>>> GetTallas()
+        public async Task<ActionResult<IEnumerable<TallaDto>>> GetTallas()
         {
-            var tallas = await dbContext.Tallas
-                .Select(t => new TallaDTO
+            return await _context.Tallas
+                .Select(t => new TallaDto
                 {
                     IdTalla = t.IdTalla,
-                    TallaNombre = t.TallaNombre
+                    TallaNombre = t.TallaNombre,
+                    TipoAmputacionId = t.TipoAmputacionId,
+                    PacienteId = t.PacienteId
+                })
+                .ToListAsync();
+        }
+
+        // GET: api/Tallas/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TallaDto>> GetTalla(int id)
+        {
+            var talla = await _context.Tallas
+                .Where(t => t.IdTalla == id)
+                .Select(t => new TallaDto
+                {
+                    IdTalla = t.IdTalla,
+                    TallaNombre = t.TallaNombre,
+                    TipoAmputacionId = t.TipoAmputacionId,
+                    PacienteId = t.PacienteId
+                })
+                .FirstOrDefaultAsync();
+
+            if (talla == null)
+            {
+                return NotFound();
+            }
+
+            return talla;
+        }
+
+        // GET: api/Tallas/tipo/{tipoAmputacionId}
+        [HttpGet("tipo/{tipoAmputacionId}")]
+        public async Task<ActionResult<IEnumerable<TallaDto>>> GetTallasPorTipoAmputacion(int tipoAmputacionId)
+        {
+            var tallas = await _context.Tallas
+                .Where(t => t.TipoAmputacionId == tipoAmputacionId)
+                .Select(t => new TallaDto
+                {
+                    IdTalla = t.IdTalla,
+                    TallaNombre = t.TallaNombre,
+                    TipoAmputacionId = t.TipoAmputacionId,
+                    PacienteId = t.PacienteId
                 })
                 .ToListAsync();
 
-            return Ok(tallas);
-        }
-
-        // GET: api/talla/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TallaDTO>> GetTalla(int id)
-        {
-            var talla = await dbContext.Tallas.FindAsync(id);
-            if (talla == null)
+            if (tallas == null || !tallas.Any())
             {
-                return NotFound();
+                return NotFound($"No se encontraron tallas para el TipoAmputacionId {tipoAmputacionId}");
             }
 
-            var tallaDTO = new TallaDTO
-            {
-                IdTalla = talla.IdTalla,
-                TallaNombre = talla.TallaNombre
-            };
-
-            return Ok(tallaDTO);
+            return tallas;
         }
 
-        // POST: api/talla
+        // POST: api/Tallas
         [HttpPost]
-        public async Task<ActionResult<TallaDTO>> CreateTalla(TallaDTO nuevaTallaDTO)
+        public async Task<ActionResult<TallaDto>> CreateTalla(TallaDto tallaDto)
         {
-            var nuevaTalla = new Talla
+            if (string.IsNullOrWhiteSpace(tallaDto.TallaNombre))
             {
-                TallaNombre = nuevaTallaDTO.TallaNombre
+                return BadRequest("El nombre de la talla es requerido.");
+            }
+
+            var talla = new Talla
+            {
+                TallaNombre = tallaDto.TallaNombre,
+                TipoAmputacionId = tallaDto.TipoAmputacionId,
+                PacienteId = tallaDto.PacienteId
             };
 
-            dbContext.Tallas.Add(nuevaTalla);
-            await dbContext.SaveChangesAsync();
+            _context.Tallas.Add(talla);
+            await _context.SaveChangesAsync();
 
-            nuevaTallaDTO.IdTalla = nuevaTalla.IdTalla;
+            tallaDto.IdTalla = talla.IdTalla;
 
-            return CreatedAtAction(nameof(GetTalla), new { id = nuevaTalla.IdTalla }, nuevaTallaDTO);
+            return CreatedAtAction(nameof(GetTalla), new { id = talla.IdTalla }, tallaDto);
         }
 
-        // PUT: api/talla/{id}
+        // PUT: api/Tallas/5
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateTalla(int id, TallaDTO tallaActualizadaDTO)
+        public async Task<IActionResult> UpdateTalla(int id, TallaDto tallaDto)
         {
-            var talla = await dbContext.Tallas.FindAsync(id);
+            if (id != tallaDto.IdTalla)
+            {
+                return BadRequest("El ID en la URL no coincide con el ID de la solicitud.");
+            }
+
+            var talla = await _context.Tallas.FindAsync(id);
             if (talla == null)
             {
                 return NotFound();
             }
 
-            talla.TallaNombre = tallaActualizadaDTO.TallaNombre;
+            talla.TallaNombre = tallaDto.TallaNombre;
+            talla.TipoAmputacionId = tallaDto.TipoAmputacionId;
+            talla.PacienteId = tallaDto.PacienteId;
 
-            await dbContext.SaveChangesAsync();
+            _context.Entry(talla).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
 
-        // DELETE: api/talla/{id}
+        // DELETE: api/Tallas/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTalla(int id)
+        public async Task<IActionResult> DeleteTalla(int id)
         {
-            var talla = await dbContext.Tallas.FindAsync(id);
+            var talla = await _context.Tallas.FindAsync(id);
             if (talla == null)
             {
                 return NotFound();
             }
 
-            dbContext.Tallas.Remove(talla);
-            await dbContext.SaveChangesAsync();
+            _context.Tallas.Remove(talla);
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
     }
 }
-
-

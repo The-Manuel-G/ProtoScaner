@@ -17,6 +17,8 @@ public partial class SocketPaciente
 
     public virtual Paciente? IdPacienteNavigation { get; set; }
 
+    public virtual ICollection<Protesi> Protesis { get; set; } = new List<Protesi>();
+
     public virtual ICollection<Mantenimiento> Mantenimientos { get; set; } = new List<Mantenimiento>();
 
     public virtual ICollection<PruebaSocket> PruebaSockets { get; set; } = new List<PruebaSocket>();

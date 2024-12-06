@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 namespace ProtoScaner.Server.Models;
-
 public partial class MedidaTransfemoral
 {
     public int IdMedidaT { get; set; }
@@ -30,8 +29,6 @@ public partial class MedidaTransfemoral
     public int? IdLiner { get; set; }
 
     public virtual TomaMedidasEscaneo? IdEscaneoNavigation { get; set; }
-
-    public virtual LinerTransfemoral? IdLinerNavigation { get; set; }
 
     public virtual Paciente? IdPacienteNavigation { get; set; }
 

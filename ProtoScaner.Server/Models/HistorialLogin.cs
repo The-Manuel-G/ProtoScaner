@@ -9,7 +9,7 @@ public partial class HistorialLogin
 
     public int? IdUsuario { get; set; }
 
-    public byte[] FechaLogin { get; set; } = null!;
+    public DateTime? FechaLogin { get; set; }
 
     public string? Direccion { get; set; }
 

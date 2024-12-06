@@ -1,0 +1,10 @@
+﻿namespace ProtoScaner.Server.DTOs
+{
+    public class LinerUpdateDto
+    {
+        public int IdLiner { get; set; }
+        public int TipoLinerId { get; set; }
+        public int TallaId { get; set; }
+        public int? PacienteId { get; set; }
+    }
+}

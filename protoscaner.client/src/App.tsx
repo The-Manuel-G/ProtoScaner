@@ -1,7 +1,17 @@
+// src/App.tsx
+
+
 import React, { useState, createContext } from "react";
+
+import 'primereact/resources/themes/saga-blue/theme.css';  // Importa el tema de PrimeReact
+import 'primereact/resources/primereact.min.css';          // Estilos de PrimeReact
+import 'primeicons/primeicons.css';
 import { MyRoutes } from "./routers/routes";
 import { BrowserRouter } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
+import 'react-toastify/dist/ReactToastify.css';            // Importar estilos de Toastify
+
+import { ToastContainer } from 'react-toastify';            // Importar ToastContainer
 
 // Define el tipo del contexto
 interface ThemeContextType {
@@ -19,33 +29,34 @@ function App() {
     return (
         <ThemeContext.Provider value={{ theme, setTheme }}>
             <div
-                className={`${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"
-                    } min-h-screen transition-colors duration-300`}
+                className={`${theme === "light" ? "bg-white text-black" : "bg-gray-900 text-white"} min-h-screen transition-colors duration-300`}
             >
                 <BrowserRouter>
-                    <div className="flex">
+                    <div className="flex h-screen">
                         {/* Sidebar */}
-                        <div
-                            className={`${sidebarOpen ? "w-64" : "w-20"
-                                } bg-gray-800 text-white h-screen transition-all duration-300`}
-                        >
-                            <Sidebar
-                                sidebarOpen={sidebarOpen}
-                                setSidebarOpen={setSidebarOpen}
-                            />
-                        </div>
+                        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
                         {/* Contenido principal */}
                         <div
                             id="main-content"
-                            className={`flex-1 p-6 ${sidebarOpen ? "md:ml-64" : "md:ml-20"
-                                } transition-all duration-300 ${sidebarOpen ? "blur-sm md:blur-none" : ""
-                                }`}
+                            className={`flex-1 p-6 ${sidebarOpen ? "ml-64" : "ml-20"} transition-all duration-300 ${sidebarOpen ? "blur-sm md:blur-none" : ""}`}
                         >
                             <MyRoutes />
                         </div>
                     </div>
                 </BrowserRouter>
+                {/* ToastContainer para React Toastify */}
+                <ToastContainer
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
             </div>
         </ThemeContext.Provider>
     );

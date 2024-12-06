@@ -1,0 +1,5 @@
+/* src/components/ui/customSnippet.css */
+
+.custom-snippet::before {
+	content: none !important;
+}

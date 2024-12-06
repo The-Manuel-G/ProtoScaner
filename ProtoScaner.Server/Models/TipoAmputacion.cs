@@ -11,5 +11,7 @@ public partial class TipoAmputacion
 
     public virtual ICollection<HistorialPacienteIngreso> HistorialPacienteIngresos { get; set; } = new List<HistorialPacienteIngreso>();
 
+    public virtual ICollection<Talla> Tallas { get; set; } = new List<Talla>();
+
     public virtual ICollection<TomaMedidasEscaneo> TomaMedidasEscaneos { get; set; } = new List<TomaMedidasEscaneo>();
 }
