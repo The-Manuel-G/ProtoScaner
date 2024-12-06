@@ -1,0 +1,159 @@
+/* Fondo oscuro del modal */
+.edit-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente */
+    z-index: 9999;
+}
+
+/* Contenedor del modal */
+.edit-panel-content {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    width: 550px;
+    max-width: 90%;
+    transition: transform 0.3s ease-out;
+}
+
+/* Título del modal */
+.edit-panel h3 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #005f8a;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Estilo de los campos de formulario */
+.form-group {
+    margin-bottom: 20px;
+}
+
+    .form-group label {
+        font-weight: bold;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .form-group input, .form-group select, .form-group .p-dropdown, .form-group .p-calendar {
+        width: 100%;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        transition: border 0.3s ease;
+    }
+
+        .form-group input:focus, .form-group select:focus, .form-group .p-dropdown:focus, .form-group .p-calendar:focus {
+            border-color: #005f8a;
+        }
+
+/* Estilo de los botones */
+.form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.ant-btn, .cancel-button {
+    background-color: #005f8a;
+    border-color: #005f8a;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+    .ant-btn:hover, .cancel-button:hover {
+        background-color: #004f74;
+        border-color: #004f74;
+    }
+
+/* Estilo para el botón de cancelar */
+.cancel-button {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+    .cancel-button:hover {
+        background-color: #bdbdbd;
+    }
+
+/* Estilo del calendario */
+.p-calendar {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+/* Estilo para los placeholders */
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+    color: #888;
+    font-style: italic;
+}
+
+/* Estilo del input y dropdown */
+.p-dropdown {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+ 
+   
+}
+
+    .p-dropdown:hover {
+        border-color: #005f8a;
+    }
+
+/* Estilo para el modal close button */
+.ant-modal-close {
+    color: #005f8a;
+    font-size: 18px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    transition: color 0.3s ease;
+}
+
+    .ant-modal-close:hover {
+        color: #004f74;
+    }
+
+/* Sombra del modal */
+.edit-panel-content {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Efecto de transición para apertura */
+.edit-panel-content {
+    transform: scale(0.95);
+    animation: fadeInModal 0.3s ease-out forwards;
+}
+
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
