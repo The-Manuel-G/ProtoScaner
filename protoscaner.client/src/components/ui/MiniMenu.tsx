@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { FaUser, FaRulerCombined, FaVial, FaAmbulance, FaBars } from 'react-icons/fa';
+import { FaUser, FaRulerCombined, FaVial, FaAmbulance, FaBars, FaRegCalendarCheck } from 'react-icons/fa';
 import { FaScrewdriverWrench, FaXmark } from 'react-icons/fa6';
 
 interface MenuItem {
@@ -18,25 +18,22 @@ const MiniMenu: React.FC = () => {
 
     const [menuOpen, setMenuOpen] = useState(false); // Inicializar cerrado
 
-    const menuItems: MenuItem[] = [
+    const menuItems: MenuItem[] = id ? [
         { label: 'Perfil', icon: <FaUser />, route: `/paciente/${id}` },
         { label: 'Medidas', icon: <FaRulerCombined />, route: `/MedidasPaciente/${id}` },
         { label: 'Pruebas', icon: <FaVial />, route: `/PruebasSoker/${id}` },
         { label: 'Entregas', icon: <FaAmbulance />, route: `/EntregaByPaciente/${id}` },
-        {
-            label: 'Mantenimientos',
-            icon: <FaScrewdriverWrench />,
-            route: `/Mantenimiento-id-paciente/${id}`,
-        },
-    ];
+        { label: 'Cronologia', icon: <FaRegCalendarCheck />, route: `/estatus-paciente/${id}` }, // Ruta actualizada
+        { label: 'Mantenimientos', icon: <FaScrewdriverWrench />, route: `/Mantenimiento-id-paciente/${id}` },
+    ] : [];
 
     return (
         <>
             {menuOpen ? (
-                <div className="fixed top-8 right-8 w-56 bg-white shadow-2xl rounded-xl p-4 border border-gray-200 transition-shadow duration-300 hover:shadow-xl">
+                <div className="fixed top-8 right-8 w-56 bg-white shadow-2xl rounded-xl p-4 border border-gray-200 transition-shadow duration-300 hover:shadow-xl z-50">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-gray-700">
-                            {'Accesos R\u00E1pidos'}
+                            {'Accesos Rapidos'}
                         </h3>
                         <button
                             onClick={() => setMenuOpen(false)}
@@ -46,7 +43,7 @@ const MiniMenu: React.FC = () => {
                         </button>
                     </div>
                     <div className="space-y-3">
-                        {menuItems.map((item) => {
+                        {menuItems.length > 0 && menuItems.map((item) => {
                             const isActive = location.pathname === item.route;
                             return (
                                 <button
@@ -72,7 +69,7 @@ const MiniMenu: React.FC = () => {
             ) : (
                 <button
                     onClick={() => setMenuOpen(true)}
-                    className="fixed top-8 right-8 bg-white p-3 rounded-full shadow-lg hover:shadow-xl"
+                    className="fixed top-8 right-8 bg-white p-3 rounded-full shadow-lg hover:shadow-xl z-50"
                 >
                     <FaBars className="text-xl text-gray-700" />
                 </button>

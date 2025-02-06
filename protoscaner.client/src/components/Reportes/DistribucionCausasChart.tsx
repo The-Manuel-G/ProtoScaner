@@ -91,7 +91,7 @@ const DistribucionCausasPolarAreaChart: React.FC = () => {
             },
             title: {
                 display: true,
-                text: 'Distribución de Causas de Amputación - Área Polar',
+                text: 'Distribucion de Causas de Amputacion - Area Polar',
                 font: {
                     size: 18,
                     weight: 'bold'
@@ -118,7 +118,7 @@ const DistribucionCausasPolarAreaChart: React.FC = () => {
                             options={generos}
                             onChange={(e) => setSelectedGeneros(e.value)}
                             optionLabel="label"
-                            placeholder="Seleccionar Género"
+                            placeholder="Seleccionar Genero"
                             className="rounded-lg p-2 border-2 border-gray-300 focus:outline-none focus:border-blue-500"
                         />
                     </div>
@@ -128,7 +128,7 @@ const DistribucionCausasPolarAreaChart: React.FC = () => {
                             options={tiposAmputacion}
                             onChange={(e) => setSelectedTiposAmputacion(e.value)}
                             optionLabel="label"
-                            placeholder="Seleccionar Tipo de Amputación"
+                            placeholder="Seleccionar Tipo de Amputacion"
                             className="rounded-lg p-2 border-2 border-gray-300 focus:outline-none focus:border-blue-500"
                         />
                     </div>
@@ -138,7 +138,7 @@ const DistribucionCausasPolarAreaChart: React.FC = () => {
                             options={ladosAmputacion}
                             onChange={(e) => setSelectedLadosAmputacion(e.value)}
                             optionLabel="label"
-                            placeholder="Seleccionar Lado de Amputación"
+                            placeholder="Seleccionar Lado de Amputacion"
                             className="rounded-lg p-2 border-2 border-gray-300 focus:outline-none focus:border-blue-500"
                         />
                     </div>

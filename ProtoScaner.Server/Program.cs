@@ -44,8 +44,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
 // Configuración de Swagger para la documentación de la API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -62,7 +60,6 @@ app.UseStaticFiles();
 // Configurar Swagger en todos los entornos (Development y Production)
 app.UseSwagger();
 app.UseSwaggerUI();
-
 
 // Comentando autenticación y autorización para evitar interferencias
 // app.UseAuthentication(); // Comentar autenticación temporalmente

@@ -4,16 +4,17 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import '../../../styles/ProtesispageCSS.css';
 import AddProsthesisPanel from "../../../components/AddProsthesisPanel";
 import EditProsthesisPanel from "../../../components/EditProsthesisPanel";
+import '../../../styles/ConfirmDialog.css';
 
 export function Protesispage(): JSX.Element {
     const [protesis, setProtesis] = useState<any[]>([]);
     const [isPanelVisible, setIsPanelVisible] = useState(false);
     const [globalFilter, setGlobalFilter] = useState('');
-    const [editingProsthesis, setEditingProsthesis] = useState<any | null>(null); // Cambiado a 'any | null'
+    const [editingProsthesis, setEditingProsthesis] = useState<any | null>(null);
     const [selectedTable, setSelectedTable] = useState('protesis');
     const toast = useRef<any>(null);
 
@@ -24,8 +25,6 @@ export function Protesispage(): JSX.Element {
     const fetchData = async () => {
         const endpointMap: Record<string, string> = {
             protesis: 'http://localhost:5270/api/protesis',
-            inventory: 'http://localhost:5270/api/inventory',
-            components: 'http://localhost:5270/api/components'
         };
 
         try {
@@ -69,13 +68,26 @@ export function Protesispage(): JSX.Element {
             const response = await fetch(`http://localhost:5270/api/protesis/${id}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Failed to delete prosthesis.');
 
-            showToast('success', 'Success', 'Prosthesis deleted successfully.');
+            showToast('success', 'Success', 'La prótesis se ha eliminado correctamente.');
             fetchData();
         } catch (error: any) {
             showToast('error', 'Error', error.message || 'Failed to delete prosthesis.');
         }
     };
 
+    const confirmDelete = (id: number) => {
+        confirmDialog({
+            message: '¿Estas seguro de que deseas eliminar esta protesis?',
+            header: 'Confirmar eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Aceptar',
+            rejectLabel: 'Cancelar',
+            acceptClassName: 'p-button-danger me-2 custom-accept-button',
+            rejectClassName: 'p-button-secondary me-2 custom-reject-button',
+            className: 'custom-confirm-dialog',
+            accept: () => handleDeleteProsthesis(id),
+        });
+    };
 
     const showToast = (severity: string, summary: string, detail: string) => {
         toast.current?.show({ severity, summary, detail, life: 3000 });
@@ -84,10 +96,9 @@ export function Protesispage(): JSX.Element {
     const header = (
         <div className="flex justify-content-between">
             <h4>Manage {selectedTable.charAt(0).toUpperCase() + selectedTable.slice(1)}</h4>
-            <Button label="Add Prosthesis" icon="pi pi-plus" onClick={() => { setEditingProsthesis(null); setIsPanelVisible(true); }} />
             <InputText
                 type="search"
-                placeholder="Search..."
+                placeholder="Buscar..."
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 className="ml-2"
@@ -97,64 +108,69 @@ export function Protesispage(): JSX.Element {
 
     const actionBodyTemplate = (rowData: any) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-
-       
             <Button
                 icon="pi pi-pencil"
                 onClick={() => {
-                    setEditingProsthesis(rowData);  // Establece el objeto de prótesis que se está editando
-                    setIsPanelVisible(true);  // Muestra el panel de edición
+                    setEditingProsthesis(rowData);
+                    setIsPanelVisible(true);
                 }}
             />
             <Button
                 icon="pi pi-trash"
                 severity="danger"
-                onClick={() => handleDeleteProsthesis(rowData.idProtesis)}
+                onClick={() => confirmDelete(rowData.idProtesis)}
             />
         </div>
     );
 
-    // Mapeo de tipos y tamaños de liner
-    const linerTipoOptions = {
-        1: 'Tipo 1',
-        2: 'Tipo 2',
-        // Agrega más tipos si es necesario
+    // Mapping for types and sizes of liner
+    const linerTipoOptions: Record<number, string> = {
+        1: 'Cushion',
+        2: 'Pin',
     };
 
-    const linerTamanoOptions = {
-        1: 'Pequeño',
-        2: 'Mediano',
-        3: 'Grande',
+    const linerTamanoOptions: Record<number, string> = {
+        1: 'Small',
+        2: 'Medium',
+        3: 'Medium Plus',
+        4: 'Large',
+        5: 'X Large',
+        6: '28',
+        7: '32',
+        8: '38',
+        9: '44',
     };
 
-    // Función para formatear tipo de liner
     const formatLinerTipo = (rowData: any) => {
         return linerTipoOptions[rowData.linerTipo] || 'Desconocido';
     };
 
-    // Función para formatear tamaño de liner
     const formatLinerTamano = (rowData: any) => {
         return linerTamanoOptions[rowData.linerTamano] || 'Desconocido';
     };
 
-    const tableOptions = [
-        { label: 'Prosthesis', value: 'protesis' },
-        { label: 'Inventory', value: 'inventory' },
-        { label: 'Components', value: 'components' }
-    ];
-
-  
-
     return (
         <div>
             <Toast ref={toast} />
+            <ConfirmDialog />
             <div className="card">
-                <div className="mb-4">
-                    <Dropdown
-                        value={selectedTable}
-                        options={tableOptions}
-                        onChange={(e) => setSelectedTable(e.value)}
-                        placeholder="Select Table"
+                <div className="card flex flex-wrap justify-content-center gap-3">
+                    <Button
+                        label="Agregar Prótesis"
+                        icon="pi pi-plus"
+                        rounded
+                        onClick={() => {
+                            setEditingProsthesis(null);
+                            setIsPanelVisible(true);
+                        }}
+                        style={{
+                            backgroundColor: '#6AE6A0',
+                            border: '3px black',
+                            width: '200px',
+                            height: '40px',
+                            color: '#000000',
+                            fontWeight: 'bold',
+                        }}
                     />
                 </div>
                 <DataTable
@@ -167,21 +183,25 @@ export function Protesispage(): JSX.Element {
                     emptyMessage="No records found."
                     responsiveLayout="scroll"
                 >
-                   
-                    <Column field="linerTipo" header="Liner Type" body={formatLinerTipo} sortable />
-                    <Column field="linerTamano" header="Liner Size" body={formatLinerTamano} sortable />
-                    <Column field="protesista" header="Prosthetist" sortable />
-                    <Column field="fechaEntrega" header="Delivery Date" sortable />
+                    <Column field="linerTipo" header="Tipo de Liner" body={formatLinerTipo} sortable />
+                    <Column field="linerTamano" header="Medida de Liner" body={formatLinerTamano} sortable />
+                    <Column field="protesista" header="Protesista" sortable />
+                    <Column field="fechaEntrega" header="Fecha de Entrega" sortable />
                     <Column field="material" header="Material" sortable />
-                    <Column field="paciente.nombreCompleto" header="Patient Name" sortable body={(rowData: any) => rowData.paciente?.nombreCompleto || 'N/A'} />
-                    <Column body={actionBodyTemplate} header="Actions" />
+                    <Column
+                        field="paciente.nombreCompleto"
+                        header="Nombre del Paciente"
+                        body={(rowData: any) => rowData.paciente?.nombreCompleto || 'N/A'}
+                        sortable
+                    />
+                    <Column body={actionBodyTemplate} header="Acciones" />
                 </DataTable>
             </div>
 
             {isPanelVisible && (
                 editingProsthesis ? (
                     <EditProsthesisPanel
-                        prosthesis={editingProsthesis}  // Pasa el objeto prosthesis aquí
+                        prosthesis={editingProsthesis}
                         onClose={() => setIsPanelVisible(false)}
                         onSubmit={handleSaveProsthesis}
                     />
@@ -193,7 +213,6 @@ export function Protesispage(): JSX.Element {
                     />
                 )
             )}
-
         </div>
     );
 }

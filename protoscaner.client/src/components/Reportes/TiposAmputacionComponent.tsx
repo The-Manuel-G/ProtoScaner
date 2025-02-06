@@ -22,9 +22,9 @@ const TiposAmputacionComponent: React.FC = () => {
             const response = await getTiposAmputacion(generoId, ladoAmputacionId);
             setTiposAmputacion(response.data);
         } catch (err) {
-            console.error('Error al obtener los tipos de amputación:', err);
+            console.error('Error al obtener los tipos de amputacion:', err);
             setError('Error al cargar los datos de tipos de amputación.');
-            toastRef.current?.show({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de tipos de amputación.', life: 3000 });
+            toastRef.current?.show({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de tipos de amputacion.', life: 3000 });
         } finally {
             setLoading(false);
         }
@@ -63,7 +63,7 @@ const TiposAmputacionComponent: React.FC = () => {
             },
             title: {
                 display: true,
-                text: 'Tipos de Amputación por Género y Lado',
+                text: 'Tipos de Amputacion por Genero y Lado',
                 font: {
                     size: 18,
                     weight: 'bold'
@@ -74,7 +74,7 @@ const TiposAmputacionComponent: React.FC = () => {
             x: {
                 title: {
                     display: true,
-                    text: 'Tipo y Lado de Amputación',
+                    text: 'Tipo y Lado de Amputacion',
                 },
                 ticks: {
                     maxRotation: 90,

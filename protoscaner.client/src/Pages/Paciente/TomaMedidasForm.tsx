@@ -4,7 +4,7 @@ import { LinerDTO } from '../../types/Liner';
 import { getHistorialPacienteIngresoByPacienteId } from '../../services/HistorialPacienteIngresoService';
 import { HistorialPacienteIngresoDTO } from '../../types/HistorialPacienteIngreso';
 import MedidaTranstibialForm from '../../components/pacienteForm/MedidasTranstibialForm';
-import MedidaTransfemoralForm from '../../components/pacienteForm/MedidasTransfemoralForm';
+import MedidaTransfemoralForm from '../../components/pacienteForm/MedidaTransfemoralForm';
 import { createTomaMedidasEscaneo } from '../../services/TomaMedidasEscaneoService';
 import { TomaMedidasEscaneo } from '../../types/TomaMedidasEscaneo';
 import { tipoLiners, TALLAS } from '../../constants';

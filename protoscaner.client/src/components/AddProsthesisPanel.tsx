@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '../styles/AddProsthesisPanel.css'; 
+import '../styles/AddProsthesisPanel.css';
 
 const AddProsthesisPanel = ({ isVisible, onClose, onSubmit }) => {
     const [formData, setFormData] = useState({
@@ -44,7 +44,7 @@ const AddProsthesisPanel = ({ isVisible, onClose, onSubmit }) => {
 
         // Ajustar los datos al formato esperado por la API
         const formattedData = {
-            idPaciente: formData.codigo_paciente ? parseInt(formData.codigo_paciente, 10) : null, 
+            idPaciente: formData.codigo_paciente ? parseInt(formData.codigo_paciente, 10) : null,
             linerTipo: parseInt(formData.liner_tipo, 10), // Convertir a número
             linerTamano: parseInt(formData.liner_tamano, 10), // Convertir a número
             protesista: formData.protesista,
@@ -74,19 +74,19 @@ const AddProsthesisPanel = ({ isVisible, onClose, onSubmit }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-4">
                 <div className="flex justify-between items-center bg-blue-800 text-white rounded-t-lg px-6 py-4">
-                    <h2 className="text-lg font-semibold">Agregar Prótesis</h2>
+                    <h2 className="text-lg font-semibold">Agregar Protesis</h2>
                     <button onClick={onClose} className="text-2xl leading-none">&times;</button>
                 </div>
                 <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
                     {/* Código del Paciente (opcional) */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Código del Paciente (Opcional)</label>
+                        <label className="block text-sm font-medium text-gray-700">Codigo del Paciente (Opcional)</label>
                         <input
                             type="text"
                             name="codigo_paciente"
                             value={formData.codigo_paciente}
                             onChange={handleChange}
-                            placeholder="Ingrese el código del paciente"
+                            placeholder="Ingrese el codigo del paciente"
                             className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
@@ -102,8 +102,10 @@ const AddProsthesisPanel = ({ isVisible, onClose, onSubmit }) => {
                                 } bg-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                         >
                             <option value="">Seleccione el tipo de liner</option>
-                            <option value="1">Tipo 1</option>
-                            <option value="2">Tipo 2</option>
+                            <option value="1">Cushion</option>
+                            <option value="2">Pin</option>
+
+
                             {/* Opciones adicionales según base de datos */}
                         </select>
                         {errors.liner_tipo && <p className="mt-1 text-sm text-red-500">{errors.liner_tipo}</p>}
@@ -111,7 +113,7 @@ const AddProsthesisPanel = ({ isVisible, onClose, onSubmit }) => {
 
                     {/* Tamaño del Liner */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Tamaño del Liner</label>
+                        <label className="block text-sm font-medium text-gray-700">Tama&ntilde;o del Liner</label>
                         <select
                             name="liner_tamano"
                             value={formData.liner_tamano}
@@ -119,10 +121,18 @@ const AddProsthesisPanel = ({ isVisible, onClose, onSubmit }) => {
                             className={`mt-1 block w-full rounded-md border ${errors.liner_tamano ? 'border-red-500' : 'border-gray-300'
                                 } bg-white shadow-sm p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                         >
-                            <option value="">Seleccione el tamaño del liner</option>
-                            <option value="1">Pequeño</option>
-                            <option value="2">Mediano</option>
-                            <option value="3">Grande</option>
+                            <option value="">Seleccione el tama&ntilde;o del liner</option>
+                            <option value="1">Small</option>
+                            <option value="2">Medium</option>
+                            <option value="3">Medium Plus</option>
+                            <option value="4">Large</option>
+                            <option value="5">X Large+</option>
+                            <option value="6">28</option>
+                            <option value="7">32</option>
+                            <option value="8">38</option>
+                            <option value="9">44</option>
+
+
                         </select>
                         {errors.liner_tamano && <p className="mt-1 text-sm text-red-500">{errors.liner_tamano}</p>}
                     </div>

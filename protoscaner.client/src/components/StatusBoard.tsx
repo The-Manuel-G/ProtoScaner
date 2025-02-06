@@ -8,7 +8,6 @@ import {
     FaCheck,
     FaHourglassHalf,
     FaPrint,
-    FaTrash,
     FaCalendarPlus,
     FaPencilRuler,
     FaStar,
@@ -27,9 +26,6 @@ import {
 import { Paciente } from '@/types/Paciente';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// Eliminar las siguientes líneas ya que no se utilizarán
-// import Skeleton from 'react-loading-skeleton';
-// import 'react-loading-skeleton/dist/skeleton.css';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton'; // Importar Skeleton de ShadCN/UI
 import './StatusBoard.css'; // Asegúrate de tener este archivo CSS para estilos adicionales
@@ -58,7 +54,7 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
         'Pendiente Dise\u00F1o 2',   // ID 3
         'Impreso 2',                 // ID 4
         'Entregado',                 // ID 5
-        'Descartado',                // ID 6
+        // 'Descartado' eliminado
     ];
 
     const estatusPacienteColors = [
@@ -76,7 +72,7 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
         'from-blue-400 to-blue-200',     // Pendiente Dise\u00F1o 2
         'from-green-400 to-green-200',   // Impreso 2
         'from-purple-600 to-purple-400', // Entregado
-        'from-red-600 to-red-400',       // Descartado
+        // 'from-red-600 to-red-400' eliminado
     ];
 
     const estatusPacienteIcons = [
@@ -94,7 +90,7 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
         <FaPencilRuler />, // Pendiente Dise\u00F1o 2
         <FaPrint />,       // Impreso 2
         <FaCheck />,       // Entregado
-        <FaTrash />,       // Descartado
+        // <FaTrash /> eliminado
     ];
 
     // Refs para auto-scroll
@@ -338,8 +334,8 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
                                             }}
                                             {...providedDroppable.droppableProps}
                                             className={`status-card ${idEstatusPaciente === index + 1
-                                                    ? `active bg-gradient-to-r ${estatusPacienteColors[index]}`
-                                                    : 'inactive bg-gray-100'
+                                                ? `active bg-gradient-to-r ${estatusPacienteColors[index]}`
+                                                : 'inactive bg-gray-100'
                                                 }`}
                                         >
                                             {/* Encabezado del Estatus */}
@@ -407,8 +403,8 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
                                         {/* Punto con Icono */}
                                         <div
                                             className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${index < idEstatusPaciente
-                                                    ? `bg-gradient-to-r ${estatusPacienteColors[index]} text-white animate-pulse`
-                                                    : 'bg-gray-200 text-gray-500'
+                                                ? `bg-gradient-to-r ${estatusPacienteColors[index]} text-white animate-pulse`
+                                                : 'bg-gray-200 text-gray-500'
                                                 }`}
                                         >
                                             {index < idEstatusPaciente ? (
@@ -451,8 +447,8 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
                                                 }}
                                                 {...providedDroppable.droppableProps}
                                                 className={`status-card ${idEstatusProtesis === index + 1
-                                                        ? `active bg-gradient-to-r ${estatusProtesisColors[index]}`
-                                                        : 'inactive bg-gray-100'
+                                                    ? `active bg-gradient-to-r ${estatusProtesisColors[index]}`
+                                                    : 'inactive bg-gray-100'
                                                     }`}
                                             >
                                                 {/* Encabezado del Estatus */}
@@ -509,7 +505,7 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
                                 <div className="absolute w-full h-3 bg-gray-300 rounded-full top-1/2 transform -translate-y-1/2"></div>
                                 <div className="flex justify-between items-center">
                                     {estatusProtesisNames.map((estatus, index) => (
-                                        <div key={index} className="relative w-1/6 text-center">
+                                        <div key={index} className="relative w-1/5 text-center"> {/* Ajustado a 1/5 ya que hay 5 estatus */}
                                             {/* Línea activa */}
                                             {index < idEstatusProtesis && (
                                                 <div
@@ -520,8 +516,8 @@ const StatusBoard: React.FC<StatusBoardProps> = ({ pacienteId }) => {
                                             {/* Punto con Icono */}
                                             <div
                                                 className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto ${index < idEstatusProtesis
-                                                        ? `bg-gradient-to-r ${estatusProtesisColors[index]} text-white animate-pulse`
-                                                        : 'bg-gray-200 text-gray-500'
+                                                    ? `bg-gradient-to-r ${estatusProtesisColors[index]} text-white animate-pulse`
+                                                    : 'bg-gray-200 text-gray-500'
                                                     }`}
                                             >
                                                 {estatusProtesisIcons[index]}

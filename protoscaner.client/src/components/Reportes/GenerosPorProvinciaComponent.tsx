@@ -22,9 +22,9 @@ const GenerosPorProvinciaComponent: React.FC = () => {
             const response = await getGenerosPorProvincia();
             setGenerosPorProvincia(response.data);
         } catch (err) {
-            console.error('Error al obtener géneros por provincia:', err);
+            console.error('Error al obtener generos por provincia:', err);
             setError('Error al cargar los datos de géneros por provincia.');
-            toastRef.current?.show({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de géneros por provincia.', life: 3000 });
+            toastRef.current?.show({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de generos por provincia.', life: 3000 });
         } finally {
             setLoading(false);
         }
@@ -70,7 +70,7 @@ const GenerosPorProvinciaComponent: React.FC = () => {
             },
             title: {
                 display: true,
-                text: 'Distribución de Géneros por Provincia',
+                text: 'Distribucion de Generos por Provincia',
                 font: {
                     size: 18,
                     weight: 'bold'

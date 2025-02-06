@@ -23,3 +23,5 @@ export interface Paciente {
 
     historialPacienteIngresos?: HistorialPacienteIngreso[];
 }
+
+export { HistorialPacienteIngreso };

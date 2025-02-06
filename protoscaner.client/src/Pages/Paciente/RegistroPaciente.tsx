@@ -123,7 +123,7 @@ export function RegistroPaciente() {
     };
 
     const steps = [
-        { label: 'Información Personal' },
+        { label: 'Informacion Personal' },
         { label: 'Historial del Paciente' }
     ];
 
@@ -232,7 +232,7 @@ export function RegistroPaciente() {
     // Función para validar la cédula
     const validateCedula = async () => {
         if (!formData.cedula.trim()) {
-            toast.error('Por favor, ingrese una cédula válida para validar.');
+            toast.error('Por favor, ingrese una cedula valida para validar.');
             return;
         }
 
@@ -247,20 +247,20 @@ export function RegistroPaciente() {
             });
 
             if (!response.ok) {
-                throw new Error('Error en la validación de la cédula');
+                throw new Error('Error en la validacion de la cedula');
             }
 
             const data = await response.json();
             if (data.valid) {
                 setIsCedulaValid(true);
-                toast.success('Cédula validada correctamente.');
+                toast.success('Cedula validada correctamente.');
             } else {
                 setIsCedulaValid(false);
                 setShowCedulaModal(true);
             }
         } catch (error) {
-            console.error("Error al validar la cédula:", error);
-            toast.error('Error al validar la cédula.');
+            console.error("Error al validar la cedula:", error);
+            toast.error('Error al validar la cedula.');
         } finally {
             setIsCedulaValidating(false);
         }
@@ -291,14 +291,14 @@ export function RegistroPaciente() {
                             <div className="flex flex-col relative">
                                 <label htmlFor="cedula" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaIdBadge className="mr-2 text-xl" />
-                                    Cédula *
+                                    Cedula *
                                 </label>
                                 <InputText
                                     id="cedula"
                                     name="cedula"
                                     value={formData.cedula}
                                     onChange={handleChange}
-                                    placeholder="Ingrese su cédula"
+                                    placeholder="Ingrese su cedula"
                                     className={`w-full p-3 pl-10 text-lg rounded-md border ${errors.cedula ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     required
                                 />
@@ -312,7 +312,7 @@ export function RegistroPaciente() {
                                     className="absolute right-2 top-10 p-button-text p-button-rounded p-button-success"
                                     onClick={validateCedula}
                                     loading={isCedulaValidating}
-                                    tooltip="Validar Cédula"
+                                    tooltip="Validar Cedula"
                                     tooltipOptions={{ position: 'top' }}
                                     type="button"
                                 />
@@ -322,7 +322,7 @@ export function RegistroPaciente() {
                             <div className="flex flex-col">
                                 <label htmlFor="genero" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaVenusMars className="mr-2 text-xl" />
-                                    Género *
+                                    Genero *
                                 </label>
                                 <Dropdown
                                     id="genero"
@@ -331,7 +331,7 @@ export function RegistroPaciente() {
                                     options={generos}
                                     onChange={(e) => handleDropdownChange(e, 'genero')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.genero ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione su género"
+                                    placeholder="Seleccione su genero"
                                     required
                                 />
                                 {errors.genero && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -380,31 +380,31 @@ export function RegistroPaciente() {
                             </div>
                             {/* Dirección */}
                             <InputWithIcon
-                                label="Dirección"
+                                label="Direccion"
                                 name="direccion"
                                 value={formData.direccion}
                                 onChange={handleChange}
-                                placeholder="Ingrese su dirección"
+                                placeholder="Ingrese su direccion"
                                 error={errors.direccion}
                                 icon={FaMapMarkedAlt}
                             />
                             {/* Teléfono */}
                             <InputWithIcon
-                                label="Teléfono"
+                                label="Telefono"
                                 name="telefono"
                                 value={formData.telefono}
                                 onChange={handleChange}
-                                placeholder="Ingrese su teléfono fijo"
+                                placeholder="Ingrese su telefono fijo"
                                 error={errors.telefono}
                                 icon={FaPhone}
                             />
                             {/* Teléfono Celular */}
                             <InputWithIcon
-                                label="Teléfono Celular"
+                                label="Telefono Celular"
                                 name="telefonoCelular"
                                 value={formData.telefonoCelular}
                                 onChange={handleChange}
-                                placeholder="Ingrese su teléfono celular"
+                                placeholder="Ingrese su telefono celular"
                                 error={errors.telefonoCelular}
                                 icon={FaMobileAlt}
                             />
@@ -457,7 +457,7 @@ export function RegistroPaciente() {
                             <div className="flex flex-col">
                                 <label htmlFor="tipoAmputacion" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaWheelchair className="mr-2 text-xl" />
-                                    Tipo de Amputación *
+                                    Tipo de Amputacion *
                                 </label>
                                 <Dropdown
                                     id="tipoAmputacion"
@@ -466,7 +466,7 @@ export function RegistroPaciente() {
                                     options={tiposAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'tipoAmputacion')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.tipoAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione el tipo de amputación"
+                                    placeholder="Seleccione el tipo de amputacion"
                                     required
                                 />
                                 {errors.tipoAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -475,7 +475,7 @@ export function RegistroPaciente() {
                             <div className="flex flex-col">
                                 <label htmlFor="ladoAmputacion" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaWheelchair className="mr-2 text-xl" />
-                                    Lado de Amputación *
+                                    Lado de Amputacion *
                                 </label>
                                 <Dropdown
                                     id="ladoAmputacion"
@@ -484,7 +484,7 @@ export function RegistroPaciente() {
                                     options={ladosAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'ladoAmputacion')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.ladoAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione el lado de amputación"
+                                    placeholder="Seleccione el lado de amputacion"
                                     required
                                 />
                                 {errors.ladoAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -493,7 +493,7 @@ export function RegistroPaciente() {
                             <div className="flex flex-col">
                                 <label htmlFor="fechaAmputacion" className="block text-lg font-medium mb-2 flex items-center">
                                     <FaCalendarAlt className="mr-2 text-xl" />
-                                    Fecha de Amputación *
+                                    Fecha de Amputacion *
                                 </label>
                                 <Calendar
                                     id="fechaAmputacion"
@@ -508,7 +508,7 @@ export function RegistroPaciente() {
                                     }}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.fechaAmputacion ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                     dateFormat="dd/mm/yy"
-                                    placeholder="Seleccione la fecha de amputación"
+                                    placeholder="Seleccione la fecha de amputacion"
                                     required
                                 />
                                 {errors.fechaAmputacion && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -526,7 +526,7 @@ export function RegistroPaciente() {
                                     options={causasAmputacion}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'causa')}
                                     className={`w-full p-3 text-lg rounded-md border ${errors.causa ? 'p-invalid border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                                    placeholder="Seleccione la causa de la amputación"
+                                    placeholder="Seleccione la causa de la amputacion"
                                     required
                                 />
                                 {errors.causa && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio.</span>}
@@ -542,7 +542,7 @@ export function RegistroPaciente() {
                                     name="terapia"
                                     value={historialData.terapia}
                                     options={[
-                                        { label: 'Sí', value: true },
+                                        { label: 'Si', value: true },
                                         { label: 'No', value: false }
                                     ]}
                                     onChange={(e) => handleDropdownHistorialChange(e, 'terapia')}
@@ -580,7 +580,7 @@ export function RegistroPaciente() {
                     {/* Botones de Navegación */}
                     <div className="flex justify-between mt-8">
                         <Button
-                            label={currentStep === 0 ? "Descartar" : "Atrás"}
+                            label={currentStep === 0 ? "Descartar" : "Atras"}
                             className={`p-button-danger p-3 text-lg shadow-lg rounded-md ${currentStep === 0 ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
                             onClick={() => {
                                 if (currentStep === 0) {
@@ -611,7 +611,7 @@ export function RegistroPaciente() {
                     </DialogHeader>
                     <DialogDescription>
                         <FaComment className="mr-2 text-xl inline-block" />
-                        ¿Estás seguro de que deseas cancelar el registro? Los datos ingresados no se guardarán.
+                        ¿Estas seguro de que deseas cancelar el registro? Los datos ingresados no se guardaran.
                     </DialogDescription>
                     <DialogFooter>
                         <Button
@@ -621,7 +621,7 @@ export function RegistroPaciente() {
                             style={{ backgroundColor: 'transparent', color: '#6B7280' }} // Gris claro
                         />
                         <Button
-                            label="Sí"
+                            label="Si"
                             className="p-button-danger p-3"
                             onClick={() => { resetForm(); setShowCancelDialog(false); }}
                             style={{ backgroundColor: '#EF4444', borderColor: '#EF4444' }} // Rojo
@@ -632,11 +632,11 @@ export function RegistroPaciente() {
             {/* Confirmación de cédula inválida */}
             <ConfirmationModal
                 isOpen={showCedulaModal}
-                title="Cédula No Validada"
+                title="Cedula No Validada"
                 description={
                     <div className="flex items-center">
                         <FaIdBadge className="mr-2 text-2xl text-red-500" />
-                        La cédula no está validada y no se reconoce. ¿Deseas continuar con el registro del paciente?
+                        La cedula no esta validada y no se reconoce. ¿Deseas continuar con el registro del paciente?
                     </div>
                 }
                 onConfirm={() => {

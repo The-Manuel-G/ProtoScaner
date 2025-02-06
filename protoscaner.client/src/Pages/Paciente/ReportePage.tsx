@@ -45,9 +45,6 @@ const ReportePage: React.FC = () => {
         {
             name: "Estadísticas",
             subMenu: [
-                { name: "Distribución de Edad", component: <DistribucionEdadChart /> },
-                { name: "Mantenimientos Activos", component: <MantenimientosActivosChart /> },
-                { name: "Total Pacientes", component: <ReusableCard /> },
                 { name: "Distribucion por causa ", component: <DistribucionCausasPolarAreaChart /> },
 
                 

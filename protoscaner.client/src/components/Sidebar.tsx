@@ -53,7 +53,7 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
                 />
                 {sidebarOpen && (
                     <h2 className="text-white text-lg md:text-xl font-bold">
-                        ProtoScanner3D
+                        ProtoSystem
                     </h2>
                 )}
             </div>

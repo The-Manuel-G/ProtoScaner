@@ -22,9 +22,9 @@ const EstatusProtesisComponent: React.FC = () => {
             const response = await getPacientesPorEstatusProtesis();
             setEstatusProtesis(response.data);
         } catch (err) {
-            console.error('Error al obtener estatus de prótesis:', err);
-            setError('Error al cargar los datos de estatus de prótesis.');
-            toastRef.current?.show({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de estatus de prótesis.', life: 3000 });
+            console.error('Error al obtener estatus de protesis:', err);
+            setError('Error al cargar los datos de estatus de protesis.');
+            toastRef.current?.show({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los datos de estatus de protesis.', life: 3000 });
         } finally {
             setLoading(false);
         }
@@ -85,7 +85,7 @@ const EstatusProtesisComponent: React.FC = () => {
             },
             title: {
                 display: true,
-                text: 'Distribución de Pacientes por Estatus de Prótesis',
+                text: 'Distribucion de Pacientes por Estatus de Protesis',
                 font: {
                     size: 18,
                     weight: 'bold'

@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\""
+  },
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,

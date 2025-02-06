@@ -91,7 +91,7 @@ export const estatusProtesis = [
     { label: 'Pendiente Dise\u00F1o 2', value: 3 },
     { label: 'Impreso 2', value: 4 },
     { label: 'Entregado', value: 5 },
-    { labe: 'Descartado', value: 6 }
+   
 ];
 
 

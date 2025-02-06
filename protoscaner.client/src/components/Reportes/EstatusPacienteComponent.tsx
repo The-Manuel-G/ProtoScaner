@@ -84,7 +84,7 @@ const EstatusPacienteComponent: React.FC = () => {
             },
             title: {
                 display: true,
-                text: 'Distribución de Estatus de Pacientes',
+                text: 'Distribucion de Estatus de Pacientes',
                 font: {
                     size: 18,
                     weight: 'bold'

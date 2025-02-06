@@ -17,7 +17,7 @@ const DistribucionGeneroDoughnutChart: React.FC = () => {
                 const response = await getDistribucionGenero();
                 const data: GeneroDistribucion[] = response.data;
 
-                console.log('Datos de Distribución de Género:', data); // Depuración
+                console.log('Datos de Distribucion de Genero:', data); // Depuración
 
                 const labels = data.map(item => item.genero);
                 const counts = data.map(item => item.cantidad);
@@ -60,7 +60,7 @@ const DistribucionGeneroDoughnutChart: React.FC = () => {
 
                 setLoading(false); // Datos cargados
             } catch (error) {
-                console.error('Error al obtener los datos de Distribución de Género:', error);
+                console.error('Error al obtener los datos de Distribución de Genero:', error);
                 setLoading(false); // Terminar carga aunque haya error
             }
         };
